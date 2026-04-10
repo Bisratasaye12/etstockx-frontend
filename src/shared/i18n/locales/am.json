@@ -1,0 +1,98 @@
+{
+  "common": {
+    "appName": "EtStockX",
+    "tagline": "ዲጂታል የአክሲዮን ልውውጥ እና ብሮከሪግ",
+    "loading": "በመጫን ላይ…",
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ",
+    "submit": "ላክ",
+    "back": "ተመለስ",
+    "optional": "አማራጭ"
+  },
+  "nav": {
+    "home": "መነሻ",
+    "market": "ገበያ",
+    "dashboard": "ዳሽቦርድ",
+    "profile": "መገለጫ",
+    "brokers": "ብሮከሮች",
+    "adminBrokers": "የብሮከር ማረጋገጫ",
+    "signIn": "ግባ",
+    "signOut": "ውጣ",
+    "register": "ተመዝግብ"
+  },
+  "home": {
+    "title": "የባንክ ደረጃ ከንግድ ቅድመ-ንግድ መስራት",
+    "description": "እንደ ባለአክሲዮን ወይም ብሮከር ይመዝገቡ፣ ማረጋገጫ ያጠናቅቁ እና ከECMA ጋር የተጣጣመ መሳሪያዎችን ይድረሱ።",
+    "ctaRegister": "መለያ ፍጠር",
+    "ctaMarket": "ገበያን ይመልከቱ (በቅርቡ)"
+  },
+  "auth": {
+    "loginTitle": "ግባ",
+    "registerTitle": "መለያ ፍጠር",
+    "email": "ኢሜይል",
+    "password": "የይለፍ ቃል",
+    "otp": "የማረጋገጫ ኮድ",
+    "otpHint": "MFA ሲነቃ ያስፈልጋል።",
+    "signInButton": "ግባ",
+    "registerButton": "ተመዝግብ",
+    "noAccount": "መለያ የለዎትም?",
+    "hasAccount": "መለያ አለዎት?",
+    "role": "ሚና",
+    "roleClient": "ደንበኛ (ኢንቨስተር)",
+    "roleBroker": "ብሮከር",
+    "fullName": "ሙሉ ስም",
+    "phone": "ስልክ",
+    "preferredLang": "የሚመርጡት ቋንቋ",
+    "licenseNumber": "የፍቃድ ቁጥር",
+    "institution": "ተቋም",
+    "ecmaReference": "ECMA ማጣቀሻ",
+    "registerSuccess": "መለያዎን ለማረጋገጫ ኢሜይልዎን ይመልከቱ።",
+    "verifyTitle": "የኢሜይል ማረጋገጫ",
+    "verifySuccess": "ኢሜይልዎ ተረጋግጧል። ሊገቡ ይችላሉ።",
+    "verifyFailed": "ማረጋገጫ አልተሳካም።",
+    "resendVerification": "የማረጋገጫ ኢሜይል እንደገና ላክ"
+  },
+  "dashboard": {
+    "title": "ዳሽቦርድ",
+    "welcome": "እንኳን በደህና መጡ",
+    "role": "ሚና",
+    "activated": "ኢንቨስተር ንቁ",
+    "notActivated": "የንግድ እርምጃዎችን ለመክፈት መገለጫዎን ያጠናቅቁ።",
+    "stubTrade": "የንግድ ሞዱል ሲገኝ የንግድ ቦታ ይታያል።",
+    "stubMarket": "የገበያ ሞዱል ሲገኝ ዝርዝሮች ይታያሉ።"
+  },
+  "profile": {
+    "clientTitle": "የኢንቨስተር መገለጫ",
+    "brokerTitle": "የብሮከር መገለጫ",
+    "completeTitle": "የኢንቨስተር መገለጫን አጠናቅቅ",
+    "completeHint": "ኢንቨስተር ሁኔታን ለማንቃት ሁሉም መስኮች ያስፈልጋሉ።",
+    "riskProfile": "የአደጋ መገለጫ",
+    "address": "አድራሻ",
+    "contactPerson": "የአግኙት ሰው",
+    "settlementBank": "የክፍያ ባንክ",
+    "accountNickname": "የመለያ ስም",
+    "kycStatus": "የKYC ሁኔታ",
+    "profileComplete": "መገለጫ ተጠናቋል",
+    "watchlist": "የመከታተያ ዝርዝር",
+    "listingId": "የዝርዝር መለያ (UUID)",
+    "addListing": "ወደ ዝርዝር ጨምር",
+    "remove": "አስወግድ",
+    "brokersDirectory": "የብሮከሮች ማውጫ",
+    "acceptingRequests": "ጥያቄዎችን በመቀበል ላይ",
+    "bio": "የግል ታሪክ",
+    "specializations": "ልዩ ችሎታዎች (በኮማ የተከፈለ)",
+    "isAccepting": "አዲስ ጥያቄዎችን መቀበል"
+  },
+  "admin": {
+    "title": "በመጠባበቅ ላይ ያሉ የብሮከር ማመልከቻዎች",
+    "empty": "ምንም በመጠባበቅ ላይ የለም።",
+    "approve": "አጽድቅ",
+    "reject": "አትቀበል",
+    "view": "ዝርዝር"
+  },
+  "errors": {
+    "generic": "ችግር ተፈጥሯል።",
+    "unauthorized": "መግባት ያስፈልግዎታል።",
+    "forbidden": "ወደዚህ ገጽ መዳረሻ የለዎትም።"
+  }
+}

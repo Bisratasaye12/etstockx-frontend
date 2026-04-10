@@ -1,0 +1,98 @@
+{
+  "common": {
+    "appName": "EtStockX",
+    "tagline": "Digital stock exchange and brokerage",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "optional": "Optional"
+  },
+  "nav": {
+    "home": "Home",
+    "market": "Market",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "brokers": "Brokers",
+    "adminBrokers": "Broker verification",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "register": "Register"
+  },
+  "home": {
+    "title": "Institutional-grade pre-trade coordination",
+    "description": "Register as an investor or broker, complete verification, and access tools aligned with ECMA expectations.",
+    "ctaRegister": "Create account",
+    "ctaMarket": "Explore market (coming soon)"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "registerTitle": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "otp": "Authenticator code",
+    "otpHint": "Required when MFA is enabled.",
+    "signInButton": "Sign in",
+    "registerButton": "Register",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?",
+    "role": "Role",
+    "roleClient": "Client (investor)",
+    "roleBroker": "Broker",
+    "fullName": "Full name",
+    "phone": "Phone",
+    "preferredLang": "Preferred language",
+    "licenseNumber": "License number",
+    "institution": "Institution",
+    "ecmaReference": "ECMA reference",
+    "registerSuccess": "Check your email to verify your account.",
+    "verifyTitle": "Email verification",
+    "verifySuccess": "Your email is verified. You can sign in.",
+    "verifyFailed": "Verification failed.",
+    "resendVerification": "Resend verification email"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "role": "Role",
+    "activated": "Investor activated",
+    "notActivated": "Complete your profile to unlock trading actions.",
+    "stubTrade": "Trading workspace will appear when the Trade module is available.",
+    "stubMarket": "Listings and search will appear when the Market module is available."
+  },
+  "profile": {
+    "clientTitle": "Investor profile",
+    "brokerTitle": "Broker profile",
+    "completeTitle": "Complete investor profile",
+    "completeHint": "All fields are required to activate investor status.",
+    "riskProfile": "Risk profile",
+    "address": "Address",
+    "contactPerson": "Contact person",
+    "settlementBank": "Settlement bank",
+    "accountNickname": "Account nickname",
+    "kycStatus": "KYC status",
+    "profileComplete": "Profile complete",
+    "watchlist": "Watchlist",
+    "listingId": "Listing ID (UUID)",
+    "addListing": "Add to watchlist",
+    "remove": "Remove",
+    "brokersDirectory": "Broker directory",
+    "acceptingRequests": "Accepting requests",
+    "bio": "Bio",
+    "specializations": "Specializations (comma-separated)",
+    "isAccepting": "Accepting new requests"
+  },
+  "admin": {
+    "title": "Pending broker applications",
+    "empty": "No pending applications.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "view": "Details"
+  },
+  "errors": {
+    "generic": "Something went wrong.",
+    "unauthorized": "You need to sign in.",
+    "forbidden": "You do not have access to this page."
+  }
+}
