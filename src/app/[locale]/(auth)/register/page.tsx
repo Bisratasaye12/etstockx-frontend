@@ -30,15 +30,19 @@ export default async function RegisterPage() {
     <div className="grid min-h-screen w-full lg:grid-cols-[minmax(280px,38%)_1fr]">
       <aside className="bg-primary text-primary-foreground flex flex-col justify-between gap-10 px-8 py-10 max-lg:px-6 max-lg:py-8">
         <div className="flex flex-col gap-10">
-          <Image
-            src="/EtStockX.svg"
-            alt={tCommon("appName")}
-            width={200}
-            height={44}
-            className="h-9 w-auto max-w-[200px] shrink-0 brightness-0 invert"
-          />
+          <div className="relative h-16 w-full min-w-0 sm:h-18">
+            <Image
+              src="/EtStockX.svg"
+              alt={tCommon("appName")}
+              fill
+              className="object-contain object-left brightness-0 invert"
+              sizes="(max-width: 1024px) 100vw, min(38vw, 420px)"
+              unoptimized
+              priority
+            />
+          </div>
           <div>
-            <h1 className="font-heading text-3xl leading-tight font-bold tracking-tight md:text-4xl">
+            <h1 className="font-heading text-primary-foreground text-3xl leading-tight font-bold tracking-tight md:text-4xl">
               {t("registerHeroTitle")}
             </h1>
           </div>

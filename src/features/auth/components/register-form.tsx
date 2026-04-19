@@ -22,13 +22,17 @@ function mapPersonaToRole(persona: SignupPersona): UserRole {
   return "Client";
 }
 
-function isWeakPassword(password: string): boolean {
-  if (password.length < 8) return true;
-  if (!/[A-Z]/.test(password)) return true;
-  if (!/[a-z]/.test(password)) return true;
-  if (!/[0-9]/.test(password)) return true;
-  return false;
+/** Mirrors RegisterUserCommandValidator: 8+ chars, upper, lower, digit, special. */
+function passwordMeetsApiRules(password: string): boolean {
+  if (password.length < 8) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[0-9]/.test(password)) return false;
+  if (!/[^A-Za-z0-9]/.test(password)) return false;
+  return true;
 }
+
+const FULL_NAME_MAX = 255;
 
 export function RegisterForm() {
   const t = useTranslations("auth");
@@ -46,7 +50,6 @@ export function RegisterForm() {
   const [institution, setInstitution] = useState("");
   const [ecmaReference, setEcmaReference] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [touchedPassword, setTouchedPassword] = useState(false);
@@ -54,7 +57,7 @@ export function RegisterForm() {
 
   const role = useMemo(() => mapPersonaToRole(persona), [persona]);
 
-  const passwordWeak = password.length > 0 && isWeakPassword(password);
+  const passwordWeak = password.length > 0 && !passwordMeetsApiRules(password);
   const passwordMismatch =
     confirmPassword.length > 0 && confirmPassword !== password;
 
@@ -64,7 +67,6 @@ export function RegisterForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setMessage(null);
     setTouchedPassword(true);
     setTouchedConfirm(true);
 
@@ -72,8 +74,26 @@ export function RegisterForm() {
       setError(t("termsRequired"));
       return;
     }
-    if (isWeakPassword(password)) {
-      setError(t("weakPassword"));
+    const fullNameTrimmed = fullName.trim();
+    if (!fullNameTrimmed) {
+      setError(t("fullNameRequired"));
+      return;
+    }
+    if (fullNameTrimmed.length > FULL_NAME_MAX) {
+      setError(t("fullNameTooLong"));
+      return;
+    }
+
+    const emailTrimmed = email.trim();
+    if (!emailTrimmed) {
+      setError(t("emailRequired"));
+      return;
+    }
+
+    const preferredLang = locale === "am" ? "am" : "en";
+
+    if (!passwordMeetsApiRules(password)) {
+      setError(t("passwordRulesHint"));
       return;
     }
     if (password !== confirmPassword) {
@@ -81,25 +101,37 @@ export function RegisterForm() {
       return;
     }
 
+    let licenseForApi: string | null = null;
+    if (role === "Broker" || role === "Dealer") {
+      const trimmed = licenseNumber.trim();
+      if (!trimmed) {
+        setError(t("licenseRequired"));
+        return;
+      }
+      licenseForApi = trimmed;
+    }
+
     setPending(true);
     try {
       const body: RegisterPayload = {
         role,
-        email,
+        email: emailTrimmed,
         password,
-        fullName,
-        phone: phone || null,
-        preferredLang: locale,
-        licenseNumber:
-          role === "Broker" || role === "Dealer" ? licenseNumber : null,
+        fullName: fullNameTrimmed,
+        phone: phone.trim() ? phone.trim() : null,
+        preferredLang,
+        licenseNumber: licenseForApi,
         institution:
-          role === "Broker" || role === "Dealer" ? institution || null : null,
+          role === "Broker" || role === "Dealer"
+            ? institution.trim() || null
+            : null,
         ecmaReference:
-          role === "Broker" || role === "Dealer" ? ecmaReference || null : null,
+          role === "Broker" || role === "Dealer"
+            ? ecmaReference.trim() || null
+            : null,
       };
       await browserApi.post("/v1/auth/register", body);
-      setMessage(t("registerSuccess"));
-      setTimeout(() => router.push("/login"), 2000);
+      router.push(`/verify-email?email=${encodeURIComponent(emailTrimmed)}`);
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: string } } };
       setError(ax.response?.data?.error ?? "Registration failed");
@@ -167,12 +199,12 @@ export function RegisterForm() {
                     selected && "border-primary ring-primary/25 ring-2",
                   )}
                 >
-                  <div className="flex w-full items-start justify-between gap-2">
-                    <span className="bg-muted text-muted-foreground flex size-9 items-center justify-center rounded-lg">
-                      <Icon className="size-4" aria-hidden />
+                  <div className="relative w-full min-h-9">
+                    <span className="bg-muted text-muted-foreground inline-flex size-9 items-center justify-center rounded-lg">
+                      <Icon className="size-4 shrink-0" aria-hidden />
                     </span>
                     {badge === "verification" ? (
-                      <Badge className="bg-brand-teal border-0 text-[0.65rem] font-semibold tracking-wide text-white uppercase">
+                      <Badge className="bg-brand-teal absolute -top-7 right-0 z-10 max-w-[min(100%,11rem)] border-0 text-right text-[0.65rem] leading-tight font-semibold tracking-wide whitespace-normal text-white uppercase">
                         {t("verificationRequired")}
                       </Badge>
                     ) : null}
@@ -192,28 +224,35 @@ export function RegisterForm() {
         </fieldset>
 
         <div className="flex flex-col gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="reg-fullName">{t("fullNameBilingualLabel")}</Label>
-            <Input
-              id="reg-fullName"
-              required
-              autoComplete="name"
-              placeholder={t("fullNamePlaceholder")}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="reg-email">{t("emailBilingualLabel")}</Label>
-            <Input
-              id="reg-email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+            <div className="space-y-2">
+              <Label htmlFor="reg-fullName">
+                {t("fullNameBilingualLabel")}
+              </Label>
+              <Input
+                id="reg-fullName"
+                name="fullName"
+                required
+                maxLength={FULL_NAME_MAX}
+                autoComplete="name"
+                placeholder={t("fullNamePlaceholder")}
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reg-email">{t("emailBilingualLabel")}</Label>
+              <Input
+                id="reg-email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="reg-phone">{t("phoneBilingualLabel")}</Label>
@@ -226,49 +265,68 @@ export function RegisterForm() {
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reg-password">{t("password")}</Label>
-            <Input
-              id="reg-password"
-              type="password"
-              required
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onBlur={() => setTouchedPassword(true)}
-              aria-invalid={showWeakHint || undefined}
-            />
-            {showWeakHint ? (
-              <p
-                className="text-destructive flex items-start gap-1.5 text-sm"
-                role="alert"
-              >
-                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-                {t("weakPassword")}
-              </p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="reg-confirm">{t("confirmPassword")}</Label>
-            <Input
-              id="reg-confirm"
-              type="password"
-              required
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              onBlur={() => setTouchedConfirm(true)}
-              aria-invalid={showMismatchHint || undefined}
-            />
-            {showMismatchHint ? (
-              <p
-                className="text-destructive flex items-start gap-1.5 text-sm"
-                role="alert"
-              >
-                <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-                {t("passwordMismatch")}
-              </p>
-            ) : null}
+          <div className="flex flex-col gap-3">
+            <p
+              id="reg-password-rules"
+              className="text-muted-foreground text-xs leading-relaxed"
+            >
+              {t("passwordRulesHint")}
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="reg-password">{t("password")}</Label>
+                <Input
+                  id="reg-password"
+                  name="password"
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouchedPassword(true)}
+                  aria-invalid={showWeakHint || undefined}
+                  aria-describedby="reg-password-rules"
+                />
+                {showWeakHint ? (
+                  <p
+                    className="text-destructive flex items-start gap-1.5 text-sm"
+                    role="alert"
+                  >
+                    <AlertCircle
+                      className="mt-0.5 size-4 shrink-0"
+                      aria-hidden
+                    />
+                    {t("passwordRulesHint")}
+                  </p>
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-confirm">{t("confirmPassword")}</Label>
+                <Input
+                  id="reg-confirm"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onBlur={() => setTouchedConfirm(true)}
+                  aria-invalid={showMismatchHint || undefined}
+                />
+                {showMismatchHint ? (
+                  <p
+                    className="text-destructive flex items-start gap-1.5 text-sm"
+                    role="alert"
+                  >
+                    <AlertCircle
+                      className="mt-0.5 size-4 shrink-0"
+                      aria-hidden
+                    />
+                    {t("passwordMismatch")}
+                  </p>
+                ) : null}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -337,12 +395,6 @@ export function RegisterForm() {
             {error}
           </p>
         ) : null}
-        {message ? (
-          <p className="text-success dark:text-success text-sm" role="status">
-            {message}
-          </p>
-        ) : null}
-
         <Button
           type="submit"
           size="lg"

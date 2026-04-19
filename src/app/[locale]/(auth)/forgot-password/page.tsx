@@ -1,10 +1,9 @@
 import Image from "next/image";
-import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
-import { Search, ShieldCheck, Target } from "lucide-react";
-import { VerifyEmailPanel } from "@/features/auth/components/verify-email-panel";
+import { RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
 
-export default async function VerifyEmailPage() {
+export default async function ForgotPasswordPage() {
   const t = await getTranslations("auth");
   const tCommon = await getTranslations("common");
   const year = new Date().getFullYear();
@@ -16,9 +15,9 @@ export default async function VerifyEmailPage() {
       body: t("verifyAsideValue1Body"),
     },
     {
-      Icon: Target,
-      title: t("verifyAsideValue2Title"),
-      body: t("verifyAsideValue2Body"),
+      Icon: RefreshCw,
+      title: t("forgotAsideValue2Title"),
+      body: t("forgotAsideValue2Body"),
     },
     {
       Icon: Search,
@@ -70,15 +69,7 @@ export default async function VerifyEmailPage() {
         </p>
       </aside>
       <div className="bg-background flex flex-col">
-        <Suspense
-          fallback={
-            <div className="text-muted-foreground flex flex-1 items-center justify-center p-8 text-sm">
-              …
-            </div>
-          }
-        >
-          <VerifyEmailPanel />
-        </Suspense>
+        <ForgotPasswordForm />
       </div>
     </div>
   );

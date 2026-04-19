@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@/auth";
 import { Link } from "@/shared/i18n/routing";
@@ -9,17 +10,25 @@ import { cn } from "@/shared/lib/utils";
 
 export async function SiteHeader() {
   const t = await getTranslations("nav");
+  const tCommon = await getTranslations("common");
   const session = await auth();
 
   return (
     <header className="border-border bg-card/80 supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50 border-b backdrop-blur">
       <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 md:h-16">
         <div className="flex min-w-0 flex-1 items-center gap-8 lg:gap-10">
-          <Link
-            href="/"
-            className="font-heading text-foreground shrink-0 text-lg font-bold tracking-tight"
-          >
-            ETStockX
+          <Link href="/" className="flex shrink-0 items-center">
+            <span className="relative block h-9 w-[168px] sm:h-10 sm:w-[188px]">
+              <Image
+                src="/EtStockX.svg"
+                alt={tCommon("appName")}
+                fill
+                className="object-contain object-left"
+                sizes="(max-width: 640px) 168px, 188px"
+                unoptimized
+                priority
+              />
+            </span>
           </Link>
           {session ? (
             <nav className="hidden flex-wrap items-center gap-4 text-sm sm:flex md:gap-6">
