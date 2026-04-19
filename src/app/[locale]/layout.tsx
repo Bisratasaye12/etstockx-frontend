@@ -2,14 +2,37 @@ import "../globals.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist_Mono,
+  Manrope,
+  Noto_Sans_Ethiopic,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 import { AppProviders } from "@/shared/providers/app-providers";
-import { SiteHeader } from "@/shared/ui/site-header";
 import { routing } from "@/shared/i18n/routing";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/** Body / UI labels — Stitch board + STITCH_UI_BRIEF.md §6 */
+const fontSans = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+/** Headlines — Stitch board */
+const fontHeading = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  display: "swap",
+});
+
+/** Amharic copy — STITCH_UI_BRIEF.md §6 (bilingual) */
+const fontEthiopic = Noto_Sans_Ethiopic({
+  variable: "--font-ethiopic",
+  subsets: ["ethiopic"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -39,17 +62,12 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${fontSans.variable} ${fontHeading.variable} ${fontEthiopic.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground flex min-h-screen flex-col font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
-          <AppProviders>
-            <SiteHeader />
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-              {children}
-            </main>
-          </AppProviders>
+          <AppProviders>{children}</AppProviders>
         </NextIntlClientProvider>
       </body>
     </html>

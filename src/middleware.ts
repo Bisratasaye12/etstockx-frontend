@@ -7,7 +7,7 @@ const intlMiddleware = createIntlMiddleware(routing);
 
 function isPublicPath(pathname: string): boolean {
   if (/^\/(en|am)$/.test(pathname)) return true;
-  return /^\/(en|am)\/(login|register|verify-email|market)(\/|$)/.test(
+  return /^\/(en|am)\/(login|register|verify-email|market|brokers)(\/|$)/.test(
     pathname,
   );
 }
