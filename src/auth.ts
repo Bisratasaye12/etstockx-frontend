@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { User } from "next-auth";
 import { getServerApiBaseUrl } from "@/shared/config/env";
-import type { LoginResult } from "@/shared/api/types";
+import type { LoginResultDto } from "@/shared/api/dtos/iam";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -30,13 +30,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         });
 
-        const data = (await res.json()) as LoginResult & { error?: string };
-        if (!res.ok || !data.accessToken) return null;
+        const data = (await res.json()) as LoginResultDto & { error?: string };
+        if (!res.ok || !data.accessToken || !data.refreshToken) return null;
 
         return {
           id: data.userId,
           email: credentials.email as string,
-          role: data.role,
+          role: data.role ?? "Client",
           isActivated: data.isActivated,
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,

@@ -5,7 +5,17 @@ import { useLocale, useTranslations } from "next-intl";
 import { AlertCircle, Briefcase, Tag, UserRound } from "lucide-react";
 import { useRouter } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
-import type { RegisterPayload, UserRole } from "@/shared/api/types";
+import type {
+  RegisterCreatedResponseDto,
+  RegisterUserRequestDto,
+  UserRole,
+} from "@/shared/api/dtos/iam";
+import { useAppDispatch } from "@/shared/store/hooks";
+import {
+  registrationFailed,
+  registrationSubmitting,
+  registrationSucceeded,
+} from "@/features/auth/model/auth-slice";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -35,6 +45,7 @@ function passwordMeetsApiRules(password: string): boolean {
 const FULL_NAME_MAX = 255;
 
 export function RegisterForm() {
+  const dispatch = useAppDispatch();
   const t = useTranslations("auth");
   const tNav = useTranslations("nav");
   const locale = useLocale();
@@ -112,8 +123,9 @@ export function RegisterForm() {
     }
 
     setPending(true);
+    dispatch(registrationSubmitting());
     try {
-      const body: RegisterPayload = {
+      const body: RegisterUserRequestDto = {
         role,
         email: emailTrimmed,
         password,
@@ -130,11 +142,22 @@ export function RegisterForm() {
             ? ecmaReference.trim() || null
             : null,
       };
-      await browserApi.post("/v1/auth/register", body);
+      const { data } = await browserApi.post<RegisterCreatedResponseDto>(
+        "/v1/auth/register",
+        body,
+      );
+      dispatch(
+        registrationSucceeded({
+          userId: data.userId,
+          message: data.message,
+        }),
+      );
       router.push(`/verify-email?email=${encodeURIComponent(emailTrimmed)}`);
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: string } } };
-      setError(ax.response?.data?.error ?? "Registration failed");
+      const msg = ax.response?.data?.error ?? "Registration failed";
+      dispatch(registrationFailed(msg));
+      setError(msg);
     } finally {
       setPending(false);
     }

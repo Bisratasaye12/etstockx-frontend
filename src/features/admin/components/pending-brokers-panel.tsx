@@ -65,9 +65,11 @@ export function PendingBrokersPanel() {
                 key={app.id}
                 className="border-border space-y-2 rounded-lg border p-4"
               >
-                <p className="font-medium">{app.fullName}</p>
-                <p className="text-muted-foreground text-sm">{app.email}</p>
-                <p className="font-mono text-xs">{app.licenseNumber}</p>
+                <p className="font-medium">{app.fullName ?? "—"}</p>
+                <p className="text-muted-foreground text-sm">
+                  {app.email ?? "—"}
+                </p>
+                <p className="font-mono text-xs">{app.licenseNumber ?? "—"}</p>
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button
                     type="button"

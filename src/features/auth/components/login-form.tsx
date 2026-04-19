@@ -6,11 +6,14 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useRouter } from "@/shared/i18n/routing";
+import { setAuthError } from "@/features/auth/model/auth-slice";
+import { useAppDispatch } from "@/shared/store/hooks";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 
 export function LoginForm() {
+  const dispatch = useAppDispatch();
   const t = useTranslations("auth");
   const tNav = useTranslations("nav");
   const router = useRouter();
@@ -27,6 +30,7 @@ export function LoginForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    dispatch(setAuthError(null));
     setPending(true);
     try {
       const res = await signIn("credentials", {
@@ -36,7 +40,9 @@ export function LoginForm() {
         redirect: false,
       });
       if (res?.error) {
-        setError(t("loginInvalidCredentials"));
+        const msg = t("loginInvalidCredentials");
+        setError(msg);
+        dispatch(setAuthError(msg));
         return;
       }
       if (callbackUrl && callbackUrl.startsWith("/")) {
