@@ -12,6 +12,7 @@ import {
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { makeStore } from "@/shared/store";
 import { attachBrowserApiAuth } from "@/shared/api/browser-api";
+import { AuthReduxSync } from "@/features/auth/components/auth-redux-sync";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache(),
@@ -56,6 +57,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <ReduxProvider store={reduxStore}>
+          <AuthReduxSync />
           <ApiAuthBridge>{children}</ApiAuthBridge>
         </ReduxProvider>
         <ReactQueryDevtools initialIsOpen={false} />

@@ -1,8 +1,29 @@
 import NextAuth from "next-auth";
+import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { User } from "next-auth";
 import { getServerApiBaseUrl } from "@/shared/config/env";
-import type { LoginResult } from "@/shared/api/types";
+import type { LoginResultDto } from "@/shared/api/dtos/iam";
+
+class BackendCredentialsSignin extends CredentialsSignin {
+  code: string;
+
+  constructor(code: string) {
+    super();
+    this.code = code;
+  }
+}
+
+function mapBackendLoginErrorToCode(message?: string): string {
+  const m = (message ?? "").toLowerCase();
+  if (m.includes("pending verification")) return "pending_verification";
+  if (m.includes("verify your email")) return "email_not_verified";
+  if (m.includes("temporarily locked")) return "account_locked";
+  if (m.includes("rejected")) return "account_rejected";
+  if (m.includes("mfa code is required")) return "mfa_required";
+  if (m.includes("invalid mfa code")) return "mfa_invalid";
+  return "invalid_credentials";
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
@@ -17,7 +38,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         otpCode: { label: "OTP", type: "text" },
       },
       async authorize(credentials): Promise<User | null> {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email || !credentials?.password) {
+          throw new BackendCredentialsSignin("invalid_credentials");
+        }
 
         const apiUrl = getServerApiBaseUrl();
         const res = await fetch(`${apiUrl}/api/v1/auth/login`, {
@@ -30,13 +53,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         });
 
-        const data = (await res.json()) as LoginResult & { error?: string };
-        if (!res.ok || !data.accessToken) return null;
+        const data = (await res.json()) as LoginResultDto & { error?: string };
+        if (!res.ok || !data.accessToken || !data.refreshToken) {
+          throw new BackendCredentialsSignin(
+            mapBackendLoginErrorToCode(data.error),
+          );
+        }
 
         return {
           id: data.userId,
           email: credentials.email as string,
-          role: data.role,
+          role: data.role ?? "Client",
           isActivated: data.isActivated,
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,

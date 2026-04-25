@@ -1,35 +1,36 @@
-/** Mirrors EtStockX.Api JSON (camelCase). */
+/**
+ * Shared API shapes. IAM types live in `./dtos/iam` and are re-exported here for compatibility.
+ */
 
-export type UserRole = "Client" | "Broker" | "Dealer" | "Admin";
+export type {
+  UserRole,
+  LoginRequestDto,
+  LoginResultDto,
+  TokenRefreshResultDto,
+  RefreshTokenRequestDto,
+  RegisterUserRequestDto,
+  RegisterCreatedResponseDto,
+  ApiErrorBody,
+  SessionDto,
+  BrokerDocumentDto,
+  BrokerApplicationDto,
+  VerifyBrokerRequestDto,
+} from "./dtos/iam";
 
-export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
-  role: UserRole;
-  userId: string;
-  isActivated: boolean;
-}
+/** @deprecated Use `LoginResultDto` — kept for existing imports. */
+export type { LoginResultDto as LoginResult } from "./dtos/iam";
 
-export interface TokenRefreshResult {
-  accessToken: string;
-  refreshToken: string;
-}
+/** @deprecated Use `TokenRefreshResultDto`. */
+export type { TokenRefreshResultDto as TokenRefreshResult } from "./dtos/iam";
 
-export interface ApiErrorBody {
-  error?: string;
-}
+/** @deprecated Use `RegisterUserRequestDto`. */
+export type { RegisterUserRequestDto as RegisterPayload } from "./dtos/iam";
 
-export interface RegisterPayload {
-  role: UserRole;
-  email: string;
-  password: string;
-  fullName: string;
-  phone?: string | null;
-  preferredLang: string;
-  licenseNumber?: string | null;
-  institution?: string | null;
-  ecmaReference?: string | null;
-}
+/** @deprecated Use `BrokerApplicationDto`. */
+export type { BrokerApplicationDto as BrokerApplication } from "./dtos/iam";
+
+/** @deprecated Use `BrokerDocumentDto`. */
+export type { BrokerDocumentDto as BrokerDocument } from "./dtos/iam";
 
 export interface ClientProfile {
   userId: string;
@@ -70,33 +71,4 @@ export interface WatchlistItem {
   listingId: string;
   displayOrder: number;
   createdAt: string;
-}
-
-export interface UserSession {
-  sessionId: string;
-  deviceInfo: string | null;
-  ipAddress: string | null;
-  createdAt: string;
-  lastActivityAt: string;
-}
-
-export interface BrokerDocument {
-  id: string;
-  fileName: string;
-  documentType: string | null;
-  uploadedAt: string;
-}
-
-export interface BrokerApplication {
-  id: string;
-  userId: string;
-  fullName: string;
-  email: string;
-  licenseNumber: string;
-  institution: string | null;
-  ecmaReference: string | null;
-  status: string;
-  decisionReason: string | null;
-  submittedAt: string;
-  documents: BrokerDocument[];
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getServerApiBaseUrl } from "@/shared/config/env";
-import type { TokenRefreshResult } from "@/shared/api/types";
+import type { TokenRefreshResultDto } from "@/shared/api/dtos/iam";
 
 export async function POST(req: Request) {
   const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
@@ -25,8 +25,8 @@ export async function POST(req: Request) {
     body: JSON.stringify({ refreshToken }),
   });
 
-  const data = (await res.json()) as TokenRefreshResult & { error?: string };
-  if (!res.ok) {
+  const data = (await res.json()) as TokenRefreshResultDto & { error?: string };
+  if (!res.ok || !data.accessToken || !data.refreshToken) {
     return NextResponse.json(
       { error: data.error ?? "Refresh failed" },
       { status: 401 },
