@@ -231,6 +231,33 @@ export function VerifyEmailPanel() {
     );
   }
 
+  if (email && !isLinkMode) {
+    return (
+      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-6 py-10 md:px-12 lg:px-16">
+        <div className="border-border bg-card rounded-2xl border p-6 shadow-sm md:p-8">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+              <CheckCircle2 className="size-5 shrink-0" aria-hidden />
+              <p className="text-sm font-medium">
+                Check your email to verify your account.
+              </p>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              We sent a verification link to{" "}
+              <span className="font-medium">{email}</span>.
+            </p>
+            <Link
+              href="/login"
+              className={cn(buttonVariants({ size: "lg" }), "h-11 w-full")}
+            >
+              {t("verifyGoToLogin")}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const showVerifiedCard = linkStatus === "ok" && !isLinkMode;
 
   return (

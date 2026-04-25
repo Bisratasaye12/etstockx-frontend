@@ -30,7 +30,7 @@ export default async function RegisterPage() {
     <div className="grid min-h-screen w-full lg:grid-cols-[minmax(280px,38%)_1fr]">
       <aside className="bg-primary text-primary-foreground flex flex-col justify-between gap-10 px-8 py-10 max-lg:px-6 max-lg:py-8">
         <div className="flex flex-col gap-10">
-          <div className="relative h-16 w-full min-w-0 sm:h-18">
+          <div className="relative h-12 w-full min-w-0 sm:h-14">
             <Image
               src="/EtStockX.svg"
               alt={tCommon("appName")}

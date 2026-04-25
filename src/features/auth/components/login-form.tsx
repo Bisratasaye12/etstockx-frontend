@@ -8,6 +8,8 @@ import { AlertCircle, Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useRouter } from "@/shared/i18n/routing";
 import { setAuthError } from "@/features/auth/model/auth-slice";
 import { useAppDispatch } from "@/shared/store/hooks";
+import { browserApi } from "@/shared/api/browser-api";
+import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -27,12 +29,46 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  function mapSigninCodeToMessage(code: string): string {
+    switch (code) {
+      case "pending_verification":
+        return "Your account is pending verification by an administrator.";
+      case "email_not_verified":
+        return "Please verify your email address before logging in. Check your inbox for the verification link.";
+      case "account_locked":
+        return "Account is temporarily locked. Please try again later.";
+      case "account_rejected":
+        return "Your account has been rejected. Please contact support.";
+      case "mfa_required":
+        return "MFA code is required.";
+      case "mfa_invalid":
+        return "Invalid MFA code.";
+      default:
+        return t("loginInvalidCredentials");
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     dispatch(setAuthError(null));
     setPending(true);
     try {
+      // First call backend login directly so UI can show exact auth errors
+      // (pending verification, email not verified, lockout, MFA issues, etc.).
+      try {
+        await browserApi.post("/v1/auth/login", {
+          email,
+          password,
+          otpCode: otp.trim() ? otp.trim() : null,
+        });
+      } catch (backendErr) {
+        const msg = getApiErrorMessage(backendErr);
+        setError(msg);
+        dispatch(setAuthError(msg));
+        return;
+      }
+
       const res = await signIn("credentials", {
         email,
         password,
@@ -40,7 +76,26 @@ export function LoginForm() {
         redirect: false,
       });
       if (res?.error) {
-        const msg = t("loginInvalidCredentials");
+        let msg: string | null = null;
+        if (res.url) {
+          try {
+            const code = new URL(
+              res.url,
+              window.location.origin,
+            ).searchParams.get("code");
+            if (code) {
+              msg = mapSigninCodeToMessage(decodeURIComponent(code));
+            }
+          } catch {
+            // Ignore URL parsing errors and fallback below.
+          }
+        }
+        if (!msg) {
+          msg =
+            res.error === "CredentialsSignin"
+              ? t("loginInvalidCredentials")
+              : res.error;
+        }
         setError(msg);
         dispatch(setAuthError(msg));
         return;

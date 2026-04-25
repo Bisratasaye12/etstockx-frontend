@@ -62,6 +62,24 @@ export interface RegisterCreatedResponseDto {
   message: string;
 }
 
+/**
+ * Multipart field names for `POST /api/v1/auth/register/broker`.
+ * Note: backend currently expects PascalCase form keys.
+ */
+export interface RegisterBrokerMultipartRequestDto {
+  Role: "Broker" | "Dealer";
+  Email: string;
+  Password: string;
+  FullName: string;
+  Phone: string;
+  PreferredLang: string;
+  LicenseNumber: string;
+  Institution: string;
+  EcmaReference: string;
+  Documents: File[];
+  DocumentTypes?: string[];
+}
+
 // ─── POST /api/v1/auth/resend-verification ──────────────────────────────
 
 export interface ResendVerificationRequestDto {

@@ -5,6 +5,10 @@ import { routing } from "@/shared/i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+function getLocaleFromPath(pathname: string): "en" | "am" {
+  return pathname.startsWith("/am") ? "am" : "en";
+}
+
 function isPublicPath(pathname: string): boolean {
   if (/^\/(en|am)$/.test(pathname)) return true;
   return /^\/(en|am)\/(login|register|verify-email|forgot-password|market|brokers)(\/|$)/.test(
@@ -18,6 +22,7 @@ function isProtectedPath(pathname: string): boolean {
 
 export default auth((req) => {
   const path = req.nextUrl.pathname;
+  const locale = getLocaleFromPath(path);
 
   if (
     path.startsWith("/api") ||
@@ -29,13 +34,15 @@ export default auth((req) => {
   }
 
   if (isProtectedPath(path) && !req.auth) {
-    const url = new URL("/en/login", req.nextUrl.origin);
+    const url = new URL(`/${locale}/login`, req.nextUrl.origin);
     url.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(url);
   }
 
   if (/^\/(en|am)\/admin/.test(path) && req.auth?.user?.role !== "Admin") {
-    return NextResponse.redirect(new URL("/en/dashboard", req.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL(`/${locale}/dashboard`, req.nextUrl.origin),
+    );
   }
 
   if (
@@ -43,14 +50,18 @@ export default auth((req) => {
     req.auth?.user?.role !== "Broker" &&
     req.auth?.user?.role !== "Dealer"
   ) {
-    return NextResponse.redirect(new URL("/en/dashboard", req.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL(`/${locale}/dashboard`, req.nextUrl.origin),
+    );
   }
 
   if (
     /^\/(en|am)\/profile\/client/.test(path) &&
     req.auth?.user?.role !== "Client"
   ) {
-    return NextResponse.redirect(new URL("/en/dashboard", req.nextUrl.origin));
+    return NextResponse.redirect(
+      new URL(`/${locale}/dashboard`, req.nextUrl.origin),
+    );
   }
 
   if (!isPublicPath(path) && !isProtectedPath(path) && !req.auth) {

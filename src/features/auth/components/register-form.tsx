@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { AlertCircle, Briefcase, Tag, UserRound } from "lucide-react";
+import { AlertCircle, Briefcase, Eye, EyeOff, UserRound } from "lucide-react";
 import { useRouter } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
 import type {
   RegisterCreatedResponseDto,
+  RegisterBrokerMultipartRequestDto,
   RegisterUserRequestDto,
   UserRole,
 } from "@/shared/api/dtos/iam";
@@ -25,11 +26,25 @@ import { Separator } from "@/shared/ui/separator";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 
-type SignupPersona = "investor" | "broker" | "seller";
+type SignupPersona = "client" | "broker";
+
+function RequiredStar() {
+  return (
+    <span className="ml-1 align-middle text-red-600" aria-hidden>
+      *
+    </span>
+  );
+}
 
 function mapPersonaToRole(persona: SignupPersona): UserRole {
   if (persona === "broker") return "Broker";
   return "Client";
+}
+
+function extractDocumentType(fileName: string): string {
+  const parts = fileName.split(".");
+  if (parts.length < 2) return "unknown";
+  return parts.at(-1)?.toLowerCase() ?? "unknown";
 }
 
 /** Mirrors RegisterUserCommandValidator: 8+ chars, upper, lower, digit, special. */
@@ -43,6 +58,14 @@ function passwordMeetsApiRules(password: string): boolean {
 }
 
 const FULL_NAME_MAX = 255;
+const MAX_BROKER_DOCUMENTS = 5;
+const MAX_BROKER_DOCUMENTS_TOTAL_BYTES = 100 * 1024 * 1024;
+const ALLOWED_BROKER_DOCUMENT_EXTENSIONS = new Set([
+  "pdf",
+  "png",
+  "jpg",
+  "jpeg",
+]);
 
 export function RegisterForm() {
   const dispatch = useAppDispatch();
@@ -51,7 +74,7 @@ export function RegisterForm() {
   const locale = useLocale();
   const router = useRouter();
 
-  const [persona, setPersona] = useState<SignupPersona>("investor");
+  const [persona, setPersona] = useState<SignupPersona>("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -60,9 +83,12 @@ export function RegisterForm() {
   const [licenseNumber, setLicenseNumber] = useState("");
   const [institution, setInstitution] = useState("");
   const [ecmaReference, setEcmaReference] = useState("");
+  const [documents, setDocuments] = useState<File[]>([]);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touchedPassword, setTouchedPassword] = useState(false);
   const [touchedConfirm, setTouchedConfirm] = useState(false);
 
@@ -119,33 +145,95 @@ export function RegisterForm() {
         setError(t("licenseRequired"));
         return;
       }
+      if (documents.length === 0) {
+        setError("Please upload at least one verification document.");
+        return;
+      }
+      if (documents.length > MAX_BROKER_DOCUMENTS) {
+        setError(`You can upload up to ${MAX_BROKER_DOCUMENTS} documents.`);
+        return;
+      }
+      const invalidFile = documents.find(
+        (file) =>
+          !ALLOWED_BROKER_DOCUMENT_EXTENSIONS.has(
+            extractDocumentType(file.name),
+          ),
+      );
+      if (invalidFile) {
+        setError(
+          `Document '${invalidFile.name}' must be a PDF, PNG, or JPEG file.`,
+        );
+        return;
+      }
+      const totalBytes = documents.reduce((sum, file) => sum + file.size, 0);
+      if (totalBytes > MAX_BROKER_DOCUMENTS_TOTAL_BYTES) {
+        setError("Total document size must be 100MB or less.");
+        return;
+      }
       licenseForApi = trimmed;
     }
 
     setPending(true);
     dispatch(registrationSubmitting());
     try {
-      const body: RegisterUserRequestDto = {
-        role,
-        email: emailTrimmed,
-        password,
-        fullName: fullNameTrimmed,
-        phone: phone.trim() ? phone.trim() : null,
-        preferredLang,
-        licenseNumber: licenseForApi,
-        institution:
-          role === "Broker" || role === "Dealer"
-            ? institution.trim() || null
-            : null,
-        ecmaReference:
-          role === "Broker" || role === "Dealer"
-            ? ecmaReference.trim() || null
-            : null,
-      };
-      const { data } = await browserApi.post<RegisterCreatedResponseDto>(
-        "/v1/auth/register",
-        body,
-      );
+      let data: RegisterCreatedResponseDto;
+      if (role === "Broker" || role === "Dealer") {
+        const brokerPayload: RegisterBrokerMultipartRequestDto = {
+          Role: role,
+          Email: emailTrimmed,
+          Password: password,
+          FullName: fullNameTrimmed,
+          Phone: phone.trim(),
+          PreferredLang: preferredLang,
+          LicenseNumber: licenseForApi ?? "",
+          Institution: institution.trim(),
+          EcmaReference: ecmaReference.trim(),
+          Documents: documents,
+          DocumentTypes: documents.map((file) =>
+            extractDocumentType(file.name),
+          ),
+        };
+        const formData = new FormData();
+        formData.append("Role", brokerPayload.Role);
+        formData.append("Email", brokerPayload.Email);
+        formData.append("Password", brokerPayload.Password);
+        formData.append("FullName", brokerPayload.FullName);
+        formData.append("Phone", brokerPayload.Phone);
+        formData.append("PreferredLang", brokerPayload.PreferredLang);
+        formData.append("LicenseNumber", brokerPayload.LicenseNumber);
+        formData.append("Institution", brokerPayload.Institution);
+        formData.append("EcmaReference", brokerPayload.EcmaReference);
+        brokerPayload.Documents.forEach((file) => {
+          formData.append("Documents", file);
+        });
+        (brokerPayload.DocumentTypes ?? []).forEach((documentType) => {
+          formData.append("DocumentTypes", documentType);
+        });
+
+        const response = await browserApi.post<RegisterCreatedResponseDto>(
+          "/v1/auth/register/broker",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } },
+        );
+        data = response.data;
+      } else {
+        const body: RegisterUserRequestDto = {
+          role,
+          email: emailTrimmed,
+          password,
+          fullName: fullNameTrimmed,
+          phone: phone.trim() ? phone.trim() : null,
+          preferredLang,
+          licenseNumber: null,
+          institution: null,
+          ecmaReference: null,
+        };
+        const response = await browserApi.post<RegisterCreatedResponseDto>(
+          "/v1/auth/register",
+          body,
+        );
+        data = response.data;
+      }
       dispatch(
         registrationSucceeded({
           userId: data.userId,
@@ -171,7 +259,7 @@ export function RegisterForm() {
     badge?: "verification";
   }[] = [
     {
-      id: "investor",
+      id: "client",
       label: t("roleInvestor"),
       description: t("roleInvestorDesc"),
       icon: UserRound,
@@ -183,19 +271,13 @@ export function RegisterForm() {
       icon: Briefcase,
       badge: "verification",
     },
-    {
-      id: "seller",
-      label: t("roleSeller"),
-      description: t("roleSellerDesc"),
-      icon: Tag,
-    },
   ];
 
   return (
     <div className="flex flex-1 flex-col px-6 py-10 md:px-12 lg:px-16">
       <form
         onSubmit={onSubmit}
-        className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-10"
+        className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10"
         noValidate
       >
         <header className="space-y-2">
@@ -209,7 +291,7 @@ export function RegisterForm() {
 
         <fieldset className="space-y-3">
           <legend className="sr-only">{t("role")}</legend>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {roles.map(({ id, label, description, icon: Icon, badge }) => {
               const selected = persona === id;
               return (
@@ -247,10 +329,11 @@ export function RegisterForm() {
         </fieldset>
 
         <div className="flex flex-col gap-6">
-          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+          <div className="grid gap-8 sm:grid-cols-2 sm:gap-9">
             <div className="space-y-2">
               <Label htmlFor="reg-fullName">
                 {t("fullNameBilingualLabel")}
+                <RequiredStar />
               </Label>
               <Input
                 id="reg-fullName"
@@ -261,10 +344,14 @@ export function RegisterForm() {
                 placeholder={t("fullNamePlaceholder")}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-email">{t("emailBilingualLabel")}</Label>
+              <Label htmlFor="reg-email">
+                {t("emailBilingualLabel")}
+                <RequiredStar />
+              </Label>
               <Input
                 id="reg-email"
                 name="email"
@@ -274,6 +361,7 @@ export function RegisterForm() {
                 placeholder="email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-10"
               />
             </div>
           </div>
@@ -286,6 +374,7 @@ export function RegisterForm() {
               placeholder="+251 911 234 567"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              className="h-10"
             />
           </div>
           <div className="flex flex-col gap-3">
@@ -297,19 +386,41 @@ export function RegisterForm() {
             </p>
             <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
               <div className="space-y-2">
-                <Label htmlFor="reg-password">{t("password")}</Label>
-                <Input
-                  id="reg-password"
-                  name="password"
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onBlur={() => setTouchedPassword(true)}
-                  aria-invalid={showWeakHint || undefined}
-                  aria-describedby="reg-password-rules"
-                />
+                <Label htmlFor="reg-password">
+                  {t("password")}
+                  <RequiredStar />
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="reg-password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => setTouchedPassword(true)}
+                    aria-invalid={showWeakHint || undefined}
+                    aria-describedby="reg-password-rules"
+                    className="h-10 pr-11"
+                  />
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1.5 transition-colors"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={
+                      showPassword
+                        ? t("loginHidePassword")
+                        : t("loginShowPassword")
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" aria-hidden />
+                    ) : (
+                      <Eye className="size-4" aria-hidden />
+                    )}
+                  </button>
+                </div>
                 {showWeakHint ? (
                   <p
                     className="text-destructive flex items-start gap-1.5 text-sm"
@@ -324,18 +435,40 @@ export function RegisterForm() {
                 ) : null}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="reg-confirm">{t("confirmPassword")}</Label>
-                <Input
-                  id="reg-confirm"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onBlur={() => setTouchedConfirm(true)}
-                  aria-invalid={showMismatchHint || undefined}
-                />
+                <Label htmlFor="reg-confirm">
+                  {t("confirmPassword")}
+                  <RequiredStar />
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="reg-confirm"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onBlur={() => setTouchedConfirm(true)}
+                    aria-invalid={showMismatchHint || undefined}
+                    className="h-10 pr-11"
+                  />
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1.5 transition-colors"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    aria-label={
+                      showConfirmPassword
+                        ? t("loginHidePassword")
+                        : t("loginShowPassword")
+                    }
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="size-4" aria-hidden />
+                    ) : (
+                      <Eye className="size-4" aria-hidden />
+                    )}
+                  </button>
+                </div>
                 {showMismatchHint ? (
                   <p
                     className="text-destructive flex items-start gap-1.5 text-sm"
@@ -356,12 +489,64 @@ export function RegisterForm() {
         {role === "Broker" ? (
           <div className="border-border bg-muted/30 flex flex-col gap-4 rounded-xl border p-4">
             <div className="space-y-2">
-              <Label htmlFor="license">{t("licenseNumber")}</Label>
+              <Label htmlFor="license">
+                {t("licenseNumber")}
+                <RequiredStar />
+              </Label>
               <Input
                 id="license"
                 required
                 value={licenseNumber}
                 onChange={(e) => setLicenseNumber(e.target.value)}
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="broker-documents">
+                Verification documents
+                <RequiredStar />
+              </Label>
+              <Input
+                id="broker-documents"
+                type="file"
+                multiple
+                required
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={(e) => {
+                  const selected = Array.from(e.target.files ?? []);
+                  if (selected.length > MAX_BROKER_DOCUMENTS) {
+                    setError(
+                      `You can upload up to ${MAX_BROKER_DOCUMENTS} documents.`,
+                    );
+                    setDocuments(selected.slice(0, MAX_BROKER_DOCUMENTS));
+                    return;
+                  }
+                  const invalidFile = selected.find(
+                    (file) =>
+                      !ALLOWED_BROKER_DOCUMENT_EXTENSIONS.has(
+                        extractDocumentType(file.name),
+                      ),
+                  );
+                  if (invalidFile) {
+                    setError(
+                      `Document '${invalidFile.name}' must be a PDF, PNG, or JPEG file.`,
+                    );
+                    setDocuments([]);
+                    return;
+                  }
+                  const totalBytes = selected.reduce(
+                    (sum, file) => sum + file.size,
+                    0,
+                  );
+                  if (totalBytes > MAX_BROKER_DOCUMENTS_TOTAL_BYTES) {
+                    setError("Total document size must be 100MB or less.");
+                    setDocuments([]);
+                    return;
+                  }
+                  setError(null);
+                  setDocuments(selected);
+                }}
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
@@ -370,6 +555,7 @@ export function RegisterForm() {
                 id="inst"
                 value={institution}
                 onChange={(e) => setInstitution(e.target.value)}
+                className="h-10"
               />
             </div>
             <div className="space-y-2">
@@ -378,6 +564,7 @@ export function RegisterForm() {
                 id="ecma"
                 value={ecmaReference}
                 onChange={(e) => setEcmaReference(e.target.value)}
+                className="h-10"
               />
             </div>
           </div>
@@ -388,6 +575,7 @@ export function RegisterForm() {
             type="checkbox"
             checked={termsAccepted}
             onChange={(e) => setTermsAccepted(e.target.checked)}
+            required
             className="border-input text-primary mt-0.5 size-4 shrink-0 rounded border"
           />
           <span className="text-muted-foreground">

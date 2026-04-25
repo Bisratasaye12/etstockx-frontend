@@ -40,6 +40,11 @@ export function attachBrowserApiAuth(
   }) => Promise<unknown>,
 ) {
   const requestId = browserApi.interceptors.request.use((config) => {
+    if (config.data instanceof FormData) {
+      // Let the browser set multipart boundary automatically.
+      delete config.headers["Content-Type"];
+    }
+
     const t = getAccessToken();
     if (t) {
       config.headers.Authorization = `Bearer ${t}`;
