@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { browserApi } from "@/shared/api/browser-api";
@@ -22,6 +22,13 @@ import { WatchlistSection } from "@/features/profiles/components/watchlist-secti
 import { BrokerDirectorySection } from "@/features/profiles/components/broker-directory-section";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 
+const RISK_PROFILE_OPTIONS = [
+  "Conservative",
+  "Moderate",
+  "Aggressive",
+] as const;
+const LANGUAGE_OPTIONS = ["en", "am"] as const;
+
 export function ClientProfileSection() {
   const t = useTranslations("profile");
   const tc = useTranslations("common");
@@ -33,15 +40,52 @@ export function ClientProfileSection() {
   const [contactPerson, setContactPerson] = useState("");
   const [settlementBank, setSettlementBank] = useState("");
   const [accountNickname, setAccountNickname] = useState("");
+  const [preferredLang, setPreferredLang] = useState("en");
+
+  useEffect(() => {
+    if (!data) return;
+    setRiskProfile(data.riskProfile ?? "");
+    setAddress(data.address ?? "");
+    setContactPerson(data.contactPerson ?? "");
+    setSettlementBank(data.settlementBank ?? "");
+    setAccountNickname(data.accountNickname ?? "");
+    setPreferredLang(data.preferredLang === "am" ? "am" : "en");
+  }, [data]);
+
+  const hasCompletePayload = useMemo(() => {
+    return Boolean(
+      riskProfile.trim() &&
+      address.trim() &&
+      contactPerson.trim() &&
+      settlementBank.trim() &&
+      accountNickname.trim(),
+    );
+  }, [riskProfile, address, contactPerson, settlementBank, accountNickname]);
 
   const completeMutation = useMutation({
     mutationFn: async () => {
       await browserApi.post("/v1/profiles/client/complete", {
-        riskProfile,
-        address,
-        contactPerson,
-        settlementBank,
-        accountNickname,
+        riskProfile: riskProfile.trim(),
+        address: address.trim(),
+        contactPerson: contactPerson.trim(),
+        settlementBank: settlementBank.trim(),
+        accountNickname: accountNickname.trim(),
+      });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: profileKeys.clientMe() });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      await browserApi.put("/v1/profiles/client/me", {
+        riskProfile: riskProfile.trim() || null,
+        address: address.trim() || null,
+        contactPerson: contactPerson.trim() || null,
+        settlementBank: settlementBank.trim() || null,
+        accountNickname: accountNickname.trim() || null,
+        preferredLang: preferredLang || null,
       });
     },
     onSuccess: () => {
@@ -67,43 +111,70 @@ export function ClientProfileSection() {
         <CardHeader>
           <CardTitle>{t("clientTitle")}</CardTitle>
           <CardDescription>
-            {t("kycStatus")}: {data.kycStatus} · {t("profileComplete")}:{" "}
+            {t("kycStatus")}: {data.kycStatus ?? "—"} · {t("profileComplete")}:{" "}
             <Badge variant={data.isProfileComplete ? "default" : "secondary"}>
-              {data.isProfileComplete ? "Yes" : "No"}
+              {data.isProfileComplete ? t("completeYes") : t("completeNo")}
             </Badge>
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-muted-foreground space-y-1 text-sm">
+        <CardContent className="text-muted-foreground grid gap-3 text-sm sm:grid-cols-2">
           <p>
-            {t("address")}: {data.address ?? "—"}
+            <span className="text-foreground font-medium">{t("address")}:</span>{" "}
+            {data.address ?? "—"}
           </p>
           <p>
-            {t("riskProfile")}: {data.riskProfile ?? "—"}
+            <span className="text-foreground font-medium">
+              {t("riskProfile")}:
+            </span>{" "}
+            {data.riskProfile ?? "—"}
+          </p>
+          <p>
+            <span className="text-foreground font-medium">
+              {t("settlementBank")}:
+            </span>{" "}
+            {data.settlementBank ?? "—"}
+          </p>
+          <p>
+            <span className="text-foreground font-medium">
+              {t("accountNickname")}:
+            </span>{" "}
+            {data.accountNickname ?? "—"}
           </p>
         </CardContent>
       </Card>
 
-      {!data.isProfileComplete ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("completeTitle")}</CardTitle>
-            <CardDescription>{t("completeHint")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="risk">{t("riskProfile")}</Label>
-              <Input
-                id="risk"
-                required
-                value={riskProfile}
-                onChange={(e) => setRiskProfile(e.target.value)}
-              />
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {data.isProfileComplete ? t("editTitle") : t("completeTitle")}
+          </CardTitle>
+          <CardDescription>
+            {data.isProfileComplete ? t("editHint") : t("completeHint")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>{t("riskProfile")}</Label>
+            <div className="flex flex-wrap gap-2">
+              {RISK_PROFILE_OPTIONS.map((option) => (
+                <Button
+                  key={option}
+                  type="button"
+                  variant={riskProfile === option ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setRiskProfile(option)}
+                >
+                  {option}
+                </Button>
+              ))}
             </div>
-            <div className="space-y-2">
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="addr">{t("address")}</Label>
               <Input
                 id="addr"
-                required
+                required={!data.isProfileComplete}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
               />
@@ -112,7 +183,7 @@ export function ClientProfileSection() {
               <Label htmlFor="cp">{t("contactPerson")}</Label>
               <Input
                 id="cp"
-                required
+                required={!data.isProfileComplete}
                 value={contactPerson}
                 onChange={(e) => setContactPerson(e.target.value)}
               />
@@ -121,7 +192,7 @@ export function ClientProfileSection() {
               <Label htmlFor="bank">{t("settlementBank")}</Label>
               <Input
                 id="bank"
-                required
+                required={!data.isProfileComplete}
                 value={settlementBank}
                 onChange={(e) => setSettlementBank(e.target.value)}
               />
@@ -130,26 +201,57 @@ export function ClientProfileSection() {
               <Label htmlFor="nick">{t("accountNickname")}</Label>
               <Input
                 id="nick"
-                required
+                required={!data.isProfileComplete}
                 value={accountNickname}
                 onChange={(e) => setAccountNickname(e.target.value)}
               />
             </div>
-            {completeMutation.isError ? (
-              <p className="text-destructive text-sm" role="alert">
-                {getApiErrorMessage(completeMutation.error)}
-              </p>
-            ) : null}
+            <div className="space-y-2">
+              <Label htmlFor="pref-lang">{t("preferredLang")}</Label>
+              <div className="flex gap-2">
+                {LANGUAGE_OPTIONS.map((lang) => (
+                  <Button
+                    key={lang}
+                    type="button"
+                    variant={preferredLang === lang ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPreferredLang(lang)}
+                  >
+                    {lang.toUpperCase()}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {completeMutation.isError ? (
+            <p className="text-destructive text-sm" role="alert">
+              {getApiErrorMessage(completeMutation.error)}
+            </p>
+          ) : null}
+          {updateMutation.isError ? (
+            <p className="text-destructive text-sm" role="alert">
+              {getApiErrorMessage(updateMutation.error)}
+            </p>
+          ) : null}
+          {!data.isProfileComplete ? (
             <Button
               type="button"
               onClick={() => completeMutation.mutate()}
-              disabled={completeMutation.isPending}
+              disabled={!hasCompletePayload || completeMutation.isPending}
             >
-              {completeMutation.isPending ? "…" : tc("submit")}
+              {completeMutation.isPending ? "…" : t("activateInvestor")}
             </Button>
-          </CardContent>
-        </Card>
-      ) : null}
+          ) : (
+            <Button
+              type="button"
+              onClick={() => updateMutation.mutate()}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? "…" : tc("save")}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
 
       <Separator />
       <WatchlistSection />

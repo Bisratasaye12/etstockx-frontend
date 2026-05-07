@@ -1,12 +1,11 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, Zap } from "lucide-react";
 import { ForgotPasswordForm } from "@/features/auth/components/forgot-password-form";
 
 export default async function ForgotPasswordPage() {
   const t = await getTranslations("auth");
   const tCommon = await getTranslations("common");
-  const year = new Date().getFullYear();
 
   const valueProps = [
     {
@@ -15,9 +14,9 @@ export default async function ForgotPasswordPage() {
       body: t("verifyAsideValue1Body"),
     },
     {
-      Icon: RefreshCw,
-      title: t("forgotAsideValue2Title"),
-      body: t("forgotAsideValue2Body"),
+      Icon: Zap,
+      title: t("verifyAsideValue2Title"),
+      body: t("verifyAsideValue2Body"),
     },
     {
       Icon: Search,
@@ -28,7 +27,7 @@ export default async function ForgotPasswordPage() {
 
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[minmax(280px,38%)_1fr]">
-      <aside className="bg-primary text-primary-foreground flex flex-col justify-between gap-10 px-8 py-10 max-lg:px-6 max-lg:py-8">
+      <aside className="bg-primary text-primary-foreground flex flex-col gap-10 px-8 py-10 max-lg:px-6 max-lg:py-8">
         <div className="flex flex-col gap-10">
           <div className="relative h-12 w-full min-w-0 sm:h-14">
             <Image
@@ -64,11 +63,8 @@ export default async function ForgotPasswordPage() {
             ))}
           </ul>
         </div>
-        <p className="text-primary-foreground/70 text-xs leading-relaxed">
-          {t("verifyAsideFooter", { year })}
-        </p>
       </aside>
-      <div className="bg-background flex flex-col">
+      <div className="bg-muted/35 flex flex-col justify-center">
         <ForgotPasswordForm />
       </div>
     </div>

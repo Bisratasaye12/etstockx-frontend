@@ -24,7 +24,7 @@ export function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
+  const [otp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -116,10 +116,10 @@ export function LoginForm() {
     <div className="flex flex-1 flex-col justify-center px-6 py-10 md:px-12 lg:px-16">
       <form
         onSubmit={onSubmit}
-        className="mx-auto flex w-full max-w-md flex-col gap-8"
+        className="mx-auto flex w-full max-w-xl flex-col gap-8"
         noValidate
       >
-        <header className="space-y-2">
+        <header className="space-y-2 text-center md:text-left">
           <h2 className="font-heading text-foreground text-2xl font-bold tracking-tight md:text-3xl">
             {t("loginTitle")}
           </h2>
@@ -191,38 +191,7 @@ export function LoginForm() {
               {t("forgotPasswordLink")}
             </Link>
           </div>
-
-          <details className="group">
-            <summary className="text-muted-foreground hover:text-foreground cursor-pointer list-none text-sm font-medium [&::-webkit-details-marker]:hidden">
-              <span className="underline-offset-4 group-open:underline">
-                {t("loginMfaOptional")}
-              </span>
-            </summary>
-            <div className="mt-3 space-y-2">
-              <Label htmlFor="login-otp">{t("otp")}</Label>
-              <Input
-                id="login-otp"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                placeholder="000000"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="h-11"
-              />
-              <p className="text-muted-foreground text-xs">{t("otpHint")}</p>
-            </div>
-          </details>
         </div>
-
-        {error ? (
-          <div
-            className="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm"
-            role="alert"
-          >
-            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            {error}
-          </div>
-        ) : null}
 
         <div className="flex flex-col gap-3">
           <Button
@@ -242,6 +211,16 @@ export function LoginForm() {
           </Button>
         </div>
 
+        {error ? (
+          <div
+            className="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm"
+            role="alert"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+            {error}
+          </div>
+        ) : null}
+
         <p className="text-muted-foreground text-center text-sm">
           {t("noAccount")}{" "}
           <Link
@@ -252,7 +231,7 @@ export function LoginForm() {
           </Link>
         </p>
 
-        <div className="flex justify-center pt-1">
+        <div className="flex flex-wrap items-center justify-center gap-4 pt-1">
           <span className="border-border bg-muted/40 text-muted-foreground inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-medium tracking-wide uppercase">
             <Check
               className="size-3 text-green-600 dark:text-green-500"

@@ -2,9 +2,9 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { Search, ShieldCheck, Zap } from "lucide-react";
-import { VerifyEmailPanel } from "@/features/auth/components/verify-email-panel";
+import { ResetPasswordPanel } from "@/features/auth/components/reset-password-panel";
 
-export default async function VerifyEmailPage() {
+export default async function ResetPasswordPage() {
   const t = await getTranslations("auth");
   const tCommon = await getTranslations("common");
 
@@ -73,7 +73,7 @@ export default async function VerifyEmailPage() {
             </div>
           }
         >
-          <VerifyEmailPanel />
+          <ResetPasswordPanel />
         </Suspense>
       </div>
     </div>

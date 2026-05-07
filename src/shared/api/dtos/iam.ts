@@ -93,6 +93,14 @@ export interface ChangePasswordRequestDto {
   newPassword: string;
 }
 
+// ─── POST /api/v1/auth/reset-password ───────────────────────────────────
+
+/** Body — matches `ResetPasswordRequest` in OpenAPI. */
+export interface ResetPasswordRequestDto {
+  token: string;
+  newPassword: string;
+}
+
 // ─── POST /api/v1/auth/mfa/enable | mfa/disable ─────────────────────────
 
 export interface MfaPasswordRequestDto {

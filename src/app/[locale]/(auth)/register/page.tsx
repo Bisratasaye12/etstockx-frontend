@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { LineChart, Search, ShieldCheck } from "lucide-react";
+import { FileSearch, RefreshCw, ShieldCheck } from "lucide-react";
 import { RegisterForm } from "@/features/auth/components/register-form";
 
 export default async function RegisterPage() {
@@ -11,18 +11,18 @@ export default async function RegisterPage() {
   const valueProps = [
     {
       Icon: ShieldCheck,
-      title: t("registerValue1Title"),
-      body: t("registerValue1Body"),
+      title: t("verifyAsideValue1Title"),
+      body: t("verifyAsideValue1Body"),
     },
     {
-      Icon: LineChart,
-      title: t("registerValue2Title"),
-      body: t("registerValue2Body"),
+      Icon: RefreshCw,
+      title: t("verifyAsideValue2Title"),
+      body: t("verifyAsideValue2Body"),
     },
     {
-      Icon: Search,
-      title: t("registerValue3Title"),
-      body: t("registerValue3Body"),
+      Icon: FileSearch,
+      title: t("verifyAsideValue3Title"),
+      body: t("verifyAsideValue3Body"),
     },
   ] as const;
 
@@ -65,10 +65,10 @@ export default async function RegisterPage() {
           </ul>
         </div>
         <p className="text-primary-foreground/70 text-xs leading-relaxed">
-          {t("registerHeroFooter", { year })}
+          {t("verifyAsideFooter", { year })}
         </p>
       </aside>
-      <div className="bg-background flex flex-col">
+      <div className="bg-muted/35 flex flex-col justify-center">
         <RegisterForm />
       </div>
     </div>
