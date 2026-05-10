@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock3, Plus, X } from "lucide-react";
 import { browserApi } from "@/shared/api/browser-api";
-import { useBrokerProfile } from "@/features/profiles/api/use-broker-profile";
-import { profileKeys } from "@/features/profiles/api/keys";
+import { useBrokerProfile } from "@/features/broker/api/use-broker-profile";
+import { brokerKeys } from "@/features/broker/api/keys";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -72,7 +72,7 @@ export function BrokerProfileSection() {
       });
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: profileKeys.brokerMe() });
+      void qc.invalidateQueries({ queryKey: brokerKeys.brokerProfile() });
     },
   });
 

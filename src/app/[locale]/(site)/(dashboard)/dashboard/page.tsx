@@ -1,13 +1,22 @@
 import { auth } from "@/auth";
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/shared/i18n/routing";
+import { Link, redirect } from "@/shared/i18n/routing";
 import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { InvestorOverview } from "@/features/investor/components/investor-overview";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const session = await auth();
   const t = await getTranslations("dashboard");
+
+  if (session?.user?.role === "Broker" || session?.user?.role === "Dealer") {
+    redirect({ href: "/dashboard/broker", locale });
+  }
 
   if (session?.user?.role === "Client") {
     return <InvestorOverview />;
@@ -56,14 +65,6 @@ export default async function DashboardPage() {
           className={cn(buttonVariants({ variant: "outline" }), "inline-flex")}
         >
           Investor profile
-        </Link>
-      ) : null}
-      {session?.user?.role === "Broker" || session?.user?.role === "Dealer" ? (
-        <Link
-          href="/profile/broker"
-          className={cn(buttonVariants({ variant: "outline" }), "inline-flex")}
-        >
-          Broker profile
         </Link>
       ) : null}
     </div>

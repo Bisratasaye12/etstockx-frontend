@@ -103,6 +103,13 @@ function isLandingPage(pathname: string): boolean {
   return pathname === "/" || pathname === "";
 }
 
+function isBrokerPortalPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/dashboard/broker") ||
+    pathname.startsWith("/profile/broker")
+  );
+}
+
 export function AuthenticatedShell({
   children,
   role,
@@ -139,6 +146,13 @@ export function AuthenticatedShell({
     effectiveRole === "Broker" || effectiveRole === "Dealer"
       ? "/profile/broker"
       : "/profile/client";
+
+  if (
+    (effectiveRole === "Broker" || effectiveRole === "Dealer") &&
+    isBrokerPortalPath(pathname)
+  ) {
+    return <>{children}</>;
+  }
 
   if (investorChrome) {
     return (

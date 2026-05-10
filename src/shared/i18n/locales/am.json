@@ -300,6 +300,61 @@
     "stubTrade": "የንግድ ሞዱል ሲገኝ የንግድ ቦታ ይታያል።",
     "stubMarket": "የገበያ ሞዱል ሲገኝ ዝርዝሮች ይታያሉ።"
   },
+  "broker": {
+    "shell": {
+      "portalSubtitle": "የብሮከር መግቢያ",
+      "newListing": "አዲስ ዝርዝር",
+      "navDashboard": "ዳሽቦርድ",
+      "navIncoming": "የመጡ ጥያቄዎች",
+      "navListings": "ዝርዝሮቼ",
+      "navClients": "ደንበኞች",
+      "navMessages": "መልዕክቶች",
+      "settings": "ቅንብሮች",
+      "searchPlaceholder": "ዝርዝሮች፣ ደንበኞችን ይፈልጉ...",
+      "messages": "መልዕክቶች",
+      "userMenu": "መለያ"
+    },
+    "dashboard": {
+      "loading": "የብሮከር ዳሽቦርድ በመጫን ላይ…",
+      "overviewTitle": "አጠቃላይ እይታ",
+      "overviewSubtitle": "በእውነተኛ ጊዜ የትዕዛዝ ፍሰት እና የገበያ እንቅስቃሴ።",
+      "marketOpen": "ገበያ ክፍት",
+      "marketUpdateBadge": "የገበያ ማሳወቂያ",
+      "marketUpdateTitle": "በፋይናንስ ከፍተኛ መጠን ማስጠንቀቂያ",
+      "marketUpdateBody": "በዛሬው ክፍለ ጊዜ በዋና የባንክ ቲከሮች ላይ ተቋማዊ የግዢ እንቅስቃሴ ተገኝቷል።",
+      "marketUpdateAction": "የገበያ ማብራሪያ አድስ",
+      "maintenanceTitle": "የስርዓት ጥገና ማሳወቂያ",
+      "maintenanceBody": "በ18:00 EAT የማመሳሰያ ሞተር እንደገና ማስጀመር ተዘጋጅቷል። የሚጠበቀው የአገልግሎት ቆሚያ፦ 15 ደቂቃ።",
+      "pendingReview": "ግምገማ በመጠባበቅ ላይ",
+      "pendingReviewHint": "! እርምጃ ያስፈልጋል",
+      "inNegotiation": "በድርድር ላይ",
+      "inNegotiationHint": "ንቁ የተቃውሞ ቅናሾች",
+      "totalOpen": "ጠቅላላ ክፍት",
+      "totalOpenHint": "ንቁ ዝርዝሮች",
+      "filledToday": "ዛሬ የተሞሉ",
+      "filledTodayHint": "ዛሬ የተጠናቀቁ ንግዶች",
+      "actionRequiredTitle": "እርምጃ ያስፈልጋል",
+      "actionRequiredSubtitle": "አስቸኳይ የብሮከር ግምገማ የሚያስፈልጋቸው ከፍተኛ ቅድሚያ ጥያቄዎች።",
+      "viewAll": "ሁሉንም ይመልከቱ",
+      "tableAsset": "ንብረት",
+      "tableIntent": "ግብ",
+      "tableVolume": "መጠን",
+      "tablePrice": "ምልክታ ዋጋ",
+      "tableStatus": "ሁኔታ",
+      "tableAction": "እርምጃ",
+      "review": "ግምገማ",
+      "counter": "ተቃውሞ",
+      "emptyRequests": "የመጡ ጥያቄዎች አልተገኙም።",
+      "intentBuy": "ግዢ",
+      "intentSell": "ሽያጭ"
+    },
+    "stub": {
+      "listingsTitle": "ዝርዝሮቼ",
+      "clientsTitle": "ደንበኞች",
+      "messagesTitle": "መልዕክቶች",
+      "lead": "ይህ ክፍል በቀጣይ ስሪት ይገኛል።"
+    }
+  },
   "investor": {
     "shell": {
       "panelSubtitle": "የኢንቨስተር ፓነል",

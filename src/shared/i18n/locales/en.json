@@ -300,6 +300,61 @@
     "stubTrade": "Trading workspace will appear when the Trade module is available.",
     "stubMarket": "Listings and search will appear when the Market module is available."
   },
+  "broker": {
+    "shell": {
+      "portalSubtitle": "Broker Portal",
+      "newListing": "New Listing",
+      "navDashboard": "Dashboard",
+      "navIncoming": "Incoming Requests",
+      "navListings": "My Listings",
+      "navClients": "Clients",
+      "navMessages": "Messages",
+      "settings": "Settings",
+      "searchPlaceholder": "Search listings, clients...",
+      "messages": "Messages",
+      "userMenu": "Account"
+    },
+    "dashboard": {
+      "loading": "Loading broker dashboard…",
+      "overviewTitle": "Overview",
+      "overviewSubtitle": "Real-time order flow and market activity.",
+      "marketOpen": "Market Open",
+      "marketUpdateBadge": "MARKET UPDATE",
+      "marketUpdateTitle": "High Volume Alert on Financials",
+      "marketUpdateBody": "Institutional buy-side activity detected across major banking tickers in today’s session.",
+      "marketUpdateAction": "Refresh market briefing",
+      "maintenanceTitle": "System Maintenance Notice",
+      "maintenanceBody": "Scheduled matching engine restart at 18:00 EAT. Downtime expected: 15 mins.",
+      "pendingReview": "Pending Review",
+      "pendingReviewHint": "! Action Required",
+      "inNegotiation": "In Negotiation",
+      "inNegotiationHint": "Active counter-offers",
+      "totalOpen": "Total Open",
+      "totalOpenHint": "Active listings",
+      "filledToday": "Filled Today",
+      "filledTodayHint": "Completed trades today",
+      "actionRequiredTitle": "Action Required",
+      "actionRequiredSubtitle": "High-priority requests requiring immediate broker review.",
+      "viewAll": "View All",
+      "tableAsset": "Asset",
+      "tableIntent": "Intent",
+      "tableVolume": "Volume",
+      "tablePrice": "Indicative Price",
+      "tableStatus": "Status",
+      "tableAction": "Action",
+      "review": "Review",
+      "counter": "Counter",
+      "emptyRequests": "No incoming requests found.",
+      "intentBuy": "Buy",
+      "intentSell": "Sell"
+    },
+    "stub": {
+      "listingsTitle": "My Listings",
+      "clientsTitle": "Clients",
+      "messagesTitle": "Messages",
+      "lead": "This section will be available in an upcoming release."
+    }
+  },
   "investor": {
     "shell": {
       "panelSubtitle": "Investor Panel",
