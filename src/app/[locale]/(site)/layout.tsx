@@ -10,7 +10,7 @@ export default async function SiteChromeLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  console.log("layout accessToken", session?.accessToken);
+  // console.log("layout accessToken", session?.accessToken);
 
   if (session) {
     return (

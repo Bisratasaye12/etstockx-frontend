@@ -17,7 +17,9 @@ function isPublicPath(pathname: string): boolean {
 }
 
 function isProtectedPath(pathname: string): boolean {
-  return /^\/(en|am)\/(dashboard|profile|admin)(\/|$)/.test(pathname);
+  return /^\/(en|am)\/(dashboard|profile|admin|requests|messages|watchlist)(\/|$)/.test(
+    pathname,
+  );
 }
 
 export default auth((req) => {
