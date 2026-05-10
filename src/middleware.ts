@@ -11,7 +11,7 @@ function getLocaleFromPath(pathname: string): "en" | "am" {
 
 function isPublicPath(pathname: string): boolean {
   if (/^\/(en|am)$/.test(pathname)) return true;
-  return /^\/(en|am)\/(login|register|verify-email|forgot-password|market|brokers)(\/|$)/.test(
+  return /^\/(en|am)\/(login|register|verify-email|confirm-email|forgot-password|reset-password|market|brokers)(\/|$)/.test(
     pathname,
   );
 }
