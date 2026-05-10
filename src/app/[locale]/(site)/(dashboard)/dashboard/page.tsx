@@ -3,10 +3,15 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/shared/i18n/routing";
 import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
+import { InvestorOverview } from "@/features/investor/components/investor-overview";
 
 export default async function DashboardPage() {
   const session = await auth();
   const t = await getTranslations("dashboard");
+
+  if (session?.user?.role === "Client") {
+    return <InvestorOverview />;
+  }
 
   return (
     <div className="space-y-6">
