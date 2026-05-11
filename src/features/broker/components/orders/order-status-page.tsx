@@ -11,7 +11,7 @@ import {
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -99,8 +99,9 @@ export function OrderStatusPage({
     return <p className="text-muted-foreground text-sm">Request not found.</p>;
   }
 
+  const orderRequest = request;
   const reqType = toRequestType(normalizedKind);
-  const currency = request.currency ?? "ETB";
+  const currency = orderRequest.currency ?? "ETB";
 
   function submitPatch(status: BrokerOrderTargetStatus) {
     const qtyRaw = filledQuantity.trim();
@@ -110,7 +111,11 @@ export function OrderStatusPage({
 
     if (status === "PartiallyFilled" || status === "Filled") {
       fq =
-        status === "Filled" ? request.quantity : qtyRaw ? Number(qtyRaw) : null;
+        status === "Filled"
+          ? orderRequest.quantity
+          : qtyRaw
+            ? Number(qtyRaw)
+            : null;
       ap = priceRaw ? Number(priceRaw) : null;
     }
 
@@ -133,10 +138,10 @@ export function OrderStatusPage({
   }
 
   const statusBadge =
-    (request.status ?? "").toLowerCase().includes("terms") ||
-    (request.status ?? "").toLowerCase().includes("agree")
+    (orderRequest.status ?? "").toLowerCase().includes("terms") ||
+    (orderRequest.status ?? "").toLowerCase().includes("agree")
       ? "Terms Agreed"
-      : (request.status ?? "Open");
+      : (orderRequest.status ?? "Open");
 
   return (
     <div className="space-y-6">
@@ -172,13 +177,15 @@ export function OrderStatusPage({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link
-              href={`/dashboard/broker/requests/${requestId}?kind=${encodeURIComponent(normalizedKind)}`}
-            >
-              Cancel
-            </Link>
-          </Button>
+          <Link
+            href={`/dashboard/broker/requests/${requestId}?kind=${encodeURIComponent(normalizedKind)}`}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "inline-flex justify-center",
+            )}
+          >
+            Cancel
+          </Link>
           <Button
             type="button"
             onClick={onSubmit}
@@ -250,10 +257,10 @@ export function OrderStatusPage({
                       inputMode="decimal"
                       value={filledQuantity}
                       onChange={(e) => setFilledQuantity(e.target.value)}
-                      placeholder={`Target was ${request.quantity} shares`}
+                      placeholder={`Target was ${orderRequest.quantity} shares`}
                     />
                     <p className="text-muted-foreground text-xs">
-                      Target was {request.quantity} shares.
+                      Target was {orderRequest.quantity} shares.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -283,7 +290,7 @@ export function OrderStatusPage({
                     <Input
                       id="filled-full-qty"
                       readOnly
-                      value={String(request.quantity)}
+                      value={String(orderRequest.quantity)}
                       className="bg-muted/50"
                     />
                   </div>
@@ -392,13 +399,13 @@ export function OrderStatusPage({
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Client</dt>
                   <dd className="font-medium">
-                    {request.clientId.slice(0, 8)}…
+                    {orderRequest.clientId.slice(0, 8)}…
                   </dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Instrument</dt>
                   <dd className="font-medium">
-                    {request.instrumentName ?? request.ticker ?? "—"}
+                    {orderRequest.instrumentName ?? orderRequest.ticker ?? "—"}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-2">
@@ -407,12 +414,12 @@ export function OrderStatusPage({
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Quantity</dt>
-                  <dd className="font-medium">{request.quantity}</dd>
+                  <dd className="font-medium">{orderRequest.quantity}</dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt className="text-muted-foreground">Price</dt>
                   <dd className="font-medium">
-                    {fmtMoney(request.desiredPrice, currency)}
+                    {fmtMoney(orderRequest.desiredPrice, currency)}
                   </dd>
                 </div>
               </dl>

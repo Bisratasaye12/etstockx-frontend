@@ -10,8 +10,9 @@ import type {
   TradeProposalDto,
 } from "@/features/broker/model/types";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
+import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -559,13 +560,15 @@ export function RequestDetailPage({
               </Button>
 
               {canUpdateOrderStatus ? (
-                <Button variant="outline" className="w-full" asChild>
-                  <Link
-                    href={`/dashboard/broker/requests/${requestId}/order-status?kind=${encodeURIComponent(normalizedKind)}`}
-                  >
-                    Update order status
-                  </Link>
-                </Button>
+                <Link
+                  href={`/dashboard/broker/requests/${requestId}/order-status?kind=${encodeURIComponent(normalizedKind)}`}
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "inline-flex w-full justify-center",
+                  )}
+                >
+                  Update order status
+                </Link>
               ) : null}
             </CardContent>
           </Card>
@@ -586,13 +589,15 @@ export function RequestDetailPage({
           Review the client request and send your proposal.
         </p>
         {canUpdateOrderStatus ? (
-          <Button className="mt-3" variant="outline" asChild>
-            <Link
-              href={`/dashboard/broker/requests/${requestId}/order-status?kind=${encodeURIComponent(normalizedKind)}`}
-            >
-              Update order status
-            </Link>
-          </Button>
+          <Link
+            href={`/dashboard/broker/requests/${requestId}/order-status?kind=${encodeURIComponent(normalizedKind)}`}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "mt-3 inline-flex justify-center",
+            )}
+          >
+            Update order status
+          </Link>
         ) : null}
       </header>
 
