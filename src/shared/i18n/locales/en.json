@@ -348,6 +348,51 @@
       "intentBuy": "Buy",
       "intentSell": "Sell"
     },
+    "listings": {
+      "loading": "Loading listings…",
+      "title": "My Listings",
+      "subtitle": "Manage all your published stock listings.",
+      "total": "total",
+      "active": "active",
+      "paused": "paused",
+      "pending": "pending",
+      "tabs": {
+        "all": "All",
+        "active": "Active",
+        "paused": "Paused",
+        "closed": "Closed",
+        "pendingModeration": "Pending Moderation"
+      },
+      "sectorFilter": "Sector filter",
+      "sectorAll": "Sector: All",
+      "sortBy": "Sort listings",
+      "sort": {
+        "newest": "Sort: Newest First",
+        "oldest": "Sort: Oldest First",
+        "priceHigh": "Sort: Price High to Low",
+        "priceLow": "Sort: Price Low to High"
+      },
+      "filter": "Filter",
+      "table": {
+        "instrument": "Instrument",
+        "sector": "Sector",
+        "price": "Price (ETB)",
+        "quantity": "Quantity",
+        "status": "Status",
+        "listed": "Listed",
+        "actions": "Actions"
+      },
+      "empty": "No listings found for the selected filters.",
+      "unknownStatus": "Unknown",
+      "actions": {
+        "viewDetails": "View Details",
+        "edit": "Edit Listing",
+        "viewPerformance": "View Performance"
+      },
+      "showing": "Showing {from} to {to} of {total} entries",
+      "previous": "Previous",
+      "next": "Next"
+    },
     "stub": {
       "listingsTitle": "My Listings",
       "clientsTitle": "Clients",

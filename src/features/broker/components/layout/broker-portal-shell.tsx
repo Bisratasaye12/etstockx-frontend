@@ -111,7 +111,7 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
 
         <div className="px-4 pb-4">
           <Link
-            href="/dashboard/broker/listings"
+            href="/dashboard/broker/listings/new"
             className={cn(
               buttonVariants({ variant: "default", size: "default" }),
               "h-11 w-full rounded-lg text-sm font-semibold shadow-sm",

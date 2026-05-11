@@ -348,6 +348,51 @@
       "intentBuy": "ግዢ",
       "intentSell": "ሽያጭ"
     },
+    "listings": {
+      "loading": "ዝርዝሮች በመጫን ላይ…",
+      "title": "ዝርዝሮቼ",
+      "subtitle": "የታተሙ የአክሲዮን ዝርዝሮችዎን ያስተዳድሩ።",
+      "total": "ጠቅላላ",
+      "active": "ንቁ",
+      "paused": "ቆመ",
+      "pending": "በመጠባበቅ",
+      "tabs": {
+        "all": "ሁሉም",
+        "active": "ንቁ",
+        "paused": "ቆመ",
+        "closed": "ዝግ",
+        "pendingModeration": "የአስተዳደር ግምገማ በመጠባበቅ ላይ"
+      },
+      "sectorFilter": "የዘርፍ ማጣሪያ",
+      "sectorAll": "ዘርፍ: ሁሉም",
+      "sortBy": "ዝርዝሮችን ደርድር",
+      "sort": {
+        "newest": "ደርድር: ከአዲስ ወደ አሮጌ",
+        "oldest": "ደርድር: ከአሮጌ ወደ አዲስ",
+        "priceHigh": "ደርድር: ዋጋ ከፍ ወደ ዝቅ",
+        "priceLow": "ደርድር: ዋጋ ዝቅ ወደ ከፍ"
+      },
+      "filter": "አጣራ",
+      "table": {
+        "instrument": "መለያ",
+        "sector": "ዘርፍ",
+        "price": "ዋጋ (ETB)",
+        "quantity": "መጠን",
+        "status": "ሁኔታ",
+        "listed": "የተዘረዘረበት ጊዜ",
+        "actions": "እርምጃ"
+      },
+      "empty": "ለተመረጡ ማጣሪያዎች ምንም ዝርዝር አልተገኘም።",
+      "unknownStatus": "ያልታወቀ",
+      "actions": {
+        "viewDetails": "ዝርዝር ይመልከቱ",
+        "edit": "ዝርዝር አርትዕ",
+        "viewPerformance": "አፈፃፀም ይመልከቱ"
+      },
+      "showing": "{total} ውስጥ {from} እስከ {to} እየታየ",
+      "previous": "ቀዳሚ",
+      "next": "ቀጣይ"
+    },
     "stub": {
       "listingsTitle": "ዝርዝሮቼ",
       "clientsTitle": "ደንበኞች",
