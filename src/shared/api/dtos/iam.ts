@@ -101,15 +101,20 @@ export interface ResetPasswordRequestDto {
   newPassword: string;
 }
 
-// ─── POST /api/v1/auth/mfa/enable | mfa/disable ─────────────────────────
+// ─── POST /api/v1/auth/mfa/enable | mfa/confirm | mfa/disable ────────────
 
 export interface MfaPasswordRequestDto {
   password: string;
 }
 
-/** 200 OK from `mfa/enable` — `{ secret }`. */
+/** 200 OK from `mfa/enable` — `{ secret }`. Enrollment stays pending until `mfa/confirm`. */
 export interface MfaEnableResponseDto {
   secret: string;
+}
+
+/** Body — `MfaConfirmRequest` in OpenAPI. Activates MFA after `mfa/enable`. */
+export interface MfaConfirmRequestDto {
+  otpCode: string | null;
 }
 
 // ─── GET /api/v1/auth/sessions ──────────────────────────────────────────

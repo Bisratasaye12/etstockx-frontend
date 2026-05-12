@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "@/shared/i18n/routing";
+import { useConfirmMfa } from "@/features/broker/api/use-confirm-mfa";
 import { useDisableMfa } from "@/features/broker/api/use-disable-mfa";
 import { useEnableMfa } from "@/features/broker/api/use-enable-mfa";
 import { createBrokerTotp } from "@/features/broker/lib/build-broker-totp";
-import { validateEtStockxTotp } from "@/features/broker/lib/etstockx-totp";
 import {
   readBrokerMfaPreference,
   writeBrokerMfaPreference,
@@ -59,6 +59,7 @@ export function BrokerTwoFactorScreen() {
   );
 
   const enableMfa = useEnableMfa();
+  const confirmMfa = useConfirmMfa();
   const disableMfa = useDisableMfa();
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export function BrokerTwoFactorScreen() {
     setManualSecretOpen(false);
     setVerifyError(null);
     enableMfa.reset();
+    confirmMfa.reset();
     disableMfa.reset();
   }
 
@@ -119,8 +121,11 @@ export function BrokerTwoFactorScreen() {
           setWizardStep(2);
         },
         onError: (err) => {
-          const msg = getApiErrorMessage(err);
-          if (msg.toLowerCase().includes("already enabled")) {
+          const msg = getApiErrorMessage(err).toLowerCase();
+          if (
+            msg.includes("already") &&
+            (msg.includes("enabled") || msg.includes("active"))
+          ) {
             persistPref(true);
             exitSetupToManage();
             return;
@@ -146,20 +151,26 @@ export function BrokerTwoFactorScreen() {
     );
   }
 
-  async function onVerifyOtp(e: React.FormEvent) {
+  function onConfirmMfa(e: React.FormEvent) {
     e.preventDefault();
     setVerifyError(null);
-    if (!totpSecret || otp.length !== 6) {
+    if (otp.length !== 6) {
       setVerifyError(t("otpIncomplete"));
       return;
     }
-    const ok = await validateEtStockxTotp(totpSecret, otp);
-    if (!ok) {
-      setVerifyError(t("otpInvalid"));
-      return;
-    }
-    if (userId) persistPref(true);
-    setWizardStep(3);
+
+    confirmMfa.mutate(
+      { otpCode: otp.trim() },
+      {
+        onSuccess: () => {
+          if (userId) persistPref(true);
+          setWizardStep(3);
+        },
+        onError: (err) => {
+          setVerifyError(getApiErrorMessage(err) || t("otpInvalid"));
+        },
+      },
+    );
   }
 
   function onDisableSubmit(e: React.FormEvent) {
@@ -530,7 +541,7 @@ export function BrokerTwoFactorScreen() {
                   ) : null}
                 </div>
 
-                <form className="space-y-6" onSubmit={onVerifyOtp}>
+                <form className="space-y-6" onSubmit={onConfirmMfa}>
                   <div className="space-y-3">
                     <Label htmlFor="mfa-otp" className="text-center block">
                       {t("otpLabel")}
@@ -538,7 +549,11 @@ export function BrokerTwoFactorScreen() {
                     <BrokerMfaOtpInput
                       id="mfa-otp"
                       value={otp}
-                      onChange={setOtp}
+                      onChange={(v) => {
+                        setOtp(v);
+                        setVerifyError(null);
+                      }}
+                      disabled={confirmMfa.isPending}
                     />
                     <p className="text-muted-foreground text-center text-xs leading-relaxed">
                       {t("otpHint")}
@@ -565,8 +580,11 @@ export function BrokerTwoFactorScreen() {
                     <Button
                       type="submit"
                       className="h-11 gap-2 px-6 font-semibold"
+                      disabled={confirmMfa.isPending}
                     >
-                      {t("verifyEnable")}
+                      {confirmMfa.isPending
+                        ? t("confirming")
+                        : t("verifyEnable")}
                       <ArrowRight className="size-4" aria-hidden />
                     </Button>
                   </div>
