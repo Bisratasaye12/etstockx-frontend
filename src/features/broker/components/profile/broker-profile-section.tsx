@@ -82,16 +82,20 @@ export function BrokerProfileSection() {
     return `${base}/${u}`;
   }, [logoPath]);
 
+  async function putBrokerProfile(nextAccepting: boolean) {
+    await browserApi.put("/v1/profiles/broker/me", {
+      institution: institution.trim() || null,
+      bio: bio.trim() || null,
+      licenseDisplay: licenseDisplay.trim() || null,
+      logoPath: logoPath.trim() || null,
+      specializations,
+      isAcceptingRequests: nextAccepting,
+    });
+  }
+
   const saveMutation = useMutation({
     mutationFn: async () => {
-      await browserApi.put("/v1/profiles/broker/me", {
-        institution: institution.trim() || null,
-        bio: bio.trim() || null,
-        licenseDisplay: licenseDisplay.trim() || null,
-        logoPath: logoPath.trim() || null,
-        specializations,
-        isAcceptingRequests: isAccepting,
-      });
+      await putBrokerProfile(isAccepting);
     },
     onMutate: () => {
       setSaveSuccess(false);
@@ -99,6 +103,26 @@ export function BrokerProfileSection() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: brokerKeys.brokerProfile() });
       setSaveSuccess(true);
+    },
+  });
+
+  const toggleAcceptingMutation = useMutation({
+    mutationFn: async (next: boolean) => {
+      await putBrokerProfile(next);
+    },
+    onMutate: (next) => {
+      dismissSaveSuccess();
+      const previous = isAccepting;
+      setIsAccepting(next);
+      return { previous };
+    },
+    onError: (_err, _next, context) => {
+      if (context?.previous !== undefined) {
+        setIsAccepting(context.previous);
+      }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: brokerKeys.brokerProfile() });
     },
   });
 
@@ -177,12 +201,15 @@ export function BrokerProfileSection() {
               role="switch"
               aria-checked={isAccepting}
               aria-label={tb("acceptingCardTitle")}
+              disabled={
+                toggleAcceptingMutation.isPending || saveMutation.isPending
+              }
               onClick={() => {
-                setIsAccepting((v) => !v);
-                dismissSaveSuccess();
+                const next = !isAccepting;
+                toggleAcceptingMutation.mutate(next);
               }}
               className={cn(
-                "border-border relative inline-flex h-9 w-[4.25rem] shrink-0 items-center rounded-full border transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
+                "border-border relative inline-flex h-9 w-[4.25rem] shrink-0 items-center rounded-full border transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-60",
                 isAccepting ? "bg-primary border-primary" : "bg-muted",
               )}
             >
@@ -203,6 +230,13 @@ export function BrokerProfileSection() {
             </span>
           </div>
         </div>
+        {toggleAcceptingMutation.isError ? (
+          <div className="border-border border-t px-5 py-3 sm:px-8">
+            <p className="text-destructive text-sm" role="alert">
+              {getApiErrorMessage(toggleAcceptingMutation.error)}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       {/* Professional details */}
