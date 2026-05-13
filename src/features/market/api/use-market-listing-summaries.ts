@@ -10,20 +10,25 @@ type Paged<T> = {
   pageSize: number;
 };
 
-const CATALOG_PAGE_SIZE = 120;
+const DEFAULT_CATALOG_PAGE_SIZE = 120;
 
 /**
  * Cached catalog slice for mapping listing IDs (e.g. watchlist) to names and prices.
+ * Pass a larger `pageSize` on the watchlist page so more saved IDs resolve to summaries.
  */
-export function useMarketListingSummaries(options?: { enabled?: boolean }) {
+export function useMarketListingSummaries(options?: {
+  enabled?: boolean;
+  pageSize?: number;
+}) {
+  const pageSize = options?.pageSize ?? DEFAULT_CATALOG_PAGE_SIZE;
   return useQuery({
-    queryKey: marketKeys.listingCatalog(1, CATALOG_PAGE_SIZE),
+    queryKey: marketKeys.listingCatalog(1, pageSize),
     enabled: options?.enabled ?? true,
     staleTime: 60_000,
     queryFn: async () => {
       const { data } = await browserApi.get<Paged<ListingSummaryDto>>(
         "/v1/market/listings",
-        { params: { page: 1, pageSize: CATALOG_PAGE_SIZE } },
+        { params: { page: 1, pageSize } },
       );
       return data.items ?? [];
     },
