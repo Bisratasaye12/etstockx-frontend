@@ -4,7 +4,6 @@ import { type ComponentType, type ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import {
-  Bell,
   CircleHelp,
   ClipboardList,
   Contact,
@@ -25,8 +24,9 @@ import { cn } from "@/shared/lib/utils";
 import type { UserRole } from "@/shared/api/types";
 import { Input } from "@/shared/ui/input";
 import { buttonVariants } from "@/shared/ui/button";
-import { useInvestorUnreadBadge } from "@/features/investor/api/use-investor-unread-badge";
 import { InvestorHeaderProfileMenu } from "@/features/investor/components/investor-header-profile-menu";
+import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
+import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 
 type ShellItem = {
   key: string;
@@ -138,10 +138,6 @@ export function AuthenticatedShell({
   const onLanding = isLandingPage(pathname);
   const investorChrome = effectiveRole === "Client" && !onLanding;
 
-  const { data: unreadBadge } = useInvestorUnreadBadge(
-    investorChrome && Boolean(session?.user?.isActivated),
-  );
-
   const settingsHref =
     effectiveRole === "Broker" || effectiveRole === "Dealer"
       ? "/profile/broker"
@@ -249,16 +245,10 @@ export function AuthenticatedShell({
                 )}
               </div>
               <div className="flex shrink-0 items-center gap-1 md:gap-2">
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground relative rounded-full p-2.5"
-                  aria-label={t("notifications")}
-                >
-                  <Bell className="size-5" />
-                  {(unreadBadge ?? 0) > 0 ? (
-                    <span className="bg-destructive absolute top-2 right-2 size-2 rounded-full ring-2 ring-background" />
-                  ) : null}
-                </button>
+                <NotificationBellDropdown
+                  viewAllHref={getNotificationsFullPagePath(effectiveRole)}
+                  enabled={status === "authenticated"}
+                />
                 <Link
                   href="/messages"
                   className="text-muted-foreground hover:text-foreground rounded-full p-2.5"
@@ -305,13 +295,10 @@ export function AuthenticatedShell({
             <div className="flex-1" />
           )}
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground rounded-md p-2"
-              aria-label={t("notifications")}
-            >
-              <Bell className="size-4" />
-            </button>
+            <NotificationBellDropdown
+              viewAllHref={getNotificationsFullPagePath(effectiveRole)}
+              enabled={status === "authenticated"}
+            />
             <button
               type="button"
               className="text-muted-foreground hover:text-foreground rounded-md p-2"

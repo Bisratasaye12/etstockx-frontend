@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import {
-  Bell,
   ClipboardList,
   LayoutDashboard,
   List,
@@ -20,6 +19,9 @@ import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { useBrokerIncomingRequests } from "@/features/broker/api/use-broker-incoming-requests";
+import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
+import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
+import type { UserRole } from "@/shared/api/types";
 
 type NavItem = {
   href: string;
@@ -74,7 +76,8 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("broker.shell");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const sessionRole = session?.user?.role as UserRole | undefined;
 
   const incomingTotal = useBrokerIncomingRequests(1, 1);
   const queueTotal = incomingTotal.data?.total ?? 0;
@@ -189,13 +192,10 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1">
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground rounded-full p-2.5"
-                aria-label={tNav("notifications")}
-              >
-                <Bell className="size-5" />
-              </button>
+              <NotificationBellDropdown
+                viewAllHref={getNotificationsFullPagePath(sessionRole)}
+                enabled={status === "authenticated"}
+              />
               <Link
                 href="/dashboard/broker/messages"
                 className="text-muted-foreground hover:text-foreground rounded-full p-2.5"

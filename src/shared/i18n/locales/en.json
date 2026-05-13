@@ -35,6 +35,51 @@
     "signOut": "Sign out",
     "register": "Register"
   },
+  "notifications": {
+    "channels": {
+      "inApp": "In-app",
+      "email": "Email",
+      "sms": "SMS",
+      "push": "Push",
+      "unknown": "Channel"
+    },
+    "row": {
+      "untitled": "Notification"
+    },
+    "feed": {
+      "title": "Notifications",
+      "unreadBadge": "{count} unread",
+      "markAllRead": "Mark all as read",
+      "tabs": {
+        "all": "All",
+        "unread": "Unread",
+        "read": "Read"
+      },
+      "channelsAll": "All channels",
+      "channelFilterAria": "Filter by channel",
+      "loading": "Loading notifications…",
+      "empty": "No notifications match your filters.",
+      "pageIndicator": "Page {page} of {totalPages}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "filteredHint": "Unread and Read tabs show your most recent notifications (up to 100). Use All for full history with pages.",
+      "dayGroups": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "earlier": "Earlier"
+      }
+    },
+    "dropdown": {
+      "triggerAria": "Open notifications",
+      "dialogAria": "Notifications menu",
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "loading": "Loading…",
+      "emptyTitle": "You're all caught up.",
+      "emptySubtitle": "No unread notifications.",
+      "viewAll": "View all notifications"
+    }
+  },
   "home": {
     "heroBadge": "Regulated by the Ethiopian Capital Market Authority",
     "heroTitleBefore": "Ethiopia's trusted gateway to",

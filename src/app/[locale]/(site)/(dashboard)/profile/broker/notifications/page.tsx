@@ -1,5 +1,5 @@
-import { BrokerProfileSettingsStub } from "@/features/broker/components/profile/broker-profile-settings-stub";
+import { BrokerNotificationsScreen } from "@/features/broker/components/notifications/broker-notifications-screen";
 
 export default function BrokerNotificationsPage() {
-  return <BrokerProfileSettingsStub titleKey="stubNotificationsTitle" />;
+  return <BrokerNotificationsScreen />;
 }

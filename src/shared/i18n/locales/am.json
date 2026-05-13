@@ -35,6 +35,51 @@
     "signOut": "ውጣ",
     "register": "ተመዝግብ"
   },
+  "notifications": {
+    "channels": {
+      "inApp": "በመተግበሪያ ውስጥ",
+      "email": "ኢሜይል",
+      "sms": "ኤስኤምኤስ",
+      "push": "ፑሽ",
+      "unknown": "ሰርጥ"
+    },
+    "row": {
+      "untitled": "ማሳወቂያ"
+    },
+    "feed": {
+      "title": "ማሳወቂያዎች",
+      "unreadBadge": "{count} ያልተነበቡ",
+      "markAllRead": "ሁሉንም እንደተነበቡ ምልክት አድርግ",
+      "tabs": {
+        "all": "ሁሉም",
+        "unread": "ያልተነበቡ",
+        "read": "የተነበቡ"
+      },
+      "channelsAll": "ሁሉም ሰርጦች",
+      "channelFilterAria": "በሰርጥ አጣራ",
+      "loading": "ማሳወቂያዎች በመጫን ላይ…",
+      "empty": "ለማጣሪያዎ የሚስማሙ ማሳወቂያዎች የሉም።",
+      "pageIndicator": "ገጽ {page} ከ {totalPages}",
+      "previousPage": "ቀዳሚ ገጽ",
+      "nextPage": "ቀጣይ ገጽ",
+      "filteredHint": "ያልተነበቡ እና የተነበቡ ትሮች የቅርብ ማሳወቂያዎችዎን እስከ 100 ድረስ ያሳያሉ። ሙሉ ታሪክ ከገጾች ጋር ለማየት ሁሉንም ይጠቀሙ።",
+      "dayGroups": {
+        "today": "ዛሬ",
+        "yesterday": "ትናንትና",
+        "earlier": "ቀደም ብሎ"
+      }
+    },
+    "dropdown": {
+      "triggerAria": "ማሳወቂያዎችን ክፈት",
+      "dialogAria": "የማሳወቂያ ምናሌ",
+      "title": "ማሳወቂያዎች",
+      "markAllRead": "ሁሉንም እንደተነበቡ ምልክት አድርግ",
+      "loading": "በመጫን ላይ…",
+      "emptyTitle": "ሁሉንም አይተዋል።",
+      "emptySubtitle": "ያልተነበቡ ማሳወቂያዎች የሉም።",
+      "viewAll": "ሁሉንም ማሳወቂያዎች ይመልከቱ"
+    }
+  },
   "home": {
     "heroBadge": "በኢትዮጵያ ካፒታል ገዝ መስተዳደር የተቆጣጠረ",
     "heroTitleBefore": "ወደ",
