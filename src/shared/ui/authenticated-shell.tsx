@@ -162,7 +162,7 @@ export function AuthenticatedShell({
           </div>
           <div className="px-4 pb-5">
             <Link
-              href="/requests"
+              href="/requests/new"
               className={cn(
                 buttonVariants({ variant: "default", size: "default" }),
                 "h-11 w-full rounded-full text-sm font-semibold shadow-none gap-2",

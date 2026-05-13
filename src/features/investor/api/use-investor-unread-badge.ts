@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { investorKeys } from "./keys";
 import { fetchInvestorUnreadMessageCount } from "./fetch-unread-message-count";
 
-/** Shares cache with investor dashboard stats (`investorKeys.conversationsUnread`). */
+/** Fetches unread message count for shell badges. */
 export function useInvestorUnreadBadge(enabled: boolean) {
   return useQuery({
     queryKey: investorKeys.conversationsUnread(),

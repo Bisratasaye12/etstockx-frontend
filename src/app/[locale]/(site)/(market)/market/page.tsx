@@ -1,14 +1,19 @@
-import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+import { ListingsExplorer } from "@/features/market/components/listings-explorer";
 
-export default async function MarketPage() {
-  const t = await getTranslations("dashboard");
-
+function ExplorerFallback() {
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold tracking-tight">Market</h1>
-      <p className="text-muted-foreground max-w-2xl text-sm">
-        {t("stubMarket")}
-      </p>
+    <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center gap-2 text-sm">
+      <Loader2 className="size-5 animate-spin" aria-hidden />
     </div>
+  );
+}
+
+export default function MarketPage() {
+  return (
+    <Suspense fallback={<ExplorerFallback />}>
+      <ListingsExplorer />
+    </Suspense>
   );
 }
