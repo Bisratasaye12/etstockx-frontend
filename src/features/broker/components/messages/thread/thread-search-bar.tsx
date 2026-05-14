@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { usePortalThreadMessagesTranslations } from "@/features/messaging/context/messaging-portal-context";
 import { Input } from "@/shared/ui/input";
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function ThreadSearchBar({ value, onChange, onClose }: Props) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
 
   return (
     <div className="border-border bg-card border-b px-4 py-2.5 md:px-5">

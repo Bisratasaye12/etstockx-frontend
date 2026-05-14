@@ -13,12 +13,6 @@ export const investorKeys = {
     [...investorKeys.all, "buy-requests", "recent"] as const,
   recentSellRequests: () =>
     [...investorKeys.all, "sell-requests", "recent"] as const,
-  conversationsUnread: () =>
-    [...investorKeys.all, "messages", "unread"] as const,
-  conversationsList: () =>
-    [...investorKeys.all, "messages", "conversations"] as const,
-  conversationMessages: (conversationId: string) =>
-    [...investorKeys.all, "messages", "thread", conversationId] as const,
   /** My Requests page — buy + sell list slices (filters baked into key). */
   myRequestsBuy: (signature: string) =>
     [...investorKeys.all, "my-requests", "buy", signature] as const,

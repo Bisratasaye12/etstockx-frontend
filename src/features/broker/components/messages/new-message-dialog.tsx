@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Building2, Search, User, X } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
@@ -18,6 +17,10 @@ import { useBrokerDirectory } from "@/features/profiles/api/use-broker-directory
 import { uniqueClientsFromIncoming } from "@/features/broker/lib/unique-clients-from-incoming";
 import { useSendMessage } from "@/features/messaging/api/use-send-message";
 import { getConversationInitials } from "@/features/messaging/lib/conversation-initials";
+import {
+  useMessagingPortal,
+  usePortalComposeMessagesTranslations,
+} from "@/features/messaging/context/messaging-portal-context";
 
 type RecipientKind = "client" | "broker";
 
@@ -67,17 +70,24 @@ function matchesQuery(r: Recipient, q: string): boolean {
 }
 
 export function NewMessageDialog({ open, onOpenChange }: Props) {
-  const t = useTranslations("broker.messages.compose");
+  const t = usePortalComposeMessagesTranslations();
   const router = useRouter();
   const { data: session } = useSession();
+  const { portal, messagesRootPath } = useMessagingPortal();
   const currentUserId = session?.user?.id ?? "";
 
-  const [tab, setTab] = useState<RecipientKind>("client");
+  const [tab, setTab] = useState<RecipientKind>(() =>
+    portal === "investor" ? "broker" : "client",
+  );
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Recipient | null>(null);
   const [content, setContent] = useState("");
 
-  const incoming = useBrokerIncomingRequests(1, INCOMING_PAGE_SIZE);
+  const incoming = useBrokerIncomingRequests(
+    1,
+    INCOMING_PAGE_SIZE,
+    portal === "broker",
+  );
   const directory = useBrokerDirectory();
   const sendMessage = useSendMessage();
 
@@ -97,14 +107,20 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
     return all.filter((r) => r.userId !== currentUserId);
   }, [directory.data, currentUserId, t]);
 
-  const list = tab === "client" ? clientRecipients : brokerRecipients;
+  const list =
+    portal === "investor"
+      ? brokerRecipients
+      : tab === "client"
+        ? clientRecipients
+        : brokerRecipients;
   const q = query.trim().toLowerCase();
   const filtered = useMemo(
     () => list.filter((r) => matchesQuery(r, q)),
     [list, q],
   );
 
-  const activeQuery = tab === "client" ? incoming : directory;
+  const activeQuery =
+    portal === "investor" ? directory : tab === "client" ? incoming : directory;
   const trimmedContent = content.trim();
   const canSend =
     selected != null &&
@@ -113,7 +129,7 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
     !sendMessage.isPending;
 
   function resetState() {
-    setTab("client");
+    setTab(portal === "investor" ? "broker" : "client");
     setQuery("");
     setSelected(null);
     setContent("");
@@ -136,7 +152,7 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
       });
       resetState();
       onOpenChange(false);
-      router.push(`/dashboard/broker/messages/${message.conversationId}`);
+      router.push(`${messagesRootPath}/${message.conversationId}`);
     } catch {
       // surfaced via sendMessage.error below
     }
@@ -174,26 +190,28 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
         </div>
 
         <div className="border-border space-y-3 border-b px-5 py-4">
-          <div className="bg-muted/60 inline-flex rounded-lg p-0.5">
-            {(["client", "broker"] as const).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setTab(key);
-                  setSelected(null);
-                }}
-                className={cn(
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                  tab === key
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {key === "client" ? t("tabs.clients") : t("tabs.brokers")}
-              </button>
-            ))}
-          </div>
+          {portal === "broker" ? (
+            <div className="bg-muted/60 inline-flex rounded-lg p-0.5">
+              {(["client", "broker"] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    setTab(key);
+                    setSelected(null);
+                  }}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    tab === key
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {key === "client" ? t("tabs.clients") : t("tabs.brokers")}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div className="relative">
             <Search
@@ -205,9 +223,9 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={
-                tab === "client"
-                  ? t("searchClientsPlaceholder")
-                  : t("searchBrokersPlaceholder")
+                portal === "investor" || tab === "broker"
+                  ? t("searchBrokersPlaceholder")
+                  : t("searchClientsPlaceholder")
               }
               aria-label={t("searchAria")}
               className="border-border bg-background h-10 rounded-lg pl-10"
@@ -229,7 +247,9 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
               </p>
             ) : filtered.length === 0 ? (
               <p className="text-muted-foreground px-4 py-6 text-sm">
-                {tab === "client" ? t("emptyClients") : t("emptyBrokers")}
+                {portal === "investor" || tab === "broker"
+                  ? t("emptyBrokers")
+                  : t("emptyClients")}
               </p>
             ) : (
               <ul className="divide-y divide-border">

@@ -2,9 +2,9 @@
 
 import { useId, useRef, useState } from "react";
 import { Paperclip, Send } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { usePortalThreadMessagesTranslations } from "@/features/messaging/context/messaging-portal-context";
 import { ComposerAttachmentPreview } from "@/features/broker/components/messages/thread/composer-attachment-preview";
 
 /**
@@ -27,7 +27,7 @@ export function MessageComposer({
   onSendAttachment,
   isSending,
 }: Props) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
   const fileInputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

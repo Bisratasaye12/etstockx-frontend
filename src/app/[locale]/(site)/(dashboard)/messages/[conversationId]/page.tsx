@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "@/shared/i18n/routing";
-import { InvestorConversationThread } from "@/features/investor/components/investor-conversation-thread";
+import { BrokerConversationThread } from "@/features/broker/components/messages/thread/broker-conversation-thread";
 
 export default async function InvestorConversationPage({
   params,
@@ -13,5 +13,10 @@ export default async function InvestorConversationPage({
     redirect({ href: "/dashboard", locale });
   }
 
-  return <InvestorConversationThread conversationId={conversationId} />;
+  return (
+    <BrokerConversationThread
+      conversationId={conversationId}
+      portal="investor"
+    />
+  );
 }

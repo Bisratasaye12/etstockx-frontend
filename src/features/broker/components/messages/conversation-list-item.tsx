@@ -1,11 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import type { ConversationDto } from "@/entities/messaging/model/types";
 import { getConversationInitials } from "@/features/messaging/lib/conversation-initials";
 import { formatConversationTime } from "@/features/messaging/lib/format-conversation-time";
+import {
+  useMessagingPortal,
+  usePortalListMessagesTranslations,
+} from "@/features/messaging/context/messaging-portal-context";
 
 type Props = {
   conversation: ConversationDto;
@@ -18,7 +21,8 @@ export function ConversationListItem({
   isActive,
   locale,
 }: Props) {
-  const t = useTranslations("broker.messages");
+  const t = usePortalListMessagesTranslations();
+  const { messagesRootPath } = useMessagingPortal();
 
   const displayName =
     conversation.counterpartyName?.trim() || t("unknownCounterparty");
@@ -36,7 +40,7 @@ export function ConversationListItem({
 
   return (
     <Link
-      href={`/dashboard/broker/messages/${conversation.id}`}
+      href={`${messagesRootPath}/${conversation.id}`}
       aria-label={t("openConversation", { name: displayName })}
       aria-current={isActive ? "page" : undefined}
       className={cn(

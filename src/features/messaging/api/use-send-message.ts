@@ -29,6 +29,7 @@ export function useSendMessage() {
         queryKey: messagingKeys.threadAll(message.conversationId),
       });
       void qc.invalidateQueries({ queryKey: messagingKeys.all });
+      void qc.invalidateQueries({ queryKey: messagingKeys.unreadTotal() });
     },
   });
 }

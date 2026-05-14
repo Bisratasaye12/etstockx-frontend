@@ -2,8 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useConversations } from "@/features/messaging/api/use-conversations";
+import {
+  MessagingPortalProvider,
+  useMessagingPortal,
+  usePortalListMessagesTranslations,
+  type MessagingPortalId,
+} from "@/features/messaging/context/messaging-portal-context";
 import { ConversationListItem } from "@/features/broker/components/messages/conversation-list-item";
 import { EmptyConversationsState } from "@/features/broker/components/messages/empty-conversations-state";
 import { NewMessageDialog } from "@/features/broker/components/messages/new-message-dialog";
@@ -21,6 +27,8 @@ const EMPTY_CONVERSATIONS: ConversationDto[] = [];
 type Props = {
   /** Conversation currently being viewed (from the URL), if any. */
   activeConversationId?: string;
+  /** Investor shell reuses the same list UI under `/messages`. */
+  portal?: MessagingPortalId;
 };
 
 const panelSurface =
@@ -36,8 +44,9 @@ function filterByQuery(items: ConversationDto[], query: string) {
   });
 }
 
-export function BrokerMessagesScreen({ activeConversationId }: Props) {
-  const t = useTranslations("broker.messages");
+function BrokerMessagesScreenInner({ activeConversationId }: Props) {
+  const t = usePortalListMessagesTranslations();
+  const { portal } = useMessagingPortal();
   const locale = useLocale();
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
@@ -125,7 +134,23 @@ export function BrokerMessagesScreen({ activeConversationId }: Props) {
             {t("listLoading")}
           </p>
         ) : isEmpty ? (
-          <EmptyConversationsState />
+          <EmptyConversationsState
+            footer={
+              portal === "investor" ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-6 gap-1.5"
+                  onClick={() => setComposeOpen(true)}
+                  aria-label={t("newMessage")}
+                >
+                  <Plus className="size-4" aria-hidden />
+                  {t("newMessage")}
+                </Button>
+              ) : null
+            }
+          />
         ) : visibleItems.length === 0 ? (
           <p className="text-muted-foreground px-5 py-10 text-sm">
             {t("searchEmpty", { query })}
@@ -172,5 +197,16 @@ export function BrokerMessagesScreen({ activeConversationId }: Props) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+export function BrokerMessagesScreen({
+  activeConversationId,
+  portal = "broker",
+}: Props) {
+  return (
+    <MessagingPortalProvider portal={portal}>
+      <BrokerMessagesScreenInner activeConversationId={activeConversationId} />
+    </MessagingPortalProvider>
   );
 }
