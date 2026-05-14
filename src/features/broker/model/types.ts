@@ -19,6 +19,8 @@ export interface IncomingRequestDto {
   currency: string | null;
   status: string | null;
   createdAt: string;
+  /** Resolved display name (nullable); see OpenAPI IncomingRequestDto. */
+  clientName?: string | null;
 }
 
 export interface IncomingRequestDtoPagedResult {
