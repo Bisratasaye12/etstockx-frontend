@@ -6,7 +6,14 @@ export default async function AdminBrokersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("shell.brokerPageTitle")}
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          {t("shell.brokerPageSubtitle")}
+        </p>
+      </div>
       <PendingBrokersPanel />
     </div>
   );

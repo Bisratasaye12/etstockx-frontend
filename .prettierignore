@@ -1,4 +1,5 @@
 .next
+*.code-workspace
 node_modules
 out
 build

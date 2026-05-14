@@ -4,6 +4,9 @@ import type { UserRole } from "@/shared/api/types";
 export function getNotificationsFullPagePath(
   role: UserRole | undefined,
 ): string {
+  if (role === "Admin") {
+    return "/profile/admin/notifications";
+  }
   if (role === "Broker" || role === "Dealer") {
     return "/profile/broker/notifications";
   }

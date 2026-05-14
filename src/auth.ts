@@ -3,6 +3,7 @@ import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { User } from "next-auth";
 import { getServerApiBaseUrl } from "@/shared/config/env";
+import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
 import type { LoginResultDto } from "@/shared/api/dtos/iam";
 
 class BackendCredentialsSignin extends CredentialsSignin {
@@ -27,6 +28,7 @@ function mapBackendLoginErrorToCode(message?: string): string {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  secret: resolveAuthSecret(),
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   providers: [
     Credentials({
@@ -53,7 +55,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         });
 
-        const data = (await res.json()) as LoginResultDto & { error?: string };
+        const raw = await res.text();
+        let data = {} as LoginResultDto & { error?: string };
+        if (raw) {
+          try {
+            data = JSON.parse(raw) as LoginResultDto & { error?: string };
+          } catch {
+            throw new BackendCredentialsSignin("invalid_credentials");
+          }
+        }
+
         if (!res.ok || !data.accessToken || !data.refreshToken) {
           throw new BackendCredentialsSignin(
             mapBackendLoginErrorToCode(data.error),

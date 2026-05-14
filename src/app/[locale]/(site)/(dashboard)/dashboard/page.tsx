@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { safeAuth } from "@/shared/lib/safe-auth";
 import { getTranslations } from "next-intl/server";
 import { Link, redirect } from "@/shared/i18n/routing";
 import { buttonVariants } from "@/shared/ui/button";
@@ -11,8 +11,12 @@ export default async function DashboardPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const session = await auth();
+  const session = await safeAuth();
   const t = await getTranslations("dashboard");
+
+  if (session?.user?.role === "Admin") {
+    redirect({ href: "/admin/overview", locale });
+  }
 
   if (session?.user?.role === "Broker" || session?.user?.role === "Dealer") {
     redirect({ href: "/dashboard/broker", locale });

@@ -1,6 +1,6 @@
 import { SiteHeader } from "@/shared/ui/site-header";
 import { SiteFooter } from "@/shared/ui/site-footer";
-import { auth } from "@/auth";
+import { safeAuth } from "@/shared/lib/safe-auth";
 import { AuthenticatedShell } from "@/shared/ui/authenticated-shell";
 import type { UserRole } from "@/shared/api/types";
 
@@ -9,8 +9,7 @@ export default async function SiteChromeLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  // console.log("layout accessToken", session?.accessToken);
+  const session = await safeAuth();
 
   if (session) {
     return (

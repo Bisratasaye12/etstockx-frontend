@@ -6,6 +6,7 @@ import {
   usePendingBrokerApplications,
   useVerifyBrokerApplication,
 } from "@/features/admin/api/use-pending-brokers";
+import { browserApi } from "@/shared/api/browser-api";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -18,14 +19,27 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 
+async function openBrokerDocument(documentId: string) {
+  const res = await browserApi.get(`/v1/auth/brokers/documents/${documentId}`, {
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(res.data as Blob);
+  window.open(url, "_blank", "noopener,noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
 export function PendingBrokersPanel() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const { data, isLoading, error } = usePendingBrokerApplications();
   const verify = useVerifyBrokerApplication();
   const [reason, setReason] = useState("");
+  const [docLoadingId, setDocLoadingId] = useState<string | null>(null);
 
   if (isLoading) {
-    return <p className="text-muted-foreground text-sm">…</p>;
+    return (
+      <p className="text-muted-foreground text-sm">{tCommon("loading")}</p>
+    );
   }
   if (error) {
     return (
@@ -39,19 +53,21 @@ export function PendingBrokersPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
+          <CardTitle>{t("brokers.title")}</CardTitle>
           <CardDescription>
-            {list.length === 0 ? t("empty") : `${list.length} pending`}
+            {list.length === 0
+              ? t("brokers.empty")
+              : t("brokers.pendingSummary", { count: list.length })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason (reject / more info)</Label>
+            <Label htmlFor="reason">{t("brokers.reasonLabel")}</Label>
             <Input
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Required for Reject or MoreInfo"
+              placeholder={t("brokers.reasonPlaceholder")}
             />
           </div>
           {verify.isError ? (
@@ -70,6 +86,32 @@ export function PendingBrokersPanel() {
                   {app.email ?? "—"}
                 </p>
                 <p className="font-mono text-xs">{app.licenseNumber ?? "—"}</p>
+                {app.documents?.length ? (
+                  <ul className="text-muted-foreground mt-2 space-y-1 text-xs">
+                    {app.documents.map((doc) => (
+                      <li key={doc.id} className="flex items-center gap-2">
+                        <span className="truncate">
+                          {doc.fileName ?? doc.id}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto px-0 py-0 text-xs"
+                          disabled={docLoadingId === doc.id}
+                          onClick={() => {
+                            setDocLoadingId(doc.id);
+                            void openBrokerDocument(doc.id)
+                              .catch(() => {})
+                              .finally(() => setDocLoadingId(null));
+                          }}
+                        >
+                          {docLoadingId === doc.id ? "…" : t("brokers.viewDoc")}
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button
                     type="button"
@@ -83,7 +125,23 @@ export function PendingBrokersPanel() {
                       })
                     }
                   >
-                    {t("approve")}
+                    {t("brokers.approve")}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={verify.isPending}
+                    onClick={() =>
+                      verify.mutate({
+                        applicationId: app.id,
+                        decision: "MoreInfo",
+                        reason:
+                          reason.trim() || t("brokers.defaultMoreInfoReason"),
+                      })
+                    }
+                  >
+                    {t("brokers.moreInfo")}
                   </Button>
                   <Button
                     type="button"
@@ -98,7 +156,7 @@ export function PendingBrokersPanel() {
                       })
                     }
                   >
-                    {t("reject")}
+                    {t("brokers.reject")}
                   </Button>
                 </div>
               </li>
