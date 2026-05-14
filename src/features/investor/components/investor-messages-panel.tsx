@@ -1,40 +1,27 @@
 "use client";
 
-import { useMemo } from "react";
-import { useSession } from "next-auth/react";
-import { ChevronRight, Loader2, MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
-import { useInvestorConversations } from "@/features/investor/api/use-investor-conversations";
-import { useBrokerDirectory } from "@/features/profiles/api/use-broker-directory";
+import { buttonVariants } from "@/shared/ui/button";
 import {
-  investorBrokerAvatarLabel,
-  investorBrokerTitle,
-} from "@/features/investor/lib/messaging-broker-label";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/card";
+import { cn } from "@/shared/lib/utils";
 import { formatConversationListTime } from "@/features/investor/lib/format-conversation-list-time";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
-import { buttonVariants } from "@/shared/ui/button";
-import { cn } from "@/shared/lib/utils";
+import { useConversations } from "@/features/messaging/api/use-conversations";
 
 export function InvestorMessagesPanel() {
   const t = useTranslations("investor.messages");
-  const { status } = useSession();
-  const enabled = status === "authenticated";
 
-  const q = useInvestorConversations(enabled);
-  const { data: brokers } = useBrokerDirectory();
+  const q = useConversations({ page: 1, pageSize: 50 });
 
-  const rows = useMemo(() => {
-    const list = [...(q.data ?? [])];
-    list.sort((a, b) => {
-      const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-      const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-      return tb - ta;
-    });
-    return list;
-  }, [q.data]);
-
-  if (status === "loading" || (enabled && q.isLoading)) {
+  if (q.isLoading) {
     return (
       <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center gap-2 text-sm">
         <Loader2 className="size-5 animate-spin" aria-hidden />
@@ -50,6 +37,8 @@ export function InvestorMessagesPanel() {
       </p>
     );
   }
+
+  const rows = q.data?.items ?? [];
 
   return (
     <div className="space-y-8 pb-10">
@@ -87,65 +76,40 @@ export function InvestorMessagesPanel() {
           </div>
         </div>
       ) : (
-        <div className="border-border/80 bg-card overflow-hidden rounded-2xl border shadow-sm">
-          <ul className="divide-border/60 divide-y">
-            {rows.map((c) => {
-              const broker = (brokers ?? []).find(
-                (b) => b.userId === c.counterpartyId,
-              );
-              const title = investorBrokerTitle(
-                broker,
-                t("unknownCounterparty"),
-              );
-              const initials = investorBrokerAvatarLabel(broker, title);
-              const preview = c.lastMessagePreview?.trim() || t("noPreview");
-              const when = c.lastMessageAt
-                ? formatConversationListTime(c.lastMessageAt, t)
-                : null;
-
-              return (
-                <li key={c.id}>
-                  <Link
-                    href={`/messages/${c.id}`}
-                    className="hover:bg-muted/40 flex items-center gap-4 px-4 py-4 transition-colors sm:px-5"
-                  >
-                    <div
-                      className="bg-primary/12 text-primary flex size-11 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      aria-hidden
+        <div className="grid gap-3">
+          {rows.map((c) => (
+            <Card key={c.id} className="border-border/80 shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between gap-3">
+                  <CardTitle className="text-base font-semibold">
+                    {c.counterpartyName?.trim() ||
+                      t("conversationWith", {
+                        id: c.counterpartyId.slice(0, 8),
+                      })}
+                  </CardTitle>
+                  {c.unreadCount > 0 ? (
+                    <span
+                      className={cn(
+                        "bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs font-semibold",
+                      )}
                     >
-                      {initials}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="truncate font-semibold">{title}</p>
-                        {when ? (
-                          <time
-                            className="text-muted-foreground shrink-0 text-xs"
-                            dateTime={c.lastMessageAt ?? undefined}
-                          >
-                            {when}
-                          </time>
-                        ) : null}
-                      </div>
-                      <p className="text-muted-foreground mt-0.5 line-clamp-2 text-sm">
-                        {preview}
-                      </p>
-                    </div>
-                    {c.unreadCount > 0 ? (
-                      <span className="bg-primary text-primary-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
-                        {c.unreadCount > 99 ? "99+" : c.unreadCount}
-                      </span>
-                    ) : (
-                      <ChevronRight
-                        className="text-muted-foreground size-5 shrink-0"
-                        aria-hidden
-                      />
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                      {c.unreadCount}
+                    </span>
+                  ) : null}
+                </div>
+                {c.lastMessageAt ? (
+                  <CardDescription>
+                    {formatConversationListTime(c.lastMessageAt, t)}
+                  </CardDescription>
+                ) : null}
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  {c.lastMessagePreview ?? t("noPreview")}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
     </div>
