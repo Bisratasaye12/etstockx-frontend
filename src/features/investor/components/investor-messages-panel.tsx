@@ -1,8 +1,9 @@
 "use client";
 
-import { MessageSquare } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/shared/lib/utils";
+import { Link } from "@/shared/i18n/routing";
+import { buttonVariants } from "@/shared/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { cn } from "@/shared/lib/utils";
+import { formatConversationListTime } from "@/features/investor/lib/format-conversation-list-time";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { useConversations } from "@/features/messaging/api/use-conversations";
 
@@ -19,7 +22,12 @@ export function InvestorMessagesPanel() {
   const q = useConversations({ page: 1, pageSize: 50 });
 
   if (q.isLoading) {
-    return <p className="text-muted-foreground text-sm">{t("loading")}</p>;
+    return (
+      <div className="text-muted-foreground flex min-h-[40vh] items-center justify-center gap-2 text-sm">
+        <Loader2 className="size-5 animate-spin" aria-hidden />
+        {t("loading")}
+      </div>
+    );
   }
 
   if (q.isError) {
@@ -33,19 +41,39 @@ export function InvestorMessagesPanel() {
   const rows = q.data?.items ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-10">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
+        <p className="text-muted-foreground mt-1 max-w-2xl text-sm leading-relaxed">
+          {t("subtitle")}
+        </p>
       </div>
 
       {rows.length === 0 ? (
-        <div className="border-muted-foreground/25 bg-muted/15 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-6 py-16 text-center">
-          <MessageSquare
-            className="text-muted-foreground size-10"
-            aria-hidden
-          />
-          <p className="text-muted-foreground max-w-md text-sm">{t("empty")}</p>
+        <div className="flex justify-center px-2">
+          <div className="border-border/80 bg-card w-full max-w-md rounded-2xl border px-8 py-14 text-center shadow-md">
+            <div className="bg-primary/10 mx-auto mb-5 flex size-16 items-center justify-center rounded-full">
+              <MessageSquare
+                className="text-primary size-8 stroke-[1.5]"
+                aria-hidden
+              />
+            </div>
+            <h2 className="text-foreground text-lg font-semibold tracking-tight">
+              {t("emptyTitle")}
+            </h2>
+            <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+              {t("emptyBody")}
+            </p>
+            <Link
+              href="/brokers"
+              className={cn(
+                buttonVariants({ variant: "default" }),
+                "mt-6 inline-flex h-11 items-center justify-center rounded-full px-8 text-sm font-semibold",
+              )}
+            >
+              {t("findBroker")}
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid gap-3">
@@ -71,7 +99,7 @@ export function InvestorMessagesPanel() {
                 </div>
                 {c.lastMessageAt ? (
                   <CardDescription>
-                    {new Date(c.lastMessageAt).toLocaleString()}
+                    {formatConversationListTime(c.lastMessageAt, t)}
                   </CardDescription>
                 ) : null}
               </CardHeader>

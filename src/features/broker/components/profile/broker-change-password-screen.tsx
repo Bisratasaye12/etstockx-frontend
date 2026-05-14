@@ -7,8 +7,8 @@ import { Lock } from "lucide-react";
 import { useChangePassword } from "@/features/broker/api/use-change-password";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { Button, buttonVariants } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { PasswordInputWithToggle } from "@/shared/ui/password-input-with-toggle";
 import { cn } from "@/shared/lib/utils";
 
 const panelSurface =
@@ -16,6 +16,7 @@ const panelSurface =
 
 export function BrokerChangePasswordScreen() {
   const t = useTranslations("broker.profile.changePassword");
+  const tAuth = useTranslations("auth");
   const tc = useTranslations("common");
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -110,10 +111,9 @@ export function BrokerChangePasswordScreen() {
             <Label htmlFor="broker-cpw-current" className="text-sm font-medium">
               {t("currentPassword")}
             </Label>
-            <Input
+            <PasswordInputWithToggle
               id="broker-cpw-current"
               name="currentPassword"
-              type="password"
               autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => {
@@ -122,38 +122,42 @@ export function BrokerChangePasswordScreen() {
               }}
               className="h-11 rounded-lg"
               required
+              showPasswordLabel={tAuth("loginShowPassword")}
+              hidePasswordLabel={tAuth("loginHidePassword")}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="broker-cpw-new" className="text-sm font-medium">
               {t("newPassword")}
             </Label>
-            <Input
+            <PasswordInputWithToggle
               id="broker-cpw-new"
               name="newPassword"
-              type="password"
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="h-11 rounded-lg"
               required
               minLength={8}
+              showPasswordLabel={tAuth("loginShowPassword")}
+              hidePasswordLabel={tAuth("loginHidePassword")}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="broker-cpw-confirm" className="text-sm font-medium">
               {t("confirmPassword")}
             </Label>
-            <Input
+            <PasswordInputWithToggle
               id="broker-cpw-confirm"
               name="confirmPassword"
-              type="password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="h-11 rounded-lg"
               required
               minLength={8}
+              showPasswordLabel={tAuth("loginShowPassword")}
+              hidePasswordLabel={tAuth("loginHidePassword")}
             />
           </div>
         </div>

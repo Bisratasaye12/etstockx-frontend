@@ -22,8 +22,9 @@ import { useBrokerIncomingRequests } from "@/features/broker/api/use-broker-inco
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
+import { DashboardHeaderProfileMenu } from "@/shared/ui/dashboard-header-profile-menu";
 
-type NavItem = {
+export type BrokerPortalNavItem = {
   href: string;
   labelKey:
     | "navDashboard"
@@ -35,7 +36,7 @@ type NavItem = {
   badgeFromTotal?: boolean;
 };
 
-const NAV: NavItem[] = [
+export const BROKER_PORTAL_NAV: BrokerPortalNavItem[] = [
   {
     href: "/dashboard/broker",
     labelKey: "navDashboard",
@@ -56,7 +57,7 @@ const NAV: NavItem[] = [
   },
 ];
 
-function navActive(pathname: string, href: string) {
+export function isBrokerPortalNavActive(pathname: string, href: string) {
   if (href === "/dashboard/broker") {
     return (
       pathname === "/dashboard/broker" || pathname === "/dashboard/broker/"
@@ -65,12 +66,16 @@ function navActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-const sidebarNavRowClass =
+export const BROKER_PORTAL_SIDEBAR_ROW_CLASS =
   "text-muted-foreground hover:bg-muted/80 hover:text-foreground flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors";
 
-const sidebarNavRowActiveClass = "bg-primary/12 text-primary font-semibold";
+export const BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS =
+  "bg-primary/12 text-primary font-semibold";
 
-export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
+type Props = { children: React.ReactNode };
+
+/** Primary broker / dealer app chrome (sidebar + header + main). Rendered from `AuthenticatedShell`. */
+export function BrokerPortalChrome({ children }: Props) {
   const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations("broker.shell");
@@ -81,16 +86,6 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
 
   const incomingTotal = useBrokerIncomingRequests(1, 1);
   const queueTotal = incomingTotal.data?.total ?? 0;
-
-  const email = session?.user?.email ?? "";
-  const initials =
-    email
-      .split("@")[0]
-      ?.split(/[.\s_-]+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s) => s[0]?.toUpperCase())
-      .join("") || "B";
 
   return (
     <div className="bg-muted/20 flex min-h-screen w-full">
@@ -125,9 +120,9 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 px-3 pb-4">
-          {NAV.map((item) => {
+          {BROKER_PORTAL_NAV.map((item) => {
             const Icon = item.icon;
-            const active = navActive(pathname, item.href);
+            const active = isBrokerPortalNavActive(pathname, item.href);
             const showBadge = item.badgeFromTotal && queueTotal > 0;
             const badge = showBadge ? Math.min(queueTotal, 99) : null;
 
@@ -136,8 +131,8 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  sidebarNavRowClass,
-                  active && sidebarNavRowActiveClass,
+                  BROKER_PORTAL_SIDEBAR_ROW_CLASS,
+                  active && BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
                 )}
               >
                 <Icon className="size-[18px] shrink-0" aria-hidden />
@@ -155,9 +150,9 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
             <Link
               href="/profile/broker"
               className={cn(
-                sidebarNavRowClass,
+                BROKER_PORTAL_SIDEBAR_ROW_CLASS,
                 pathname.startsWith("/profile/broker") &&
-                  sidebarNavRowActiveClass,
+                  BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
               )}
             >
               <Settings className="size-[18px] shrink-0" aria-hidden />
@@ -166,7 +161,7 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
-              className={cn(sidebarNavRowClass, "cursor-pointer")}
+              className={cn(BROKER_PORTAL_SIDEBAR_ROW_CLASS, "cursor-pointer")}
             >
               <LogOut className="size-[18px] shrink-0" aria-hidden />
               <span className="flex-1 text-left">{tNav("signOut")}</span>
@@ -203,12 +198,7 @@ export function BrokerPortalShell({ children }: { children: React.ReactNode }) {
               >
                 <Mail className="size-5" />
               </Link>
-              <div
-                className="bg-primary text-primary-foreground ml-1 flex size-9 items-center justify-center rounded-full text-xs font-semibold"
-                aria-label={t("userMenu")}
-              >
-                {initials}
-              </div>
+              <DashboardHeaderProfileMenu profileHref="/profile/broker" />
             </div>
           </div>
         </header>
