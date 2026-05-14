@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/shared/i18n/routing";
 import type { NotificationItem } from "@/entities/notification/model/types";
+import type { UserRole } from "@/shared/api/types";
 import { formatRelativeTimeShort } from "@/shared/lib/format-relative-time";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { cn } from "@/shared/lib/utils";
@@ -14,6 +17,7 @@ import { useNotificationsPaged } from "@/features/notifications/api/use-notifica
 import { useMarkAllNotificationsRead } from "@/features/notifications/api/use-mark-all-notifications-read";
 import { useMarkNotificationRead } from "@/features/notifications/api/use-mark-notification-read";
 import { groupNotificationsByCalendarDay } from "@/features/notifications/lib/group-notifications-by-calendar-day";
+import { getNotificationTargetHref } from "@/features/notifications/lib/get-notification-target-href";
 
 const panelSurface =
   "rounded-xl border border-border bg-card shadow-[0_1px_3px_rgba(15,23,42,0.06)]";
@@ -43,10 +47,12 @@ function formatChannelLabel(
 function NotificationRow({
   n,
   locale,
+  role,
   onActivate,
 }: {
   n: NotificationItem;
   locale: string;
+  role: UserRole | undefined;
   onActivate: (id: string) => void;
 }) {
   const t = useTranslations("notifications");
@@ -55,18 +61,19 @@ function NotificationRow({
     new Date(),
     locale === "am" ? "am" : "en",
   );
+  const targetHref = getNotificationTargetHref(n, role);
 
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        if (!n.isRead) onActivate(n.id);
-      }}
-      className={cn(
-        "hover:bg-muted/50 flex w-full items-start gap-3 border-b border-border px-4 py-4 text-left transition-colors last:border-b-0 md:px-6",
-        !n.isRead && "bg-primary/[0.03]",
-      )}
-    >
+  function handleClick() {
+    onActivate(n.id);
+  }
+
+  const rowClass = cn(
+    "hover:bg-muted/50 flex w-full items-start gap-3 border-b border-border px-4 py-4 text-left transition-colors last:border-b-0 md:px-6",
+    !n.isRead && "bg-primary/[0.03]",
+  );
+
+  const inner = (
+    <>
       <span className="mt-1.5 flex w-2 shrink-0 justify-center" aria-hidden>
         {!n.isRead ? (
           <span className="bg-primary size-2 rounded-full" />
@@ -106,6 +113,20 @@ function NotificationRow({
           {rel}
         </span>
       </span>
+    </>
+  );
+
+  if (targetHref) {
+    return (
+      <Link href={targetHref} className={rowClass} onClick={handleClick}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" className={rowClass} onClick={handleClick}>
+      {inner}
     </button>
   );
 }
@@ -113,6 +134,8 @@ function NotificationRow({
 export function NotificationsFeedScreen() {
   const t = useTranslations("notifications");
   const locale = useLocale();
+  const { data: session } = useSession();
+  const role = session?.user?.role as UserRole | undefined;
   const [statusTab, setStatusTab] = useState<StatusTab>("all");
   const [channel, setChannel] = useState<ChannelFilter>("");
   const [page, setPage] = useState(1);
@@ -159,7 +182,8 @@ export function NotificationsFeedScreen() {
   }
 
   function handleRowActivate(id: string) {
-    markOne.mutate(id);
+    const row = rows.find((r) => r.id === id);
+    if (row && !row.isRead) markOne.mutate(id);
   }
 
   return (
@@ -262,6 +286,7 @@ export function NotificationsFeedScreen() {
                       key={n.id}
                       n={n}
                       locale={locale}
+                      role={role}
                       onActivate={handleRowActivate}
                     />
                   ))}

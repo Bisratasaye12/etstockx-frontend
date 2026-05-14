@@ -6,13 +6,15 @@ import {
   Bookmark,
   ChevronRight,
   ClipboardList,
-  Eye,
-  Handshake,
   Contact,
   List,
   Lock,
-  MessageSquare,
   UserRound,
+  Clock,
+  ArrowLeftRight,
+  Tag,
+  CircleCheck,
+  MoreHorizontal,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
@@ -20,7 +22,12 @@ import { cn } from "@/shared/lib/utils";
 import { useClientProfile } from "@/features/profiles/api/use-client-profile";
 import { useWatchlist } from "@/features/profiles/api/use-watchlist";
 import { useInvestorDashboardData } from "@/features/investor/api/use-investor-dashboard-data";
+import {
+  listingSummariesById,
+  useMarketListingSummaries,
+} from "@/features/market/api/use-market-listing-summaries";
 import { buttonVariants } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
 import {
   Card,
   CardContent,
@@ -28,6 +35,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import {
+  formatListingPrice,
+  formatSectorLabel,
+  requestTypeBadgeClassName,
+  tradeStatusBadgeClassName,
+} from "@/features/investor/lib/request-status-presentational";
 
 function greetingPeriod(date: Date): "morning" | "afternoon" | "evening" {
   const h = date.getHours();
@@ -86,15 +99,21 @@ function CheckRow({ done, label }: { done: boolean; label: string }) {
 export function InvestorOverview() {
   const { data: session, status } = useSession();
   const t = useTranslations("investor.dashboard");
+  const tStatus = useTranslations("investor.dashboard.requestStatus");
+  const tType = useTranslations("investor.dashboard.requestType");
   const { data: profile, isLoading: profileLoading } = useClientProfile();
   const isActivated = Boolean(session?.user?.isActivated);
 
   const { data: watchlist } = useWatchlist({ enabled: isActivated });
+  const { data: listingSummaries, isLoading: listingsLoading } =
+    useMarketListingSummaries({ enabled: isActivated });
+
   const {
     activeRequestsTotal,
-    unreadMessages,
-    pendingDeals,
-    recentBuyRequests,
+    inNegotiationTotal,
+    termsAgreedTotal,
+    completedTotal,
+    recentRequests,
     statsLoading,
     recentLoading,
   } = useInvestorDashboardData(isActivated);
@@ -112,30 +131,39 @@ export function InvestorOverview() {
     [profile?.address, profile?.settlementBank, profile?.riskProfile],
   );
 
-  const savedListingsCount = watchlist?.length ?? 0;
+  const listingById = useMemo(
+    () => listingSummariesById(listingSummaries),
+    [listingSummaries],
+  );
 
   const statCards = [
     {
-      key: "activeRequests",
+      key: "activeRequests" as const,
       value: statsLoading ? "—" : activeRequestsTotal,
-      icon: ClipboardList,
+      icon: Clock,
     },
     {
-      key: "savedListings",
-      value: statsLoading ? "—" : savedListingsCount,
-      icon: Eye,
+      key: "inNegotiation" as const,
+      value: statsLoading ? "—" : inNegotiationTotal,
+      icon: ArrowLeftRight,
     },
     {
-      key: "pendingDeals",
-      value: statsLoading ? "—" : pendingDeals,
-      icon: Handshake,
+      key: "termsAgreed" as const,
+      value: statsLoading ? "—" : termsAgreedTotal,
+      icon: Tag,
     },
     {
-      key: "unreadMessages",
-      value: statsLoading ? "—" : unreadMessages,
-      icon: MessageSquare,
+      key: "completed" as const,
+      value: statsLoading ? "—" : completedTotal,
+      icon: CircleCheck,
     },
   ] as const;
+
+  function requestStatusLabel(status: string | null): string {
+    if (!status) return "—";
+    if (tStatus.has(status)) return tStatus(status);
+    return status;
+  }
 
   if (status === "loading" || profileLoading || !session) {
     return (
@@ -271,17 +299,26 @@ export function InvestorOverview() {
 
       <section className="grid gap-6 lg:grid-cols-3">
         <Card className="border-border/80 lg:col-span-2 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-1 pb-4">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-4">
             <CardTitle className="text-lg">
               {t("recentRequestsTitle")}
             </CardTitle>
+            <Link
+              href="/requests"
+              className={cn(
+                buttonVariants({ variant: "link" }),
+                "text-muted-foreground h-auto px-0 text-sm font-medium",
+              )}
+            >
+              {t("viewAllRequests")}
+            </Link>
           </CardHeader>
           <CardContent>
             {recentLoading ? (
               <p className="text-muted-foreground text-sm">
                 {t("loadingSection")}
               </p>
-            ) : recentBuyRequests.length === 0 ? (
+            ) : recentRequests.length === 0 ? (
               <div className="border-muted-foreground/25 bg-muted/20 flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed px-6 py-14 text-center">
                 <ClipboardList
                   className="text-muted-foreground size-10 opacity-60"
@@ -301,48 +338,98 @@ export function InvestorOverview() {
                 </Link>
               </div>
             ) : (
-              <ul className="divide-border divide-y rounded-xl border">
-                {recentBuyRequests.map((row) => (
-                  <li
-                    key={row.id}
-                    className="flex flex-wrap items-center gap-3 px-4 py-3"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">
-                        {row.instrumentName ??
-                          row.ticker ??
-                          t("unnamedRequest")}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {row.status ?? "—"} ·{" "}
-                        {new Date(row.createdAt).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <Link
-                      href="/requests"
-                      className={cn(
-                        buttonVariants({ variant: "ghost", size: "sm" }),
-                        "shrink-0",
-                      )}
-                    >
-                      {t("view")}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <div className="overflow-x-auto rounded-xl border">
+                <table className="w-full min-w-[520px] text-left text-sm">
+                  <thead className="bg-muted/40 border-b">
+                    <tr>
+                      <th className="text-muted-foreground px-4 py-3 font-medium">
+                        {t("tableInstrument")}
+                      </th>
+                      <th className="text-muted-foreground px-4 py-3 font-medium">
+                        {t("tableType")}
+                      </th>
+                      <th className="text-muted-foreground px-4 py-3 font-medium">
+                        {t("tableStatus")}
+                      </th>
+                      <th className="text-muted-foreground px-4 py-3 font-medium">
+                        {t("tableDate")}
+                      </th>
+                      <th className="text-muted-foreground px-4 py-3 text-right font-medium">
+                        {t("tableAction")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-border divide-y">
+                    {recentRequests.map((row) => (
+                      <tr key={`${row.kind}-${row.id}`}>
+                        <td className="px-4 py-3 font-medium">
+                          {row.instrumentName?.trim() ||
+                            row.ticker?.trim() ||
+                            t("unnamedRequest")}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "font-medium",
+                              requestTypeBadgeClassName(row.kind),
+                            )}
+                          >
+                            {tType(row.kind)}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
+                              tradeStatusBadgeClassName(row.status),
+                            )}
+                          >
+                            {requestStatusLabel(row.status)}
+                          </span>
+                        </td>
+                        <td className="text-muted-foreground px-4 py-3 whitespace-nowrap">
+                          {new Date(row.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/requests/${row.kind}/${row.id}`}
+                            className={cn(
+                              buttonVariants({ variant: "ghost", size: "sm" }),
+                              "text-primary font-medium",
+                            )}
+                          >
+                            {t("view")}
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </CardContent>
         </Card>
 
         <Card className="border-border/80 shadow-sm">
-          <CardHeader className="pb-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle className="text-lg">{t("watchlistCardTitle")}</CardTitle>
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground rounded-md p-1 transition-colors"
+              aria-label={t("watchlistCardTitle")}
+            >
+              <MoreHorizontal className="size-5" aria-hidden />
+            </button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             {!watchlist?.length ? (
               <div className="border-muted-foreground/25 bg-muted/20 flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed px-4 py-12 text-center">
                 <Bookmark
@@ -359,29 +446,68 @@ export function InvestorOverview() {
                   {t("browseListings")}
                 </Link>
               </div>
+            ) : listingsLoading ? (
+              <p className="text-muted-foreground text-sm">
+                {t("loadingSection")}
+              </p>
             ) : (
-              <ul className="space-y-2">
-                {watchlist.slice(0, 5).map((w) => (
-                  <li
-                    key={w.id}
-                    className="text-muted-foreground flex items-center justify-between gap-2 text-sm"
-                  >
-                    <span className="truncate">{w.listingId}</span>
-                  </li>
-                ))}
+              <ul className="space-y-3">
+                {watchlist.slice(0, 5).map((w) => {
+                  const listing = listingById.get(w.listingId);
+                  const name =
+                    listing?.instrumentName?.trim() ||
+                    listing?.ticker?.trim() ||
+                    t("listingUnavailable");
+                  const sector = formatSectorLabel(listing?.sector);
+                  return (
+                    <li
+                      key={w.id}
+                      className="border-border flex flex-col gap-1 rounded-xl border bg-card/50 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{name}</p>
+                        <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs">
+                          {sector ? (
+                            <span className="bg-muted rounded-md px-2 py-0.5 font-medium">
+                              {sector}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      <p className="shrink-0 pt-1 text-right font-semibold tabular-nums sm:pt-0">
+                        {listing
+                          ? formatListingPrice(listing.price, listing.currency)
+                          : "—"}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {watchlist?.length ? (
+              <div className="border-border flex flex-col gap-2 border-t pt-4">
                 {watchlist.length > 5 ? (
                   <Link
                     href="/watchlist"
                     className={cn(
                       buttonVariants({ variant: "link" }),
-                      "px-0 text-sm",
+                      "text-muted-foreground px-0 text-sm",
                     )}
                   >
                     {t("seeAllWatchlist")}
                   </Link>
                 ) : null}
-              </ul>
-            )}
+                <Link
+                  href="/watchlist"
+                  className={cn(
+                    buttonVariants({ variant: "link" }),
+                    "text-foreground justify-center px-0 text-sm font-semibold",
+                  )}
+                >
+                  {t("manageWatchlist")}
+                </Link>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       </section>

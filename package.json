@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "test:e2e": "playwright test",
+    "seed:brokers": "bash scripts/seed-brokers-demo.sh",
     "openapi": "openapi-typescript http://localhost:5163/swagger/v1/swagger.json -o src/shared/api/generated/schema.d.ts",
     "prepare": "husky"
   },
@@ -57,6 +58,7 @@
     "@next/bundle-analyzer": "^16.2.3",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
+    "@tailwindcss/oxide-darwin-x64": "4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -77,5 +79,9 @@
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-darwin-arm64": "4.3.0",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.0"
   }
 }

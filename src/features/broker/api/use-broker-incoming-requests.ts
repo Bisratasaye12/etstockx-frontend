@@ -3,9 +3,14 @@ import { browserApi } from "@/shared/api/browser-api";
 import type { IncomingRequestDtoPagedResult } from "@/features/broker/model/types";
 import { brokerKeys } from "./keys";
 
-export function useBrokerIncomingRequests(page = 1, pageSize = 5) {
+export function useBrokerIncomingRequests(
+  page = 1,
+  pageSize = 5,
+  enabled = true,
+) {
   return useQuery({
     queryKey: brokerKeys.incoming(page, pageSize),
+    enabled,
     queryFn: async () => {
       const { data } = await browserApi.get<IncomingRequestDtoPagedResult>(
         "/v1/trade/broker/incoming",

@@ -102,6 +102,7 @@ export interface ResetPasswordRequestDto {
 }
 
 // ─── POST /api/v1/auth/mfa/enable | mfa/confirm | mfa/disable ────────────
+/** TOTP (authenticator app) only in OpenAPI v1; login uses `LoginRequestDto.otpCode` with the same 6-digit codes. */
 
 export interface MfaPasswordRequestDto {
   password: string;

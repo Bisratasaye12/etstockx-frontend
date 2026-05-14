@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Search,
   Settings,
-  ArrowLeftRight,
   Plus,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -25,8 +24,11 @@ import type { UserRole } from "@/shared/api/types";
 import { Input } from "@/shared/ui/input";
 import { buttonVariants } from "@/shared/ui/button";
 import { InvestorHeaderProfileMenu } from "@/features/investor/components/investor-header-profile-menu";
+import { InvestorSidebarNav } from "@/features/investor/components/investor-sidebar-nav";
+import type { InvestorShellNavItem } from "@/features/investor/components/investor-sidebar-nav";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
+import { BrokerPortalChrome } from "@/features/broker/components/layout/broker-portal-chrome";
 
 type ShellItem = {
   key: string;
@@ -34,26 +36,33 @@ type ShellItem = {
   icon: ComponentType<{ className?: string }>;
 };
 
-const INVESTOR_NAV_ITEMS: ShellItem[] = [
+const INVESTOR_NAV_ITEMS: InvestorShellNavItem[] = [
   { key: "overview", href: "/dashboard", icon: LayoutGrid },
   { key: "listings", href: "/market", icon: List },
   { key: "brokers", href: "/brokers", icon: Contact },
-  { key: "myRequests", href: "/requests", icon: ClipboardList },
+  {
+    key: "myRequests",
+    href: "/requests",
+    icon: ClipboardList,
+    badge: "requests",
+  },
   { key: "watchlist", href: "/watchlist", icon: Eye },
-  { key: "messages", href: "/messages", icon: MessageSquare },
-];
-
-const BROKER_BASE_ITEMS: ShellItem[] = [
-  { key: "overview", href: "/dashboard", icon: LayoutGrid },
-  { key: "listings", href: "/market", icon: List },
-  { key: "requests", href: "/dashboard", icon: ArrowLeftRight },
-  { key: "messages", href: "/dashboard", icon: MessageSquare },
+  {
+    key: "messages",
+    href: "/messages",
+    icon: MessageSquare,
+    badge: "messages",
+  },
 ];
 
 const ADMIN_ITEMS: ShellItem[] = [
   { key: "overview", href: "/admin/overview", icon: LayoutGrid },
   { key: "settings", href: "/admin/settings", icon: Settings },
 ];
+
+function investorNavAsShellItems(): ShellItem[] {
+  return INVESTOR_NAV_ITEMS.map(({ key, href, icon }) => ({ key, href, icon }));
+}
 
 type AuthenticatedShellProps = {
   children: ReactNode;
@@ -69,29 +78,14 @@ function shouldShowSearch(pathname: string): boolean {
     pathname.startsWith("/requests") ||
     pathname.startsWith("/messages") ||
     pathname.startsWith("/watchlist") ||
-    pathname.startsWith("/profile/client")
+    pathname.startsWith("/profile/client") ||
+    pathname.startsWith("/profile/broker")
   );
 }
 
-function getPrimaryNavItems(
-  role: UserRole | undefined,
-  pathname: string,
-): ShellItem[] {
-  const isProfilePage = pathname.startsWith("/profile");
-
+function getPrimaryNavItems(role: UserRole | undefined): ShellItem[] {
   if (role === "Admin") return ADMIN_ITEMS;
-  if (role === "Broker" || role === "Dealer") {
-    return [
-      ...BROKER_BASE_ITEMS,
-      {
-        key: isProfilePage ? "settings" : "account",
-        href: "/profile/broker",
-        icon: Settings,
-      },
-    ];
-  }
-
-  return INVESTOR_NAV_ITEMS;
+  return investorNavAsShellItems();
 }
 
 function isActivePath(pathname: string, href: string): boolean {
@@ -101,13 +95,6 @@ function isActivePath(pathname: string, href: string): boolean {
 
 function isLandingPage(pathname: string): boolean {
   return pathname === "/" || pathname === "";
-}
-
-function isBrokerPortalPath(pathname: string): boolean {
-  return (
-    pathname.startsWith("/dashboard/broker") ||
-    pathname.startsWith("/profile/broker")
-  );
 }
 
 export function AuthenticatedShell({
@@ -136,10 +123,12 @@ export function AuthenticatedShell({
   const isAdminPanelRoute =
     effectiveRole === "Admin" && pathname.startsWith("/admin");
 
-  const primaryNav = getPrimaryNavItems(effectiveRole, pathname);
+  const primaryNav = getPrimaryNavItems(effectiveRole);
   const showSearch = shouldShowSearch(pathname);
   const onLanding = isLandingPage(pathname);
   const investorChrome = effectiveRole === "Client" && !onLanding;
+  const brokerChrome =
+    (effectiveRole === "Broker" || effectiveRole === "Dealer") && !onLanding;
 
   const settingsHref =
     effectiveRole === "Broker" || effectiveRole === "Dealer"
@@ -148,13 +137,6 @@ export function AuthenticatedShell({
 
   if (isAdminPanelRoute) {
     return <div className="bg-muted/30 min-h-screen w-full">{children}</div>;
-  }
-
-  if (
-    (effectiveRole === "Broker" || effectiveRole === "Dealer") &&
-    isBrokerPortalPath(pathname)
-  ) {
-    return <>{children}</>;
   }
 
   if (investorChrome) {
@@ -179,7 +161,7 @@ export function AuthenticatedShell({
           </div>
           <div className="px-4 pb-5">
             <Link
-              href="/requests"
+              href="/requests/new"
               className={cn(
                 buttonVariants({ variant: "default", size: "default" }),
                 "h-11 w-full rounded-full text-sm font-semibold shadow-none gap-2",
@@ -189,25 +171,7 @@ export function AuthenticatedShell({
               {tShell("newRequest")}
             </Link>
           </div>
-          <nav className="flex flex-1 flex-col gap-1 px-3">
-            {primaryNav.map((item) => {
-              const active = isActivePath(pathname, item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={`${item.key}-${item.href}`}
-                  href={item.href}
-                  className={cn(
-                    "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
-                    active && "bg-primary/15 text-primary font-semibold",
-                  )}
-                >
-                  <Icon className="size-5 shrink-0" />
-                  <span>{t(item.key)}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          <InvestorSidebarNav items={INVESTOR_NAV_ITEMS} />
           <div className="border-border mt-auto border-t px-3 py-4">
             <Link
               href={settingsHref}
@@ -275,6 +239,10 @@ export function AuthenticatedShell({
         </div>
       </div>
     );
+  }
+
+  if (brokerChrome) {
+    return <BrokerPortalChrome>{children}</BrokerPortalChrome>;
   }
 
   return (

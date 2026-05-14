@@ -61,14 +61,23 @@ export interface BrokerProfile {
 
 export interface BrokerDirectoryEntry {
   userId: string;
+  /** When the API joins IAM display name into the directory payload (camelCase). */
+  fullName?: string | null;
   institution: string | null;
+  bio: string | null;
   licenseDisplay: string | null;
+  specializations: string[];
   isAcceptingRequests: boolean;
+  /** Optional public contact fields when the API exposes them. */
+  publicEmail?: string | null;
+  publicOfficeLocation?: string | null;
+  publicLanguages?: string | null;
 }
 
 export interface WatchlistItem {
   id: string;
   listingId: string;
   displayOrder: number;
-  createdAt: string;
+  /** API field (OpenAPI `addedAt`). */
+  addedAt: string;
 }
