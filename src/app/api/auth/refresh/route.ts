@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getServerApiBaseUrl } from "@/shared/config/env";
+import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
 import type { TokenRefreshResultDto } from "@/shared/api/dtos/iam";
 
 export async function POST(req: Request) {
-  const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { error: "Server misconfiguration" },
-      { status: 500 },
-    );
-  }
-
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret: resolveAuthSecret() });
   const refreshToken = token?.refreshToken as string | undefined;
   if (!refreshToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

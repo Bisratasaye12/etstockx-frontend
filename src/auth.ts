@@ -3,6 +3,7 @@ import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { User } from "next-auth";
 import { getServerApiBaseUrl } from "@/shared/config/env";
+import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
 import type { LoginResultDto } from "@/shared/api/dtos/iam";
 
 class BackendCredentialsSignin extends CredentialsSignin {
@@ -23,21 +24,6 @@ function mapBackendLoginErrorToCode(message?: string): string {
   if (m.includes("mfa code is required")) return "mfa_required";
   if (m.includes("invalid mfa code")) return "mfa_invalid";
   return "invalid_credentials";
-}
-
-/** JWT signing — required; missing secret makes `auth()` throw and every page 500s. */
-function resolveAuthSecret(): string {
-  const fromEnv = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
-  if (fromEnv) return fromEnv;
-  if (process.env.NODE_ENV !== "production") {
-    console.warn(
-      "[auth] AUTH_SECRET / NEXTAUTH_SECRET not set. Using an insecure dev fallback. Add AUTH_SECRET (32+ chars) to .env.local.",
-    );
-    return "dev-only-insecure-auth-secret-min-32-chars-long!!";
-  }
-  throw new Error(
-    "Set AUTH_SECRET or NEXTAUTH_SECRET in the environment before starting the app in production.",
-  );
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({

@@ -846,7 +846,10 @@
       "reasonLabel": "Reason / internal notes",
       "reasonPlaceholder": "Optional context stored with the moderation record.",
       "submit": "Submit decision",
-      "submitting": "Submitting…"
+      "submitting": "Submitting…",
+      "pageIndicator": "Page {page} of {totalPages}",
+      "previousPage": "Previous page",
+      "nextPage": "Next page"
     },
     "audit": {
       "filtersHint": "Filters map to GET /api/v1/admin/audit-logs query parameters.",

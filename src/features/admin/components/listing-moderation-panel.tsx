@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   useListingDetail,
@@ -24,6 +25,8 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 
+const QUEUE_PAGE_SIZE = 50;
+
 function formatDateTime(iso: string | undefined, locale: string): string {
   if (!iso) return "—";
   try {
@@ -39,15 +42,36 @@ function formatDateTime(iso: string | undefined, locale: string): string {
 export function ListingModerationPanel() {
   const t = useTranslations("admin");
   const locale = useLocale();
-  const { data: page, isLoading, error } = useModerationQueue(1, 50);
-  const items = useMemo(() => page?.items ?? [], [page?.items]);
-  const total = page?.total ?? 0;
+  const [queuePage, setQueuePage] = useState(1);
+  const {
+    data: queueData,
+    error,
+    isFetching,
+  } = useModerationQueue(queuePage, QUEUE_PAGE_SIZE);
+  const items = useMemo(() => queueData?.items ?? [], [queueData?.items]);
+  const total = queueData?.total ?? 0;
+  const totalPages = total > 0 ? Math.max(1, queueData?.totalPages ?? 1) : 0;
+  const pageLabel = t("moderation.pageIndicator", {
+    page: queuePage,
+    totalPages: Math.max(totalPages, 1),
+  });
+
+  useEffect(() => {
+    if (totalPages > 0 && queuePage > totalPages) {
+      setQueuePage(totalPages);
+    }
+  }, [queuePage, totalPages]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [decision, setDecision] = useState<ModerationDecisionCode>(
     ModerationDecision.Approved,
   );
   const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    setDecision(ModerationDecision.Approved);
+    setReason("");
+  }, [selectedId]);
 
   useEffect(() => {
     if (!items.length) {
@@ -111,13 +135,6 @@ export function ListingModerationPanel() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <p className="text-muted-foreground text-sm">
-        {t("moderation.loadingQueue")}
-      </p>
-    );
-  }
   if (error) {
     return (
       <p className="text-destructive text-sm">{getApiErrorMessage(error)}</p>
@@ -135,39 +152,72 @@ export function ListingModerationPanel() {
               : t("moderation.pendingCount", { count: total })}
           </CardDescription>
         </CardHeader>
-        <CardContent className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
-          {items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              {t("moderation.emptyQueue")}
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {items.map((row) => {
-                const active = row.id === selectedId;
-                return (
-                  <li key={row.id}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(row.id)}
-                      className={cn(
-                        "border-border hover:bg-muted/60 w-full rounded-lg border p-3 text-left text-sm transition-colors",
-                        active && "border-primary ring-primary/20 ring-2",
-                      )}
-                    >
-                      <p className="font-medium">{row.instrumentName}</p>
-                      <p className="text-muted-foreground mt-0.5 text-xs">
-                        {row.brokerInstitution ?? row.brokerName ?? "—"}
-                      </p>
-                      <p className="text-muted-foreground mt-1 text-xs">
-                        {row.sector ?? "—"} ·{" "}
-                        {formatDateTime(row.createdAt, locale)}
-                      </p>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+        <CardContent className="space-y-3">
+          <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
+            {items.length === 0 ? (
+              isFetching ? (
+                <p className="text-muted-foreground text-sm">
+                  {t("moderation.loadingQueue")}
+                </p>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  {t("moderation.emptyQueue")}
+                </p>
+              )
+            ) : (
+              <ul className="space-y-2">
+                {items.map((row) => {
+                  const active = row.id === selectedId;
+                  return (
+                    <li key={row.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(row.id)}
+                        className={cn(
+                          "border-border hover:bg-muted/60 w-full rounded-lg border p-3 text-left text-sm transition-colors",
+                          active && "border-primary ring-primary/20 ring-2",
+                        )}
+                      >
+                        <p className="font-medium">{row.instrumentName}</p>
+                        <p className="text-muted-foreground mt-0.5 text-xs">
+                          {row.brokerInstitution ?? row.brokerName ?? "—"}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          {row.sector ?? "—"} ·{" "}
+                          {formatDateTime(row.createdAt, locale)}
+                        </p>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          {totalPages > 1 ? (
+            <div className="border-border flex items-center justify-center gap-3 border-t pt-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                aria-label={t("moderation.previousPage")}
+                disabled={queuePage <= 1 || isFetching}
+                onClick={() => setQueuePage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <span className="text-muted-foreground text-sm">{pageLabel}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                aria-label={t("moderation.nextPage")}
+                disabled={queuePage >= totalPages || isFetching}
+                onClick={() => setQueuePage((p) => Math.min(totalPages, p + 1))}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

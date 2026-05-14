@@ -17,11 +17,14 @@ const hopByHop = new Set([
   "proxy-authorization",
 ]);
 
+/** Do not forward to the API origin (same-origin fetches send site cookies; API auth is Bearer). */
+const stripFromUpstreamRequest = new Set(["cookie"]);
+
 function buildUpstreamHeaders(req: NextRequest): Headers {
   const out = new Headers();
   req.headers.forEach((value, key) => {
     const k = key.toLowerCase();
-    if (hopByHop.has(k)) return;
+    if (hopByHop.has(k) || stripFromUpstreamRequest.has(k)) return;
     out.set(key, value);
   });
   return out;

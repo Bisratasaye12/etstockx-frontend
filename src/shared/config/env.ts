@@ -1,5 +1,5 @@
 /**
- * Browser: same-origin proxy `/api/backend` (see next.config rewrites), unless
+ * Browser: same-origin proxy `/api/backend` (Route Handler `src/app/api/backend/[...path]/route.ts`), unless
  * `NEXT_PUBLIC_API_URL` points at the API directly (then `/api` is appended when missing).
  * Server (NextAuth, Route Handlers): origin only, e.g. `http://localhost:8080` — callers add `/api/v1/...`.
  */

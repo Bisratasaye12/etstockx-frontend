@@ -846,7 +846,10 @@
       "reasonLabel": "ምክንያት / ውስጣዊ ማስታወሻዎች",
       "reasonPlaceholder": "ከማስተካከያ መዝገቡ ጋር የሚያቆዩ አማራጭ መግለጫ።",
       "submit": "ውሳኔ አስገባ",
-      "submitting": "በመላክ ላይ…"
+      "submitting": "በመላክ ላይ…",
+      "pageIndicator": "ገጽ {page} ከ {totalPages}",
+      "previousPage": "ቀዳሚ ገጽ",
+      "nextPage": "ቀጣይ ገጽ"
     },
     "audit": {
       "filtersHint": "ማጣሪያዎች ወደ የኦዲት መዝገብ የአገልግሎት ጥያቄ መስፈርያዎች ይመሳሰላሉ።",

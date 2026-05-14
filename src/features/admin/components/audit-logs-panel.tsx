@@ -44,7 +44,11 @@ function auditLogsToCsv(rows: AuditLogDto[]): string {
     "newValue",
   ];
   const escape = (v: string | null | undefined) => {
-    const s = v ?? "";
+    let s = v ?? "";
+    // Spreadsheet formula injection (OWASP): neutralize leading triggers before CSV quoting.
+    if (/^[=+\-@\t\r]/.test(s.replace(/^\uFEFF/, ""))) {
+      s = `'${s}`;
+    }
     if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
     return s;
   };
