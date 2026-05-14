@@ -18,6 +18,10 @@ export default async function DashboardPage({
     redirect({ href: "/admin/overview", locale });
   }
 
+  if (session?.user?.role === "Broker" || session?.user?.role === "Dealer") {
+    redirect({ href: "/dashboard/broker", locale });
+  }
+
   if (session?.user?.role === "Client") {
     return <InvestorOverview />;
   }
@@ -65,14 +69,6 @@ export default async function DashboardPage({
           className={cn(buttonVariants({ variant: "outline" }), "inline-flex")}
         >
           Investor profile
-        </Link>
-      ) : null}
-      {session?.user?.role === "Broker" || session?.user?.role === "Dealer" ? (
-        <Link
-          href="/profile/broker"
-          className={cn(buttonVariants({ variant: "outline" }), "inline-flex")}
-        >
-          Broker profile
         </Link>
       ) : null}
     </div>

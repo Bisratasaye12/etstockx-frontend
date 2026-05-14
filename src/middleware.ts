@@ -58,6 +58,16 @@ export default auth((req) => {
   }
 
   if (
+    /^\/(en|am)\/dashboard\/broker/.test(path) &&
+    req.auth?.user?.role !== "Broker" &&
+    req.auth?.user?.role !== "Dealer"
+  ) {
+    return NextResponse.redirect(
+      new URL(`/${locale}/dashboard`, req.nextUrl.origin),
+    );
+  }
+
+  if (
     /^\/(en|am)\/profile\/client/.test(path) &&
     req.auth?.user?.role !== "Client"
   ) {

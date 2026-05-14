@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "EtStockX API",
-    "description": "EtStockX — Digital Stock Exchange and Brokerage Platform (Pre-Trade Coordination).\n\n## Modules\n- **Identity & Access (IAM)** — Registration, login, session management, MFA, broker verification\n- **Profiles** — Client & broker profile management, investor activation, watchlists, public broker directory\n- **Market Discovery** — Listings catalog, broker listing management, admin moderation; NLP search (English/Amharic) via GPT-4o-mini\n- **Trade & Request Management** — Buy/sell requests, broker proposals, terms agreement, post-agreement order status, full order history\n- **Messaging & Collaboration** — Secure broker–client chat with real-time delivery (SignalR `/hubs/chat`), attachments, read receipts, keyword search\n\n## Roles\n| Role | Description |\n|------|-------------|\n| Client | Basic access upon registration. Must complete profile to activate investor status for transactional actions. |\n| Broker | ECMA-licensed intermediary (requires admin verification). |\n| Dealer | Licensed principal trader (requires admin verification). |\n| Admin  | Platform operator — verifies brokers, manages users, views audit logs. |\n\n## Authentication\nAll protected endpoints require a JWT Bearer token in the `Authorization` header.\nAccess tokens expire after **15 minutes**. Use the refresh-token endpoint to obtain a new pair.\n\nJWT claims: `sub` (userId), `role` (Client/Broker/Dealer/Admin), `isActivated` (bool).\n\n**Backend README (EtStockX.Api):** IAM is a modular-monolith module; local defaults are HTTP `http://localhost:5163` and HTTPS `https://localhost:7039`, with Swagger UI at `/swagger`. Registration: **POST /api/v1/auth/register** (JSON, `role: Client`); broker/dealer onboarding with files: **POST /api/v1/auth/register/broker** (`multipart/form-data`). Investor capabilities are gated by profile activation (`isActivated`), not by substituting roles for Client.",
+    "description": "EtStockX — Digital Stock Exchange and Brokerage Platform (Pre-Trade Coordination).\n\n## Modules\n- **Identity & Access (IAM)** — Registration, login, session management, MFA, broker verification\n- **Profiles** — Client & broker profile management, investor activation, watchlists, public broker directory\n- **Market Discovery** — Listings catalog, broker listing management, admin moderation; NLP search (English/Amharic) via GPT-4o-mini\n- **Trade & Request Management** — Buy/sell requests, broker proposals, terms agreement, post-agreement order status, full order history\n- **Messaging & Collaboration** — Secure broker–client chat with real-time delivery (SignalR `/hubs/chat`), attachments, read receipts, keyword search\n- **Notifications** — In-app, email, SMS, and Firebase push notifications with per-event preferences\n\n## Roles\n| Role | Description |\n|------|-------------|\n| Client | Basic access upon registration. Must complete profile to activate investor status for transactional actions. |\n| Broker | ECMA-licensed intermediary (requires admin verification). |\n| Dealer | Licensed principal trader (requires admin verification). |\n| Admin  | Platform operator — verifies brokers, manages users, views audit logs. |\n\n## Authentication\nAll protected endpoints require a JWT Bearer token in the `Authorization` header.\nAccess tokens expire after **15 minutes**. Use the refresh-token endpoint to obtain a new pair.\n\nJWT claims: `sub` (userId), `role` (Client/Broker/Dealer/Admin), `isActivated` (bool).",
     "contact": {
       "name": "EtStockX Team",
       "email": "support@etstockx.com"
@@ -13,6 +13,57 @@
     "version": "v1"
   },
   "paths": {
+    "/api/v1/admin/audit-logs": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get audit logs with optional filters. Admin only.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "actorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actionType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "tags": ["Auth"],
@@ -196,30 +247,16 @@
           "200": {
             "description": "Email confirmed successfully.",
             "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "string"
-                }
+                "schema": {}
               }
             }
           },
           "400": {
             "description": "Invalid or expired token.",
             "content": {
-              "text/html": {
-                "schema": {
-                  "type": "string"
-                }
-              },
               "application/json": {
-                "schema": {
-                  "type": "string"
-                }
+                "schema": {}
               }
             }
           }
@@ -365,6 +402,96 @@
         }
       }
     },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Request a password reset email.",
+        "description": "Sends a password reset link to the given email address. The email contains a link to the\r\nconfigured frontend reset-password page with the reset token attached as a query parameter.\r\n            \r\nFor security, this endpoint always returns success even when the email address is not registered.",
+        "requestBody": {
+          "description": "The email address that should receive the reset link.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The request was accepted.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "The request payload is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset a password using a reset token.",
+        "description": "Accepts the reset token from the forgot-password email together with a new password.\r\nThe token expires after 1 hour and is single-use.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"token\": \"reset-token-from-email\",\r\n  \"newPassword\": \"NewSecure@456\"\r\n}\r\n```",
+        "requestBody": {
+          "description": "Reset token and replacement password.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Token is invalid/expired or the new password is invalid.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/change-password": {
       "post": {
         "tags": ["Auth"],
@@ -423,8 +550,8 @@
     "/api/v1/auth/mfa/enable": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Enable MFA (two-factor authentication) for the current user.",
-        "description": "Generates a TOTP secret and enables MFA on the account.\r\nThe returned `secret` should be used to configure an authenticator app (e.g., Google Authenticator).\r\nFuture logins will require the `otpCode` field.\r\n            \r\nPassword confirmation is required as a security measure.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"password\": \"MyPass@123\"\r\n}\r\n```",
+        "summary": "Start MFA enrollment for the current user (pending until confirmed with a valid code).",
+        "description": "Generates a TOTP secret and stores it on the account. MFA is not active until\r\n`POST .../mfa/confirm` succeeds with a code from the authenticator app.\r\nUntil then, logins use password only (same as before enrollment).\r\n            \r\nThe returned `secret` should be used to configure an authenticator app (e.g., Google Authenticator).\r\nCalling this again while enrollment is pending replaces the pending secret.\r\n            \r\nPassword confirmation is required as a security measure.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"password\": \"MyPass@123\"\r\n}\r\n```",
         "requestBody": {
           "description": "Password confirmation.",
           "content": {
@@ -447,7 +574,7 @@
         },
         "responses": {
           "200": {
-            "description": "MFA enabled. Returns `{ secret: \"base64-secret\" }`.",
+            "description": "Returns `{ secret: \"...\" }`. Complete setup with `mfa/confirm`.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -455,7 +582,62 @@
             }
           },
           "400": {
-            "description": "Invalid password or MFA already enabled.",
+            "description": "Invalid password or MFA already fully enabled.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/confirm": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Confirm MFA enrollment using a one-time code from the authenticator app.",
+        "description": "After `mfa/enable`, submit a valid TOTP from the app configured with the returned secret.\r\nOn success, MFA is turned on and future logins require `otpCode`.",
+        "requestBody": {
+          "description": "Current TOTP code (typically 6 digits).",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaConfirmRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaConfirmRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaConfirmRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "MFA is now enabled.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid code, nothing to confirm, or MFA already enabled.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -479,7 +661,7 @@
       "post": {
         "tags": ["Auth"],
         "summary": "Disable MFA (two-factor authentication) for the current user.",
-        "description": "Removes the TOTP secret and disables MFA. Future logins will no longer require an OTP code.\r\n            \r\nPassword confirmation is required as a security measure.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"password\": \"MyPass@123\"\r\n}\r\n```",
+        "description": "Removes the TOTP secret and disables MFA (or cancels a pending enrollment).\r\nFuture logins will no longer require an OTP code once MFA was active.\r\n            \r\nPassword confirmation is required as a security measure.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"password\": \"MyPass@123\"\r\n}\r\n```",
         "requestBody": {
           "description": "Password confirmation.",
           "content": {
@@ -510,7 +692,7 @@
             }
           },
           "400": {
-            "description": "Invalid password or MFA not enabled.",
+            "description": "Invalid password or no MFA to disable.",
             "content": {
               "application/json": {
                 "schema": {}
@@ -595,6 +777,78 @@
                 "schema": {}
               }
             }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout the current session by revoking the provided refresh token (or the current cookie).",
+        "description": "Clears the refresh-token cookie and revokes the session associated with the provided\r\nrefresh token. If `RefreshToken` is omitted the server will attempt to read the\r\nrefresh token from the `refreshToken` cookie.\r\n            \r\nWhen `RevokeAll` is set to `true` the endpoint will immediately revoke all active\r\nsessions for the authenticated user (equivalent to `POST /api/v1/auth/sessions/revoke-all`).\r\n            \r\nFrontend integration notes:\r\n- Call this endpoint when the user clicks \"Sign out\" to revoke the current refresh token\r\n  and remove the cookie from the browser.\r\n- To implement \"Sign out everywhere\" UI, call `POST /api/v1/auth/sessions/revoke-all`.",
+        "requestBody": {
+          "description": "Optional payload containing `RefreshToken` or `RevokeAll` flag.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Logout successful. Refresh token (if any) has been revoked and cookie cleared."
+          },
+          "400": {
+            "description": "Invalid request payload.",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/sessions/revoke-all": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Revoke all sessions for the current user (Sign out everywhere).",
+        "description": "Immediately revokes all active sessions for the authenticated user and clears the\r\n`refreshToken` cookie. Use this for a \"Sign out everywhere\" action.\r\n            \r\nFrontend integration notes:\r\n- This endpoint requires authentication. After calling it, clients should remove any\r\n  stored tokens and redirect the user to the sign-in page.",
+        "responses": {
+          "204": {
+            "description": "All sessions revoked and cookie cleared."
           },
           "401": {
             "description": "Not authenticated.",
@@ -845,6 +1099,7 @@
       "get": {
         "tags": ["Market"],
         "summary": "Browse active listings, paginated, newest first. Optional filters.",
+        "description": "Each `ListingSummaryDto` includes `BrokerName` and `BrokerInstitution` (may be null) for display purposes.",
         "parameters": [
           {
             "name": "sector",
@@ -955,6 +1210,7 @@
       "get": {
         "tags": ["Market"],
         "summary": "Natural-language search. Accepts English or Amharic. GPT-4o-mini extracts entities\r\n(instrument, sector, price bounds); fallback to raw keyword search if NLP fails.",
+        "description": "Search results include `BrokerName` and `BrokerInstitution` where available.",
         "parameters": [
           {
             "name": "q",
@@ -1000,6 +1256,7 @@
       "get": {
         "tags": ["Market"],
         "summary": "Listing detail — also records a View event and increments view_count.",
+        "description": "The returned `ListingDetailDto` contains `BrokerName` and `BrokerInstitution` to show who posted the listing.",
         "parameters": [
           {
             "name": "id",
@@ -1311,6 +1568,7 @@
       "get": {
         "tags": ["Messaging"],
         "summary": "Lists conversations for the current user with last-message preview and unread count.",
+        "description": "Each `ConversationDto` now includes `CounterpartyName` (string|null) for display; resolved via a shared user read service.",
         "parameters": [
           {
             "name": "page",
@@ -1349,6 +1607,7 @@
       "get": {
         "tags": ["Messaging"],
         "summary": "Paginated message history for a conversation (newest first for \"load more\" scroll).",
+        "description": "Each `MessageDto` includes `SenderName` (string|null) to display sender display names alongside messages.",
         "parameters": [
           {
             "name": "conversationId",
@@ -1634,10 +1893,280 @@
         }
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "tags": ["Notifications"],
+        "parameters": [
+          {
+            "name": "channel",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationDtoPagedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/unread": {
+      "get": {
+        "tags": ["Notifications"],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "tags": ["Notifications"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/{id}/read": {
+      "patch": {
+        "tags": ["Notifications"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "patch": {
+        "tags": ["Notifications"],
+        "summary": "Mark all in-app notifications as read for the authenticated user.",
+        "description": "Marks all unread in-app notifications for the authenticated user as read and\r\nnotifies connected clients of the updated unread count.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/preferences": {
+      "get": {
+        "tags": ["Notifications"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationPreferenceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Notifications"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationPreferencesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/push-devices": {
+      "post": {
+        "tags": ["Notifications"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPushDeviceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPushDeviceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPushDeviceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Notifications"],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/profiles/broker/me": {
       "get": {
         "tags": ["Profiles"],
         "summary": "Get the authenticated broker's own profile.",
+        "description": "Returns broker identity fields used by profile pages, including:\r\n`institution`, `licenseNumber`, `licenseDisplay`, and `ecmaReference`.",
         "responses": {
           "200": {
             "description": "Broker profile returned.",
@@ -1668,7 +2197,7 @@
       "put": {
         "tags": ["Profiles"],
         "summary": "Update the authenticated broker's profile.",
-        "description": "All fields are optional — only provided fields will be updated.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"institution\": \"Capital Securities PLC\",\r\n  \"bio\": \"Licensed broker specializing in equities and bonds.\",\r\n  \"licenseDisplay\": \"ECMA-BRK-001\",\r\n  \"specializations\": [\"equities\", \"bonds\"],\r\n  \"isAcceptingRequests\": true\r\n}\r\n```",
+        "description": "All fields are optional — only provided fields will be updated.\r\n            \r\n### Example\r\n```json\r\n{\r\n  \"institution\": \"Capital Securities PLC\",\r\n  \"bio\": \"Licensed broker specializing in equities and bonds.\",\r\n  \"licenseDisplay\": \"ECMA-BRK-001\",\r\n  \"ecmaReference\": \"ECMA-REF-12345\",\r\n  \"specializations\": [\"equities\", \"bonds\"],\r\n  \"isAcceptingRequests\": true\r\n}\r\n```",
         "requestBody": {
           "description": "Fields to update.",
           "content": {
@@ -1713,6 +2242,7 @@
       "get": {
         "tags": ["Profiles"],
         "summary": "Browse verified broker profiles (public directory).",
+        "description": "Returns broker profile cards including `institution`, `licenseNumber`,\r\n`licenseDisplay`, and `ecmaReference`.",
         "responses": {
           "200": {
             "description": "List of broker profiles.",
@@ -1848,9 +2378,10 @@
       "get": {
         "tags": ["Profiles"],
         "summary": "Get the authenticated client's watchlist.",
+        "description": "Returns the client's watchlist items ordered by `DisplayOrder`.\r\nEach `WatchlistItemDto` now includes an optional `Listing` object with a preview of\r\nthe associated listing to simplify the frontend rendering of watchlist cards.\r\n            \r\n`Listing` fields:\r\n- `Id` (GUID)\r\n- `BrokerId` (GUID)\r\n- `BrokerName` (string|null)\r\n- `BrokerInstitution` (string|null)\r\n- `InstrumentName` (string)\r\n- `Ticker` (string|null)\r\n- `Sector` (string|null)\r\n- `Price` (decimal)\r\n- `Currency` (string)\r\n- `Quantity` (decimal)\r\n- `Status` (string)\r\n- `CreatedAt` (ISO 8601 timestamp)\r\n            \r\nExample response (single item):\r\n```json\r\n[\r\n  {\r\n    \"id\": \"...\",\r\n    \"listingId\": \"...\",\r\n    \"displayOrder\": 1,\r\n    \"addedAt\": \"2026-05-01T12:00:00Z\",\r\n    \"listing\": {\r\n      \"id\": \"...\",\r\n      \"brokerId\": \"...\",\r\n      \"brokerName\": \"Acme Brokers\",\r\n      \"brokerInstitution\": \"Acme Securities\",\r\n      \"instrumentName\": \"Acme Corp\",\r\n      \"ticker\": \"ACME\",\r\n      \"sector\": \"Technology\",\r\n      \"price\": 12.34,\r\n      \"currency\": \"ETB\",\r\n      \"quantity\": 100,\r\n      \"status\": \"Active\",\r\n      \"createdAt\": \"2026-04-25T09:30:00Z\"\r\n    }\r\n  }\r\n]\r\n```",
         "responses": {
           "200": {
-            "description": "Watchlist items ordered by display order.",
+            "description": "Watchlist items ordered by display order, each optionally including a `listing` preview.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1861,6 +2392,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Not authenticated."
           }
         }
       },
@@ -1988,6 +2522,7 @@
       "get": {
         "tags": ["Trade"],
         "summary": "List the authenticated client's buy requests with optional filters.",
+        "description": "Each `BuyRequestDto` includes optional `ClientName`, `BrokerName`, and `BrokerInstitution` fields (may be null) resolved via shared read services.",
         "parameters": [
           {
             "name": "status",
@@ -2056,6 +2591,7 @@
       "get": {
         "tags": ["Trade"],
         "summary": "Buy request detail with proposals and full order history.",
+        "description": "The returned `BuyRequestDetailDto` contains the request payload with `ClientName`, `BrokerName`, and `BrokerInstitution` where available.",
         "parameters": [
           {
             "name": "id",
@@ -2181,6 +2717,7 @@
       "get": {
         "tags": ["Trade"],
         "summary": "List the authenticated client's sell requests with optional filters.",
+        "description": "Each `SellRequestDto` includes optional `ClientName`, `BrokerName`, and `BrokerInstitution` fields (may be null) resolved via shared read services.",
         "parameters": [
           {
             "name": "status",
@@ -2249,6 +2786,7 @@
       "get": {
         "tags": ["Trade"],
         "summary": "Sell request detail with proposals and full order history.",
+        "description": "The returned `SellRequestDetailDto` contains the request payload with `ClientName`, `BrokerName`, and `BrokerInstitution` where available.",
         "parameters": [
           {
             "name": "id",
@@ -2382,6 +2920,7 @@
       "get": {
         "tags": ["Trade"],
         "summary": "Broker's queue of incoming buy/sell requests, newest first.",
+        "description": "Returns a paginated list of incoming buy/sell requests. Each item includes an optional\r\n`ClientName` field (string|null) which contains the client's display name when available.\r\n            \r\nThis field is resolved via a shared read-only user service to avoid cross-module coupling.\r\nExample item:\r\n```json\r\n{\r\n  \"id\": \"...\",\r\n  \"kind\": \"Buy\",\r\n  \"clientId\": \"...\",\r\n  \"instrumentName\": \"Acme Corp\",\r\n  \"ticker\": \"ACME\",\r\n  \"quantity\": 100,\r\n  \"desiredPrice\": 12.34,\r\n  \"currency\": \"ETB\",\r\n  \"status\": \"Open\",\r\n  \"createdAt\": \"2026-05-01T12:00:00Z\",\r\n  \"clientName\": \"Abebe Kebede\"\r\n}\r\n```",
         "parameters": [
           {
             "name": "page",
@@ -2523,6 +3062,7 @@
       "get": {
         "tags": ["Trade"],
         "summary": "Broker views a specific client's trade history (only requests handled by this broker).",
+        "description": "Returns historical requests for the specified client filtered to those handled by the\r\nrequesting broker. Each `IncomingRequestDto` includes the optional `ClientName` field.",
         "parameters": [
           {
             "name": "clientId",
@@ -2719,7 +3259,15 @@
             "type": "string",
             "nullable": true
           },
+          "licenseNumber": {
+            "type": "string",
+            "nullable": true
+          },
           "licenseDisplay": {
+            "type": "string",
+            "nullable": true
+          },
+          "ecmaReference": {
             "type": "string",
             "nullable": true
           },
@@ -2811,7 +3359,15 @@
             "type": "string",
             "nullable": true
           },
+          "licenseNumber": {
+            "type": "string",
+            "nullable": true
+          },
           "licenseDisplay": {
+            "type": "string",
+            "nullable": true
+          },
+          "ecmaReference": {
             "type": "string",
             "nullable": true
           },
@@ -2878,6 +3434,21 @@
             "type": "string",
             "format": "uuid"
           },
+          "clientName": {
+            "type": "string",
+            "description": "Display name of the requesting client (nullable).",
+            "nullable": true
+          },
+          "brokerName": {
+            "type": "string",
+            "description": "Display name of the broker (nullable).",
+            "nullable": true
+          },
+          "brokerInstitution": {
+            "type": "string",
+            "description": "Broker's institution or firm (nullable).",
+            "nullable": true
+          },
           "listingId": {
             "type": "string",
             "format": "uuid",
@@ -2921,7 +3492,8 @@
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Buy request summary/row returned to clients and brokers."
       },
       "BuyRequestDtoPagedResult": {
         "type": "object",
@@ -3087,6 +3659,11 @@
             "type": "string",
             "format": "uuid"
           },
+          "counterpartyName": {
+            "type": "string",
+            "description": "Resolved display name of the conversation counterparty (nullable).",
+            "nullable": true
+          },
           "lastMessagePreview": {
             "type": "string",
             "nullable": true
@@ -3101,7 +3678,8 @@
             "format": "int32"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Conversation summary returned to clients and brokers."
       },
       "ConversationDtoPagedResult": {
         "type": "object",
@@ -3208,6 +3786,18 @@
         },
         "additionalProperties": false
       },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email address that should receive a reset link.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Forgot password request payload."
+      },
       "IncomingRequestDto": {
         "type": "object",
         "properties": {
@@ -3251,9 +3841,15 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "clientName": {
+            "type": "string",
+            "description": "Resolved display name of the client who created the request (nullable).",
+            "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Incoming request row returned to brokers when listing client requests."
       },
       "IncomingRequestDtoPagedResult": {
         "type": "object",
@@ -3295,6 +3891,16 @@
           "brokerId": {
             "type": "string",
             "format": "uuid"
+          },
+          "brokerName": {
+            "type": "string",
+            "description": "Display name of the broker who posted the listing (nullable).",
+            "nullable": true
+          },
+          "brokerInstitution": {
+            "type": "string",
+            "description": "Broker's institution or firm (nullable).",
+            "nullable": true
           },
           "instrumentName": {
             "type": "string",
@@ -3356,7 +3962,8 @@
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Detailed listing payload returned by the listing detail endpoint."
       },
       "ListingPerformanceDto": {
         "type": "object",
@@ -3394,7 +4001,7 @@
         },
         "additionalProperties": false
       },
-      "ListingSummaryDto": {
+      "ListingPreviewDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -3404,6 +4011,14 @@
           "brokerId": {
             "type": "string",
             "format": "uuid"
+          },
+          "brokerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "brokerInstitution": {
+            "type": "string",
+            "nullable": true
           },
           "instrumentName": {
             "type": "string",
@@ -3439,6 +4054,63 @@
           }
         },
         "additionalProperties": false
+      },
+      "ListingSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "brokerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "brokerName": {
+            "type": "string",
+            "description": "Display name of the broker who posted the listing (nullable).",
+            "nullable": true
+          },
+          "brokerInstitution": {
+            "type": "string",
+            "description": "Broker's institution or firm (nullable).",
+            "nullable": true
+          },
+          "instrumentName": {
+            "type": "string",
+            "nullable": true
+          },
+          "ticker": {
+            "type": "string",
+            "nullable": true
+          },
+          "sector": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Summary view of a listing returned in paginated browse/search results."
       },
       "ListingSummaryDtoPagedResult": {
         "type": "object",
@@ -3517,6 +4189,22 @@
         },
         "additionalProperties": false
       },
+      "LogoutRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Optional refresh token to revoke. If omitted, cookie is used.",
+            "nullable": true
+          },
+          "revokeAll": {
+            "type": "boolean",
+            "description": "Optional flag to revoke all sessions for the current user."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Logout request payload."
+      },
       "MessageDto": {
         "type": "object",
         "properties": {
@@ -3531,6 +4219,11 @@
           "senderId": {
             "type": "string",
             "format": "uuid"
+          },
+          "senderName": {
+            "type": "string",
+            "description": "Resolved display name of the message sender (nullable).",
+            "nullable": true
           },
           "content": {
             "type": "string",
@@ -3553,7 +4246,8 @@
             "nullable": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "A chat message DTO. Sent to clients via conversation endpoints and SignalR."
       },
       "MessageDtoPagedResult": {
         "type": "object",
@@ -3584,6 +4278,18 @@
           }
         },
         "additionalProperties": false
+      },
+      "MfaConfirmRequest": {
+        "type": "object",
+        "properties": {
+          "otpCode": {
+            "type": "string",
+            "description": "One-time code from the app (same format as at login).",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Confirm pending MFA enrollment with a TOTP from the authenticator app."
       },
       "MfaRequest": {
         "type": "object",
@@ -3658,6 +4364,108 @@
           "notes": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "eventType": {
+            "type": "string",
+            "nullable": true
+          },
+          "channel": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "entityType": {
+            "type": "string",
+            "nullable": true
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationDtoPagedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            },
+            "nullable": true
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NotificationPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "nullable": true
+          },
+          "inAppEnabled": {
+            "type": "boolean"
+          },
+          "emailEnabled": {
+            "type": "boolean"
+          },
+          "smsEnabled": {
+            "type": "boolean"
+          },
+          "pushEnabled": {
+            "type": "boolean"
+          },
+          "isMandatory": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -3798,6 +4606,20 @@
         "additionalProperties": false,
         "description": "Refresh token payload."
       },
+      "RegisterPushDeviceRequest": {
+        "type": "object",
+        "properties": {
+          "registrationToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "platform": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "RegisterUserCommand": {
         "type": "object",
         "properties": {
@@ -3857,6 +4679,23 @@
         "additionalProperties": false,
         "description": "Resend email verification request."
       },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "The password reset token sent by email.",
+            "nullable": true
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "The new password (must meet complexity rules).",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Password reset payload."
+      },
       "SellRequestDetailDto": {
         "type": "object",
         "properties": {
@@ -3894,6 +4733,21 @@
           "brokerId": {
             "type": "string",
             "format": "uuid"
+          },
+          "clientName": {
+            "type": "string",
+            "description": "Display name of the client who created the sell request (nullable).",
+            "nullable": true
+          },
+          "brokerName": {
+            "type": "string",
+            "description": "Display name of the broker handling the request (nullable).",
+            "nullable": true
+          },
+          "brokerInstitution": {
+            "type": "string",
+            "description": "Broker's institution or firm (nullable).",
+            "nullable": true
           },
           "instrumentName": {
             "type": "string",
@@ -3933,7 +4787,8 @@
             "format": "date-time"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Sell request summary/row returned to clients and brokers."
       },
       "SellRequestDtoPagedResult": {
         "type": "object",
@@ -4120,6 +4975,10 @@
             "type": "string",
             "nullable": true
           },
+          "ecmaReference": {
+            "type": "string",
+            "nullable": true
+          },
           "logoPath": {
             "type": "string",
             "nullable": true
@@ -4221,6 +5080,41 @@
         },
         "additionalProperties": false
       },
+      "UpdateNotificationPreferenceItemRequest": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "nullable": true
+          },
+          "inAppEnabled": {
+            "type": "boolean"
+          },
+          "emailEnabled": {
+            "type": "boolean"
+          },
+          "smsEnabled": {
+            "type": "boolean"
+          },
+          "pushEnabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateNotificationPreferencesRequest": {
+        "type": "object",
+        "properties": {
+          "preferences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateNotificationPreferenceItemRequest"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "UpdateOrderStatusRequest": {
         "type": "object",
         "properties": {
@@ -4283,6 +5177,9 @@
           "addedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "listing": {
+            "$ref": "#/components/schemas/ListingPreviewDto"
           }
         },
         "additionalProperties": false
