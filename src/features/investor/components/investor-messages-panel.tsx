@@ -1,9 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { MessageSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { browserApi } from "@/shared/api/browser-api";
 import { cn } from "@/shared/lib/utils";
 import {
   Card,
@@ -13,33 +11,12 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
-
-type ConversationDto = {
-  id: string;
-  counterpartyId: string;
-  lastMessagePreview: string | null;
-  lastMessageAt: string | null;
-  unreadCount: number;
-};
-
-type Paged<T> = {
-  items: T[] | null;
-  total: number;
-};
+import { useConversations } from "@/features/messaging/api/use-conversations";
 
 export function InvestorMessagesPanel() {
   const t = useTranslations("investor.messages");
 
-  const q = useQuery({
-    queryKey: ["messages", "conversations", "list"],
-    queryFn: async () => {
-      const { data } = await browserApi.get<Paged<ConversationDto>>(
-        "/v1/messages/conversations",
-        { params: { page: 1, pageSize: 50 } },
-      );
-      return data.items ?? [];
-    },
-  });
+  const q = useConversations({ page: 1, pageSize: 50 });
 
   if (q.isLoading) {
     return <p className="text-muted-foreground text-sm">{t("loading")}</p>;
@@ -53,7 +30,7 @@ export function InvestorMessagesPanel() {
     );
   }
 
-  const rows = q.data ?? [];
+  const rows = q.data?.items ?? [];
 
   return (
     <div className="space-y-6">
@@ -77,9 +54,10 @@ export function InvestorMessagesPanel() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-3">
                   <CardTitle className="text-base font-semibold">
-                    {t("conversationWith", {
-                      id: c.counterpartyId.slice(0, 8),
-                    })}
+                    {c.counterpartyName?.trim() ||
+                      t("conversationWith", {
+                        id: c.counterpartyId.slice(0, 8),
+                      })}
                   </CardTitle>
                   {c.unreadCount > 0 ? (
                     <span
