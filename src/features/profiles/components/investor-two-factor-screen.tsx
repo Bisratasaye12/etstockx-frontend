@@ -35,7 +35,11 @@ const panelSurface =
 
 type WizardStep = 1 | 2 | 3;
 
-export function InvestorTwoFactorScreen() {
+export function InvestorTwoFactorScreen({
+  profileBasePath = "/profile/client",
+}: {
+  profileBasePath?: string;
+}) {
   const t = useTranslations("investor.profileSecurity.twoFactor");
   const tc = useTranslations("common");
   const { data: session } = useSession();
@@ -212,7 +216,7 @@ export function InvestorTwoFactorScreen() {
         aria-label={t("breadcrumbAria")}
       >
         <Link
-          href="/profile/client"
+          href={profileBasePath}
           className="text-primary font-medium hover:underline"
         >
           {t("breadcrumbSettings")}
@@ -608,7 +612,7 @@ export function InvestorTwoFactorScreen() {
                       {t("successRecoveryNote")}
                     </span>
                     <Link
-                      href="/profile/client/two-factor"
+                      href={`${profileBasePath}/two-factor`}
                       className="hover:underline"
                     >
                       {t("successManageLink")}

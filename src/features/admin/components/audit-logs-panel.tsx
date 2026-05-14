@@ -138,10 +138,7 @@ export function AuditLogsPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground text-sm">
-          {t("audit.filtersHint")}
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-end">
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" onClick={onExport}>
             {t("audit.exportCsv")}
@@ -232,11 +229,11 @@ export function AuditLogsPanel() {
       <Card>
         <CardHeader>
           <CardTitle>{t("audit.resultsTitle")}</CardTitle>
-          <CardDescription>
-            {isLoading
-              ? t("audit.loading")
-              : t("audit.resultCount", { count: sorted.length })}
-          </CardDescription>
+          {!isLoading ? (
+            <CardDescription>
+              {t("audit.resultCount", { count: sorted.length })}
+            </CardDescription>
+          ) : null}
         </CardHeader>
         <CardContent>
           {isLoading ? (

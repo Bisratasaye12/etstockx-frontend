@@ -1478,6 +1478,42 @@
       "placeholderTitle": "Placeholder",
       "placeholderDescription": "This area is intentionally empty. Add your own content and data wiring when you are ready."
     },
+    "profile": {
+      "figmaTitle": "Administrator account",
+      "figmaSubtitle": "Your ECMA admin operator identity and security settings.",
+      "settingsAreaSubtitle": "Manage password, two-factor sign-in, active sessions, and notifications.",
+      "navAria": "Account sections",
+      "navProfile": "Account overview",
+      "navChangePassword": "Change password",
+      "navTwoFactor": "Two-factor authentication",
+      "navSessions": "Active sessions",
+      "navNotifications": "Notifications",
+      "account": {
+        "signedInLabel": "Signed in as",
+        "securityHint": "Administrator access is highly privileged. Use a strong unique password, enable two-factor authentication, and review active sessions regularly.",
+        "linkPasswordTitle": "Change password",
+        "linkPasswordBody": "Update your credentials via the authenticated change-password endpoint.",
+        "linkMfaTitle": "Two-factor authentication",
+        "linkMfaBody": "Add TOTP to protect admin sign-in and sensitive actions.",
+        "meSectionTitle": "Directory profile",
+        "meSectionHint": "Read-only details from GET /api/v1/admin/me. They appear automatically when the API exposes this route.",
+        "meLoading": "Loading directory profile…",
+        "meLoadError": "Could not load directory profile.",
+        "meRetry": "Try again",
+        "meEmpty": "No directory fields returned yet. When the backend enables GET /api/v1/admin/me, additional read-only attributes will show here.",
+        "meField": {
+          "userId": "User ID",
+          "email": "Email",
+          "fullName": "Full name",
+          "phone": "Phone",
+          "preferredLang": "Preferred language",
+          "department": "Department",
+          "jobTitle": "Job title",
+          "createdAt": "Account created",
+          "lastSignInAt": "Last sign-in"
+        }
+      }
+    },
     "wiring": {
       "title": "Backend & database check",
       "subtitle": "Uses your current admin session — same path as Broker verification and Listing moderation.",
@@ -1532,7 +1568,6 @@
       "nextPage": "Next page"
     },
     "audit": {
-      "filtersHint": "Filters map to GET /api/v1/admin/audit-logs query parameters.",
       "exportCsv": "Export CSV",
       "refresh": "Refresh",
       "filtersTitle": "Filters",

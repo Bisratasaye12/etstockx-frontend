@@ -146,11 +146,11 @@ export function ListingModerationPanel() {
       <Card className="min-h-[280px]">
         <CardHeader>
           <CardTitle>{t("moderation.queueTitle")}</CardTitle>
-          <CardDescription>
-            {total === 0
-              ? t("moderation.emptyQueue")
-              : t("moderation.pendingCount", { count: total })}
-          </CardDescription>
+          {total > 0 ? (
+            <CardDescription>
+              {t("moderation.pendingCount", { count: total })}
+            </CardDescription>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
@@ -224,13 +224,11 @@ export function ListingModerationPanel() {
       <Card>
         <CardHeader>
           <CardTitle>{t("moderation.detailTitle")}</CardTitle>
-          <CardDescription>
-            {!selectedId
-              ? t("moderation.selectListing")
-              : detailLoading
-                ? t("moderation.loadingDetail")
-                : (detail?.instrumentName ?? "—")}
-          </CardDescription>
+          {selectedId && detail && !detailLoading ? (
+            <CardDescription>
+              {detail.brokerInstitution ?? detail.brokerName ?? "—"}
+            </CardDescription>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-6">
           {detailError ? (

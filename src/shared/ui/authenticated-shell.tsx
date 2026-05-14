@@ -29,6 +29,7 @@ import type { InvestorShellNavItem } from "@/features/investor/components/invest
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import { BrokerPortalChrome } from "@/features/broker/components/layout/broker-portal-chrome";
+import { AdminPanelShell } from "@/features/admin/components/admin-panel-shell";
 
 type ShellItem = {
   key: string;
@@ -57,7 +58,7 @@ const INVESTOR_NAV_ITEMS: InvestorShellNavItem[] = [
 
 const ADMIN_ITEMS: ShellItem[] = [
   { key: "overview", href: "/admin/overview", icon: LayoutGrid },
-  { key: "settings", href: "/admin/settings", icon: Settings },
+  { key: "settings", href: "/profile/admin", icon: Settings },
 ];
 
 function investorNavAsShellItems(): ShellItem[] {
@@ -79,7 +80,8 @@ function shouldShowSearch(pathname: string): boolean {
     pathname.startsWith("/messages") ||
     pathname.startsWith("/watchlist") ||
     pathname.startsWith("/profile/client") ||
-    pathname.startsWith("/profile/broker")
+    pathname.startsWith("/profile/broker") ||
+    pathname.startsWith("/profile/admin")
   );
 }
 
@@ -131,9 +133,15 @@ export function AuthenticatedShell({
     (effectiveRole === "Broker" || effectiveRole === "Dealer") && !onLanding;
 
   const settingsHref =
-    effectiveRole === "Broker" || effectiveRole === "Dealer"
-      ? "/profile/broker"
-      : "/profile/client";
+    effectiveRole === "Admin"
+      ? "/profile/admin"
+      : effectiveRole === "Broker" || effectiveRole === "Dealer"
+        ? "/profile/broker"
+        : "/profile/client";
+
+  if (effectiveRole === "Admin" && pathname.startsWith("/profile/admin")) {
+    return <AdminPanelShell>{children}</AdminPanelShell>;
+  }
 
   if (isAdminPanelRoute) {
     return <div className="bg-muted/30 min-h-screen w-full">{children}</div>;

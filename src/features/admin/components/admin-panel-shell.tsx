@@ -1,14 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { Bell, LogOut, Mail, Search, Settings } from "lucide-react";
+import { LogOut, Mail, Search, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/ui/input";
 import { adminNavPlaceholders } from "@/features/admin/config";
+import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
+import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
+import type { UserRole } from "@/shared/api/types";
+import { DashboardHeaderProfileMenu } from "@/shared/ui/dashboard-header-profile-menu";
 
 function isActiveAdminNav(pathname: string, href: string): boolean {
   if (href === "/admin/overview") {
@@ -25,14 +29,10 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const { data: session, status } = useSession();
+  const sessionRole = session?.user?.role as UserRole | undefined;
   const tShell = useTranslations("admin");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
-
-  const initial = useMemo(() => {
-    const name = session?.user?.name ?? session?.user?.email ?? "A";
-    return name.trim().slice(0, 1).toUpperCase() || "A";
-  }, [session?.user?.email, session?.user?.name]);
 
   return (
     <div className="bg-muted/30 flex min-h-screen w-full">
@@ -95,10 +95,10 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
 
         <div className="border-border mt-auto border-t px-3 py-4">
           <Link
-            href="/admin/settings"
+            href="/profile/admin"
             className={cn(
               "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
-              pathname.startsWith("/admin/settings") &&
+              pathname.startsWith("/profile/admin") &&
                 "bg-primary/15 text-primary font-semibold",
             )}
           >
@@ -136,27 +136,19 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1 md:gap-2">
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground relative rounded-full p-2.5"
-                aria-label={tNav("notifications")}
-              >
-                <Bell className="size-5" aria-hidden />
-              </button>
-              <button
-                type="button"
+              <NotificationBellDropdown
+                viewAllHref={getNotificationsFullPagePath(sessionRole)}
+                enabled={status === "authenticated"}
+              />
+              <Link
+                href="/messages"
                 className="text-muted-foreground hover:text-foreground rounded-full p-2.5"
                 aria-label={tNav("messages")}
               >
                 <Mail className="size-5" aria-hidden />
-              </button>
+              </Link>
               <div className="bg-border mx-1 hidden h-8 w-px md:block" />
-              <div
-                className="bg-primary/10 text-primary flex size-9 items-center justify-center rounded-full text-sm font-semibold"
-                aria-hidden
-              >
-                {initial}
-              </div>
+              <DashboardHeaderProfileMenu profileHref="/profile/admin" />
             </div>
           </div>
         </header>

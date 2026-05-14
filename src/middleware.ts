@@ -48,6 +48,15 @@ export default auth((req) => {
   }
 
   if (
+    /^\/(en|am)\/profile\/admin/.test(path) &&
+    req.auth?.user?.role !== "Admin"
+  ) {
+    return NextResponse.redirect(
+      new URL(`/${locale}/dashboard`, req.nextUrl.origin),
+    );
+  }
+
+  if (
     /^\/(en|am)\/profile\/broker/.test(path) &&
     req.auth?.user?.role !== "Broker" &&
     req.auth?.user?.role !== "Dealer"
