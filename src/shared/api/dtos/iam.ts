@@ -1,6 +1,6 @@
 /**
  * IAM API contracts — JSON camelCase, aligned with OpenAPI **v1** (`components/schemas/*`).
- * Spec: `{API_URL}/swagger/v1/swagger.json` (e.g. `http://localhost:5163/swagger/v1/swagger.json`).
+ * Spec: `{API_URL}/swagger/v1/swagger.json` (e.g. `http://localhost:8080/swagger/v1/swagger.json`).
  * @see AuthController route prefix `api/v1/auth`
  */
 

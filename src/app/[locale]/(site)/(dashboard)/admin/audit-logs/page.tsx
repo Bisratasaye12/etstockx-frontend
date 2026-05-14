@@ -1,20 +1,20 @@
 import { getTranslations } from "next-intl/server";
-import { PendingBrokersPanel } from "@/features/admin/components/pending-brokers-panel";
+import { AuditLogsPanel } from "@/features/admin/components/audit-logs-panel";
 
-export default async function AdminBrokersPage() {
+export default async function AdminAuditLogsPage() {
   const t = await getTranslations("admin");
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {t("shell.brokerPageTitle")}
+          {t("shell.auditPageTitle")}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          {t("shell.brokerPageSubtitle")}
+          {t("shell.auditPageSubtitle")}
         </p>
       </div>
-      <PendingBrokersPanel />
+      <AuditLogsPanel />
     </div>
   );
 }

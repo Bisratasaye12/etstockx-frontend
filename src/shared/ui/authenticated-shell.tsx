@@ -51,8 +51,8 @@ const BROKER_BASE_ITEMS: ShellItem[] = [
 ];
 
 const ADMIN_ITEMS: ShellItem[] = [
-  { key: "overview", href: "/dashboard", icon: LayoutGrid },
-  { key: "account", href: "/admin/brokers", icon: Settings },
+  { key: "overview", href: "/admin/overview", icon: LayoutGrid },
+  { key: "settings", href: "/admin/settings", icon: Settings },
 ];
 
 type AuthenticatedShellProps = {
@@ -126,6 +126,9 @@ export function AuthenticatedShell({
 
   const sessionRole = session?.user?.role as UserRole | undefined;
   const effectiveRole = role ?? sessionRole;
+  const isAdminPanelRoute =
+    effectiveRole === "Admin" && pathname.startsWith("/admin");
+
   const primaryNav = getPrimaryNavItems(effectiveRole, pathname);
   const showSearch = shouldShowSearch(pathname);
   const onLanding = isLandingPage(pathname);
@@ -139,6 +142,10 @@ export function AuthenticatedShell({
     effectiveRole === "Broker" || effectiveRole === "Dealer"
       ? "/profile/broker"
       : "/profile/client";
+
+  if (isAdminPanelRoute) {
+    return <div className="bg-muted/30 min-h-screen w-full">{children}</div>;
+  }
 
   if (investorChrome) {
     return (

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { auth } from "@/auth";
+import { safeAuth } from "@/shared/lib/safe-auth";
 import { Link } from "@/shared/i18n/routing";
 import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 import { MarketingNavLink } from "@/shared/ui/marketing-nav-link";
@@ -11,7 +11,7 @@ import { cn } from "@/shared/lib/utils";
 export async function SiteHeader() {
   const t = await getTranslations("nav");
   const tCommon = await getTranslations("common");
-  const session = await auth();
+  const session = await safeAuth();
 
   return (
     <header className="border-border bg-card/80 supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50 border-b backdrop-blur">
@@ -42,10 +42,16 @@ export async function SiteHeader() {
                 {t("listings")}
               </MarketingNavLink>
               <Link
-                href="/dashboard"
+                href={
+                  session.user?.role === "Admin"
+                    ? "/admin/overview"
+                    : "/dashboard"
+                }
                 className="text-muted-foreground hover:text-foreground"
               >
-                {t("dashboard")}
+                {session.user?.role === "Admin"
+                  ? t("adminPortal")
+                  : t("dashboard")}
               </Link>
               {session.user?.role === "Client" ? (
                 <Link
@@ -62,14 +68,6 @@ export async function SiteHeader() {
                   className="text-muted-foreground hover:text-foreground"
                 >
                   {t("profile")}
-                </Link>
-              ) : null}
-              {session.user?.role === "Admin" ? (
-                <Link
-                  href="/admin/brokers"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  {t("adminBrokers")}
                 </Link>
               ) : null}
             </nav>

@@ -25,8 +25,24 @@ function mapBackendLoginErrorToCode(message?: string): string {
   return "invalid_credentials";
 }
 
+/** JWT signing — required; missing secret makes `auth()` throw and every page 500s. */
+function resolveAuthSecret(): string {
+  const fromEnv = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+  if (fromEnv) return fromEnv;
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(
+      "[auth] AUTH_SECRET / NEXTAUTH_SECRET not set. Using an insecure dev fallback. Add AUTH_SECRET (32+ chars) to .env.local.",
+    );
+    return "dev-only-insecure-auth-secret-min-32-chars-long!!";
+  }
+  throw new Error(
+    "Set AUTH_SECRET or NEXTAUTH_SECRET in the environment before starting the app in production.",
+  );
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  secret: resolveAuthSecret(),
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   providers: [
     Credentials({
@@ -53,7 +69,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }),
         });
 
-        const data = (await res.json()) as LoginResultDto & { error?: string };
+        const raw = await res.text();
+        let data = {} as LoginResultDto & { error?: string };
+        if (raw) {
+          try {
+            data = JSON.parse(raw) as LoginResultDto & { error?: string };
+          } catch {
+            throw new BackendCredentialsSignin("invalid_credentials");
+          }
+        }
+
         if (!res.ok || !data.accessToken || !data.refreshToken) {
           throw new BackendCredentialsSignin(
             mapBackendLoginErrorToCode(data.error),

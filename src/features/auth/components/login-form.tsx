@@ -9,6 +9,7 @@ import { Link, useRouter } from "@/shared/i18n/routing";
 import { setAuthError } from "@/features/auth/model/auth-slice";
 import { useAppDispatch } from "@/shared/store/hooks";
 import { browserApi } from "@/shared/api/browser-api";
+import type { LoginResultDto } from "@/shared/api/dtos/iam";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -56,12 +57,17 @@ export function LoginForm() {
     try {
       // First call backend login directly so UI can show exact auth errors
       // (pending verification, email not verified, lockout, MFA issues, etc.).
+      let loginRole: string | null = null;
       try {
-        await browserApi.post("/v1/auth/login", {
-          email,
-          password,
-          otpCode: otp.trim() ? otp.trim() : null,
-        });
+        const { data } = await browserApi.post<LoginResultDto>(
+          "/v1/auth/login",
+          {
+            email,
+            password,
+            otpCode: otp.trim() ? otp.trim() : null,
+          },
+        );
+        loginRole = data.role ?? null;
       } catch (backendErr) {
         const msg = getApiErrorMessage(backendErr);
         setError(msg);
@@ -102,6 +108,11 @@ export function LoginForm() {
       }
       if (callbackUrl && callbackUrl.startsWith("/")) {
         router.push(callbackUrl);
+        router.refresh();
+        return;
+      }
+      if (loginRole === "Admin") {
+        router.push("/admin/overview");
         router.refresh();
         return;
       }
