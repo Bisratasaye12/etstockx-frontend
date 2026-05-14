@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentType, ReactNode } from "react";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -19,6 +20,7 @@ import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { useBrokerIncomingRequests } from "@/features/broker/api/use-broker-incoming-requests";
+import { useUnreadMessageTotal } from "@/features/messaging/api/use-unread-message-total";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
@@ -32,8 +34,11 @@ export type BrokerPortalNavItem = {
     | "navListings"
     | "navClients"
     | "navMessages";
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
+  /** Badge from incoming trade request queue total (hidden while on that route). */
   badgeFromTotal?: boolean;
+  /** Badge from unread message aggregate (hidden while on messages route). */
+  badgeFromUnreadMessages?: boolean;
 };
 
 export const BROKER_PORTAL_NAV: BrokerPortalNavItem[] = [
@@ -54,6 +59,7 @@ export const BROKER_PORTAL_NAV: BrokerPortalNavItem[] = [
     href: "/dashboard/broker/messages",
     labelKey: "navMessages",
     icon: MessageSquare,
+    badgeFromUnreadMessages: true,
   },
 ];
 
@@ -72,7 +78,7 @@ export const BROKER_PORTAL_SIDEBAR_ROW_CLASS =
 export const BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS =
   "bg-primary/12 text-primary font-semibold";
 
-type Props = { children: React.ReactNode };
+type Props = { children: ReactNode };
 
 /** Primary broker / dealer app chrome (sidebar + header + main). Rendered from `AuthenticatedShell`. */
 export function BrokerPortalChrome({ children }: Props) {
@@ -86,6 +92,11 @@ export function BrokerPortalChrome({ children }: Props) {
 
   const incomingTotal = useBrokerIncomingRequests(1, 1);
   const queueTotal = incomingTotal.data?.total ?? 0;
+  const unreadMessages = useUnreadMessageTotal(
+    status === "authenticated" &&
+      (sessionRole === "Broker" || sessionRole === "Dealer"),
+  );
+  const unreadTotal = unreadMessages.data ?? 0;
 
   return (
     <div className="bg-muted/20 flex min-h-screen w-full">
@@ -123,8 +134,19 @@ export function BrokerPortalChrome({ children }: Props) {
           {BROKER_PORTAL_NAV.map((item) => {
             const Icon = item.icon;
             const active = isBrokerPortalNavActive(pathname, item.href);
-            const showBadge = item.badgeFromTotal && queueTotal > 0;
-            const badge = showBadge ? Math.min(queueTotal, 99) : null;
+            const showIncomingBadge =
+              Boolean(item.badgeFromTotal) &&
+              queueTotal > 0 &&
+              !isBrokerPortalNavActive(pathname, "/dashboard/broker/requests");
+            const showMessagesBadge =
+              Boolean(item.badgeFromUnreadMessages) &&
+              unreadTotal > 0 &&
+              !isBrokerPortalNavActive(pathname, "/dashboard/broker/messages");
+            const badge = showIncomingBadge
+              ? Math.min(queueTotal, 99)
+              : showMessagesBadge
+                ? Math.min(unreadTotal, 99)
+                : null;
 
             return (
               <Link

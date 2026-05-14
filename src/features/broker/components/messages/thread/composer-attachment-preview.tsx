@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import { resolveAttachmentVisual } from "@/features/messaging/lib/attachment-visual";
 import { formatFileSize } from "@/features/messaging/lib/format-file-size";
+import { usePortalThreadMessagesTranslations } from "@/features/messaging/context/messaging-portal-context";
 
 type Props = {
   file: File;
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function ComposerAttachmentPreview({ file, onRemove }: Props) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
   const { Icon, iconBoxClass, kind } = resolveAttachmentVisual(
     file.type,
     file.name,

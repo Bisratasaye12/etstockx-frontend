@@ -24,6 +24,8 @@ import type { UserRole } from "@/shared/api/types";
 import { Input } from "@/shared/ui/input";
 import { buttonVariants } from "@/shared/ui/button";
 import { InvestorHeaderProfileMenu } from "@/features/investor/components/investor-header-profile-menu";
+import { InvestorSidebarNav } from "@/features/investor/components/investor-sidebar-nav";
+import type { InvestorShellNavItem } from "@/features/investor/components/investor-sidebar-nav";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import { BrokerPortalChrome } from "@/features/broker/components/layout/broker-portal-chrome";
@@ -34,19 +36,33 @@ type ShellItem = {
   icon: ComponentType<{ className?: string }>;
 };
 
-const INVESTOR_NAV_ITEMS: ShellItem[] = [
+const INVESTOR_NAV_ITEMS: InvestorShellNavItem[] = [
   { key: "overview", href: "/dashboard", icon: LayoutGrid },
   { key: "listings", href: "/market", icon: List },
   { key: "brokers", href: "/brokers", icon: Contact },
-  { key: "myRequests", href: "/requests", icon: ClipboardList },
+  {
+    key: "myRequests",
+    href: "/requests",
+    icon: ClipboardList,
+    badge: "requests",
+  },
   { key: "watchlist", href: "/watchlist", icon: Eye },
-  { key: "messages", href: "/messages", icon: MessageSquare },
+  {
+    key: "messages",
+    href: "/messages",
+    icon: MessageSquare,
+    badge: "messages",
+  },
 ];
 
 const ADMIN_ITEMS: ShellItem[] = [
   { key: "overview", href: "/dashboard", icon: LayoutGrid },
   { key: "account", href: "/admin/brokers", icon: Settings },
 ];
+
+function investorNavAsShellItems(): ShellItem[] {
+  return INVESTOR_NAV_ITEMS.map(({ key, href, icon }) => ({ key, href, icon }));
+}
 
 type AuthenticatedShellProps = {
   children: ReactNode;
@@ -69,7 +85,7 @@ function shouldShowSearch(pathname: string): boolean {
 
 function getPrimaryNavItems(role: UserRole | undefined): ShellItem[] {
   if (role === "Admin") return ADMIN_ITEMS;
-  return INVESTOR_NAV_ITEMS;
+  return investorNavAsShellItems();
 }
 
 function isActivePath(pathname: string, href: string): boolean {
@@ -148,25 +164,7 @@ export function AuthenticatedShell({
               {tShell("newRequest")}
             </Link>
           </div>
-          <nav className="flex flex-1 flex-col gap-1 px-3">
-            {primaryNav.map((item) => {
-              const active = isActivePath(pathname, item.href);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={`${item.key}-${item.href}`}
-                  href={item.href}
-                  className={cn(
-                    "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
-                    active && "bg-primary/15 text-primary font-semibold",
-                  )}
-                >
-                  <Icon className="size-5 shrink-0" />
-                  <span>{t(item.key)}</span>
-                </Link>
-              );
-            })}
-          </nav>
+          <InvestorSidebarNav items={INVESTOR_NAV_ITEMS} />
           <div className="border-border mt-auto border-t px-3 py-4">
             <Link
               href={settingsHref}

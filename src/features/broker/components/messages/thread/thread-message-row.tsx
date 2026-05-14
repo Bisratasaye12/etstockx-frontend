@@ -1,11 +1,11 @@
 "use client";
 
 import { Check, CheckCheck } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import type { MessageDto } from "@/entities/messaging/model/types";
 import { formatMessageTime } from "@/features/messaging/lib/format-message-time";
 import { getConversationInitials } from "@/features/messaging/lib/conversation-initials";
+import { usePortalThreadMessagesTranslations } from "@/features/messaging/context/messaging-portal-context";
 import { ThreadAttachmentCard } from "@/features/broker/components/messages/thread/thread-attachment-card";
 import { HighlightedText } from "@/features/broker/components/messages/thread/highlighted-text";
 
@@ -25,7 +25,7 @@ export function ThreadMessageRow({
   locale,
   searchKeyword = "",
 }: Props) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
 
   const isOwn = ownership === "own";
   const time = formatMessageTime(message.sentAt, locale);

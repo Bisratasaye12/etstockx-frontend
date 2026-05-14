@@ -1,12 +1,12 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { useTranslations } from "next-intl";
 import { cn } from "@/shared/lib/utils";
 import type { AttachmentDto } from "@/entities/messaging/model/types";
 import { getAttachmentDownloadUrl } from "@/features/messaging/api/get-attachment-url";
 import { resolveAttachmentVisual } from "@/features/messaging/lib/attachment-visual";
 import { formatFileSize } from "@/features/messaging/lib/format-file-size";
+import { usePortalThreadMessagesTranslations } from "@/features/messaging/context/messaging-portal-context";
 
 type Props = {
   attachment: AttachmentDto;
@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function ThreadAttachmentCard({ attachment, ownership }: Props) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
   const { Icon, iconBoxClass } = resolveAttachmentVisual(
     attachment.fileType,
     attachment.fileName,

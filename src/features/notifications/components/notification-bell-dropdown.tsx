@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   ArrowRightLeft,
   Bell,
@@ -12,6 +13,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import type { NotificationItem } from "@/entities/notification/model/types";
+import type { UserRole } from "@/shared/api/types";
 import { formatRelativeTimeShort } from "@/shared/lib/format-relative-time";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
@@ -19,6 +21,7 @@ import { useNotificationUnreadCount } from "@/features/notifications/api/use-not
 import { useNotificationsUnreadList } from "@/features/notifications/api/use-notifications-unread-list";
 import { useMarkAllNotificationsRead } from "@/features/notifications/api/use-mark-all-notifications-read";
 import { useMarkNotificationRead } from "@/features/notifications/api/use-mark-notification-read";
+import { getNotificationTargetHref } from "@/features/notifications/lib/get-notification-target-href";
 
 function pickEventIcon(eventType: string | null) {
   const e = (eventType ?? "").toLowerCase();
@@ -54,14 +57,22 @@ function pickEventIcon(eventType: string | null) {
   );
 }
 
+function rowShellClassName() {
+  return cn(
+    "hover:bg-muted/60 flex w-full gap-3 border-b border-border px-4 py-3 text-left transition-colors last:border-b-0",
+  );
+}
+
 function DropdownRow({
   n,
   locale,
-  onRead,
+  targetHref,
+  onActivate,
 }: {
   n: NotificationItem;
   locale: string;
-  onRead: (id: string) => void;
+  targetHref: string | null;
+  onActivate: (id: string) => void;
 }) {
   const t = useTranslations("notifications");
   const rel = formatRelativeTimeShort(
@@ -70,12 +81,12 @@ function DropdownRow({
     locale === "am" ? "am" : "en",
   );
 
-  return (
-    <button
-      type="button"
-      className="hover:bg-muted/60 flex w-full gap-3 border-b border-border px-4 py-3 text-left transition-colors last:border-b-0"
-      onClick={() => onRead(n.id)}
-    >
+  function handleActivate() {
+    onActivate(n.id);
+  }
+
+  const inner = (
+    <>
       {pickEventIcon(n.eventType)}
       <span className="min-w-0 flex-1">
         <span className="text-foreground flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-semibold">
@@ -95,6 +106,28 @@ function DropdownRow({
       ) : (
         <span className="size-2 shrink-0" aria-hidden />
       )}
+    </>
+  );
+
+  if (targetHref) {
+    return (
+      <Link
+        href={targetHref}
+        className={rowShellClassName()}
+        onClick={handleActivate}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      className={rowShellClassName()}
+      onClick={handleActivate}
+    >
+      {inner}
     </button>
   );
 }
@@ -110,6 +143,8 @@ export function NotificationBellDropdown({
 }: NotificationBellDropdownProps) {
   const t = useTranslations("notifications");
   const locale = useLocale();
+  const { data: session } = useSession();
+  const role = session?.user?.role as UserRole | undefined;
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -138,6 +173,12 @@ export function NotificationBellDropdown({
 
   const items = list.data ?? [];
   const showEmpty = open && !list.isLoading && items.length === 0;
+
+  function handleRowActivate(id: string) {
+    const row = items.find((i) => i.id === id);
+    if (row && !row.isRead) markOne.mutate(id);
+    setOpen(false);
+  }
 
   return (
     <div className="relative" ref={wrapRef}>
@@ -209,7 +250,8 @@ export function NotificationBellDropdown({
                   key={n.id}
                   n={n}
                   locale={locale}
-                  onRead={(id) => markOne.mutate(id)}
+                  targetHref={getNotificationTargetHref(n, role)}
+                  onActivate={handleRowActivate}
                 />
               ))
             )}

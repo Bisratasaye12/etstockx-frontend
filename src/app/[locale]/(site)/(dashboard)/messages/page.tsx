@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "@/shared/i18n/routing";
-import { InvestorMessagesPanel } from "@/features/investor/components/investor-messages-panel";
+import { BrokerMessagesScreen } from "@/features/broker/components/messages/broker-messages-screen";
 
 export default async function InvestorMessagesRoutePage({
   params,
@@ -13,5 +13,5 @@ export default async function InvestorMessagesRoutePage({
     redirect({ href: "/dashboard", locale });
   }
 
-  return <InvestorMessagesPanel />;
+  return <BrokerMessagesScreen portal="investor" />;
 }

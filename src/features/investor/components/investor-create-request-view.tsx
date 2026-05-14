@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -34,6 +35,8 @@ export function InvestorCreateRequestView() {
   const qc = useQueryClient();
   const t = useTranslations("investor.createRequest");
   const { data: brokers, isLoading: brokersLoading } = useBrokerDirectory();
+  const searchParams = useSearchParams();
+  const brokerIdFromUrl = searchParams.get("brokerId")?.trim() ?? "";
 
   const isActivated = Boolean(session?.user?.isActivated);
 
@@ -45,6 +48,13 @@ export function InvestorCreateRequestView() {
   const [desiredPrice, setDesiredPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!brokerIdFromUrl) return;
+    if (!brokers?.length) return;
+    if (!brokers.some((b) => b.userId === brokerIdFromUrl)) return;
+    setBrokerId(brokerIdFromUrl);
+  }, [brokerIdFromUrl, brokers]);
 
   const createMutation = useMutation({
     mutationFn: async () => {

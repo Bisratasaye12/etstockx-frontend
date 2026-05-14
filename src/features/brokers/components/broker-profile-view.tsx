@@ -347,7 +347,7 @@ export function BrokerProfileView({ brokerId }: Props) {
                   {t("requestCtaBody", { name: firstName })}
                 </p>
                 <Link
-                  href="/market"
+                  href={`/requests/new?brokerId=${encodeURIComponent(brokerId)}`}
                   className={cn(
                     buttonVariants({ variant: "default", size: "lg" }),
                     "mt-4 flex h-11 w-full items-center justify-center rounded-lg font-semibold",

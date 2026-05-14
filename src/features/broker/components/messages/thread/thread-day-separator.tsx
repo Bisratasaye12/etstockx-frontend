@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import type { MessageDayGroup } from "@/features/messaging/lib/group-messages-by-day";
+import { usePortalThreadMessagesTranslations } from "@/features/messaging/context/messaging-portal-context";
 
 type Props = {
   group: Pick<MessageDayGroup, "kind" | "iso">;
@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function ThreadDaySeparator({ group, locale }: Props) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
 
   let label: string;
   if (group.kind === "today") {

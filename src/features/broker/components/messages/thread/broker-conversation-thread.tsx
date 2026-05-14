@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { cn } from "@/shared/lib/utils";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
@@ -17,6 +17,11 @@ import { useSendMessage } from "@/features/messaging/api/use-send-message";
 import { useUploadAttachment } from "@/features/messaging/api/use-upload-attachment";
 import { useMarkConversationRead } from "@/features/messaging/api/use-mark-conversation-read";
 import { groupMessagesByDay } from "@/features/messaging/lib/group-messages-by-day";
+import {
+  MessagingPortalProvider,
+  usePortalThreadMessagesTranslations,
+  type MessagingPortalId,
+} from "@/features/messaging/context/messaging-portal-context";
 import { ThreadHeader } from "@/features/broker/components/messages/thread/thread-header";
 import { ThreadSearchBar } from "@/features/broker/components/messages/thread/thread-search-bar";
 import { ThreadDaySeparator } from "@/features/broker/components/messages/thread/thread-day-separator";
@@ -25,6 +30,7 @@ import { MessageComposer } from "@/features/broker/components/messages/thread/me
 
 type Props = {
   conversationId: string;
+  portal?: MessagingPortalId;
 };
 
 const EMPTY_MESSAGES: MessageDto[] = [];
@@ -51,8 +57,23 @@ function findConversation(
   return list?.find((c) => c.id === id);
 }
 
-export function BrokerConversationThread({ conversationId }: Props) {
-  const t = useTranslations("broker.messages.thread");
+export function BrokerConversationThread({
+  conversationId,
+  portal = "broker",
+}: Props) {
+  return (
+    <MessagingPortalProvider portal={portal}>
+      <BrokerConversationThreadInner conversationId={conversationId} />
+    </MessagingPortalProvider>
+  );
+}
+
+function BrokerConversationThreadInner({
+  conversationId,
+}: {
+  conversationId: string;
+}) {
+  const t = usePortalThreadMessagesTranslations();
   const locale = useLocale();
   const { data: session } = useSession();
   const currentUserId = session?.user?.id ?? "";
@@ -259,7 +280,7 @@ function SearchResults({
   counterpartyName: string | null;
   locale: string;
 }) {
-  const t = useTranslations("broker.messages.thread");
+  const t = usePortalThreadMessagesTranslations();
 
   if (!keyword) {
     return (
