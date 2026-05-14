@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Search,
   Settings,
-  ArrowLeftRight,
   Plus,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -27,6 +26,7 @@ import { buttonVariants } from "@/shared/ui/button";
 import { InvestorHeaderProfileMenu } from "@/features/investor/components/investor-header-profile-menu";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
+import { BrokerPortalChrome } from "@/features/broker/components/layout/broker-portal-chrome";
 
 type ShellItem = {
   key: string;
@@ -41,13 +41,6 @@ const INVESTOR_NAV_ITEMS: ShellItem[] = [
   { key: "myRequests", href: "/requests", icon: ClipboardList },
   { key: "watchlist", href: "/watchlist", icon: Eye },
   { key: "messages", href: "/messages", icon: MessageSquare },
-];
-
-const BROKER_BASE_ITEMS: ShellItem[] = [
-  { key: "overview", href: "/dashboard", icon: LayoutGrid },
-  { key: "listings", href: "/market", icon: List },
-  { key: "requests", href: "/dashboard", icon: ArrowLeftRight },
-  { key: "messages", href: "/dashboard", icon: MessageSquare },
 ];
 
 const ADMIN_ITEMS: ShellItem[] = [
@@ -69,28 +62,13 @@ function shouldShowSearch(pathname: string): boolean {
     pathname.startsWith("/requests") ||
     pathname.startsWith("/messages") ||
     pathname.startsWith("/watchlist") ||
-    pathname.startsWith("/profile/client")
+    pathname.startsWith("/profile/client") ||
+    pathname.startsWith("/profile/broker")
   );
 }
 
-function getPrimaryNavItems(
-  role: UserRole | undefined,
-  pathname: string,
-): ShellItem[] {
-  const isProfilePage = pathname.startsWith("/profile");
-
+function getPrimaryNavItems(role: UserRole | undefined): ShellItem[] {
   if (role === "Admin") return ADMIN_ITEMS;
-  if (role === "Broker" || role === "Dealer") {
-    return [
-      ...BROKER_BASE_ITEMS,
-      {
-        key: isProfilePage ? "settings" : "account",
-        href: "/profile/broker",
-        icon: Settings,
-      },
-    ];
-  }
-
   return INVESTOR_NAV_ITEMS;
 }
 
@@ -101,13 +79,6 @@ function isActivePath(pathname: string, href: string): boolean {
 
 function isLandingPage(pathname: string): boolean {
   return pathname === "/" || pathname === "";
-}
-
-function isBrokerPortalPath(pathname: string): boolean {
-  return (
-    pathname.startsWith("/dashboard/broker") ||
-    pathname.startsWith("/profile/broker")
-  );
 }
 
 export function AuthenticatedShell({
@@ -133,22 +104,17 @@ export function AuthenticatedShell({
 
   const sessionRole = session?.user?.role as UserRole | undefined;
   const effectiveRole = role ?? sessionRole;
-  const primaryNav = getPrimaryNavItems(effectiveRole, pathname);
+  const primaryNav = getPrimaryNavItems(effectiveRole);
   const showSearch = shouldShowSearch(pathname);
   const onLanding = isLandingPage(pathname);
   const investorChrome = effectiveRole === "Client" && !onLanding;
+  const brokerChrome =
+    (effectiveRole === "Broker" || effectiveRole === "Dealer") && !onLanding;
 
   const settingsHref =
     effectiveRole === "Broker" || effectiveRole === "Dealer"
       ? "/profile/broker"
       : "/profile/client";
-
-  if (
-    (effectiveRole === "Broker" || effectiveRole === "Dealer") &&
-    isBrokerPortalPath(pathname)
-  ) {
-    return <>{children}</>;
-  }
 
   if (investorChrome) {
     return (
@@ -268,6 +234,10 @@ export function AuthenticatedShell({
         </div>
       </div>
     );
+  }
+
+  if (brokerChrome) {
+    return <BrokerPortalChrome>{children}</BrokerPortalChrome>;
   }
 
   return (

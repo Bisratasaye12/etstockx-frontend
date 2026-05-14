@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { AlertCircle, Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Link, useRouter } from "@/shared/i18n/routing";
 import { setAuthError } from "@/features/auth/model/auth-slice";
+import { writeLoginMfaPending } from "@/features/auth/lib/login-mfa-pending";
 import { useAppDispatch } from "@/shared/store/hooks";
 import { browserApi } from "@/shared/api/browser-api";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
@@ -24,10 +25,19 @@ export function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+
+  function loginErrorIndicatesMfaRequired(message: string): boolean {
+    const m = message.toLowerCase();
+    if (m.includes("mfa code is required")) return true;
+    if (m.includes("invalid mfa")) return false;
+    if (m.includes("mfa") && m.includes("required")) return true;
+    if (m.includes("two-factor") && m.includes("required")) return true;
+    if (m.includes("otp") && m.includes("required")) return true;
+    return false;
+  }
 
   function mapSigninCodeToMessage(code: string): string {
     switch (code) {
@@ -60,10 +70,19 @@ export function LoginForm() {
         await browserApi.post("/v1/auth/login", {
           email,
           password,
-          otpCode: otp.trim() ? otp.trim() : null,
+          otpCode: null,
         });
       } catch (backendErr) {
         const msg = getApiErrorMessage(backendErr);
+        if (loginErrorIndicatesMfaRequired(msg)) {
+          writeLoginMfaPending({ email, password });
+          const q =
+            callbackUrl && callbackUrl.startsWith("/")
+              ? `?callbackUrl=${encodeURIComponent(callbackUrl)}`
+              : "";
+          router.push(`/login/mfa${q}`);
+          return;
+        }
         setError(msg);
         dispatch(setAuthError(msg));
         return;
@@ -72,7 +91,7 @@ export function LoginForm() {
       const res = await signIn("credentials", {
         email,
         password,
-        otpCode: otp.trim() ? otp.trim() : null,
+        otpCode: null,
         redirect: false,
       });
       if (res?.error) {

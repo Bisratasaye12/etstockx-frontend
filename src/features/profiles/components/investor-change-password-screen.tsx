@@ -14,8 +14,8 @@ import { cn } from "@/shared/lib/utils";
 const panelSurface =
   "rounded-xl border border-border bg-card shadow-[0_1px_3px_rgba(15,23,42,0.06)]";
 
-export function BrokerChangePasswordScreen() {
-  const t = useTranslations("broker.profile.changePassword");
+export function InvestorChangePasswordScreen() {
+  const t = useTranslations("investor.profileSecurity.changePassword");
   const tAuth = useTranslations("auth");
   const tc = useTranslations("common");
 
@@ -108,11 +108,11 @@ export function BrokerChangePasswordScreen() {
 
         <div className="grid max-w-lg gap-5">
           <div className="space-y-2">
-            <Label htmlFor="broker-cpw-current" className="text-sm font-medium">
+            <Label htmlFor="inv-cpw-current" className="text-sm font-medium">
               {t("currentPassword")}
             </Label>
             <PasswordInputWithToggle
-              id="broker-cpw-current"
+              id="inv-cpw-current"
               name="currentPassword"
               autoComplete="current-password"
               value={currentPassword}
@@ -127,11 +127,11 @@ export function BrokerChangePasswordScreen() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="broker-cpw-new" className="text-sm font-medium">
+            <Label htmlFor="inv-cpw-new" className="text-sm font-medium">
               {t("newPassword")}
             </Label>
             <PasswordInputWithToggle
-              id="broker-cpw-new"
+              id="inv-cpw-new"
               name="newPassword"
               autoComplete="new-password"
               value={newPassword}
@@ -144,11 +144,11 @@ export function BrokerChangePasswordScreen() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="broker-cpw-confirm" className="text-sm font-medium">
+            <Label htmlFor="inv-cpw-confirm" className="text-sm font-medium">
               {t("confirmPassword")}
             </Label>
             <PasswordInputWithToggle
-              id="broker-cpw-confirm"
+              id="inv-cpw-confirm"
               name="confirmPassword"
               autoComplete="new-password"
               value={confirmPassword}
