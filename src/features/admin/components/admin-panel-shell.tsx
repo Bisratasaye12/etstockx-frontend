@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { type ReactNode } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { LogOut, Mail, Search, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { isSuperAdminRole } from "@/shared/lib/user-role";
@@ -30,6 +31,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const { data: session, status } = useSession();
+  const { logout, pending: logoutPending } = useAppLogout();
   const sessionRole = session?.user?.role as UserRole | undefined;
   const isSuperAdmin = isSuperAdminRole(session?.user?.rawRole);
   const navItems = getAdminNavItems(isSuperAdmin);
@@ -110,8 +112,8 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
           </Link>
           <button
             type="button"
-            disabled={status === "loading"}
-            onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+            disabled={status === "loading" || logoutPending}
+            onClick={() => void logout(`/${locale}/login`)}
             className="text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] transition-colors disabled:opacity-50"
           >
             <LogOut className="size-5 shrink-0" aria-hidden />

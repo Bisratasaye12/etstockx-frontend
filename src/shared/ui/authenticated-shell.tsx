@@ -2,7 +2,7 @@
 
 import { type ComponentType, type ReactNode, useEffect } from "react";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
   CircleHelp,
   ClipboardList,
@@ -18,6 +18,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
 import {
   isAdminRole,
@@ -117,6 +118,7 @@ export function AuthenticatedShell({
   const tCommon = useTranslations("common");
   const pathname = usePathname();
   const accessToken = serverAccessToken ?? session?.accessToken;
+  const { logout, pending: logoutPending } = useAppLogout();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -198,7 +200,8 @@ export function AuthenticatedShell({
             </Link>
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+              disabled={logoutPending}
+              onClick={() => void logout(`/${locale}/login`)}
               className="text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] transition-colors"
             >
               <LogOut className="size-5 shrink-0" />

@@ -2,7 +2,7 @@
 
 import type { ComponentType, ReactNode } from "react";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
   ClipboardList,
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
@@ -88,6 +89,7 @@ export function BrokerPortalChrome({ children }: Props) {
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
   const { data: session, status } = useSession();
+  const { logout, pending: logoutPending } = useAppLogout();
   const sessionRole = session?.user?.role as UserRole | undefined;
 
   const incomingTotal = useBrokerIncomingRequests(1, 1);
@@ -182,7 +184,8 @@ export function BrokerPortalChrome({ children }: Props) {
             </Link>
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+              disabled={logoutPending}
+              onClick={() => void logout(`/${locale}/login`)}
               className={cn(BROKER_PORTAL_SIDEBAR_ROW_CLASS, "cursor-pointer")}
             >
               <LogOut className="size-[18px] shrink-0" aria-hidden />
