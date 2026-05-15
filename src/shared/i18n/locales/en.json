@@ -1487,7 +1487,7 @@
       "navAudit": "Audit logs",
       "navManageAdmins": "Manage admins",
       "overviewPageTitle": "Overview",
-      "overviewPageSubtitle": "High-level admin workspace (placeholder).",
+      "overviewPageSubtitle": "Platform-wide users, trade activity, and trends from the last 30 days.",
       "brokerPageTitle": "Broker verification",
       "brokerPageSubtitle": "Review pending broker and dealer applications from the IAM queue.",
       "listingsPageTitle": "Listing moderation",
@@ -1502,6 +1502,76 @@
       "settingsPageSubtitle": "Account and portal preferences (placeholder).",
       "placeholderTitle": "Placeholder",
       "placeholderDescription": "This area is intentionally empty. Add your own content and data wiring when you are ready."
+    },
+    "overview": {
+      "defaultPeriod": "Last 30 days (UTC)",
+      "loadingPeriod": "Loading reporting period…",
+      "periodRange": "{from} – {to} · {granularity} buckets",
+      "granularityLabel": "Time bucket",
+      "granularity": {
+        "day": "Daily",
+        "week": "Weekly",
+        "month": "Monthly"
+      },
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "retry": "Try again",
+      "sections": {
+        "users": "Users",
+        "trades": "Trade activity"
+      },
+      "kpis": {
+        "totalUsers": "Total users",
+        "totalUsersHint": "All IAM accounts on the platform.",
+        "totalClients": "Investors",
+        "totalClientsHint": "Users with the Client role.",
+        "activatedClients": "Activated investors",
+        "activatedClientsHint": "Clients who completed investor activation.",
+        "totalBrokers": "Brokers & dealers",
+        "totalBrokersHint": "Users with Broker or Dealer role.",
+        "totalAdmins": "Administrators",
+        "totalAdminsHint": "Users with Admin or Super Admin role.",
+        "totalBuyRequests": "Buy requests (all time)",
+        "totalBuyRequestsHint": "Platform-wide buy requests ever created.",
+        "totalSellRequests": "Sell requests (all time)",
+        "totalSellRequestsHint": "Platform-wide sell requests ever created.",
+        "openBuyRequests": "Open buy requests",
+        "openBuyRequestsHint": "Non-terminal buy requests in the pipeline.",
+        "openSellRequests": "Open sell requests",
+        "openSellRequestsHint": "Non-terminal sell requests in the pipeline."
+      },
+      "charts": {
+        "registrationsTitle": "New registrations",
+        "registrationsHint": "User sign-ups per time bucket in the selected period.",
+        "tradeRequestsTitle": "New trade requests",
+        "tradeRequestsHint": "Buy and sell requests created per bucket (green = buy, red = sell).",
+        "empty": "No data for this period."
+      },
+      "breakdown": {
+        "usersByRole": "Users by role",
+        "usersByRoleHint": "Current IAM role distribution.",
+        "requestsByType": "Requests by type",
+        "requestsByTypeHint": "All-time buy vs sell totals.",
+        "requestsByStatus": "Requests by status",
+        "requestsByStatusHint": "All-time counts per status and request type.",
+        "empty": "No breakdown data yet."
+      },
+      "table": {
+        "type": "Type",
+        "status": "Status",
+        "count": "Count"
+      },
+      "requestType": {
+        "buy": "Buy",
+        "sell": "Sell"
+      },
+      "roles": {
+        "Client": "Investor",
+        "Broker": "Broker",
+        "Dealer": "Dealer",
+        "Admin": "Admin",
+        "SuperAdmin": "Super Admin"
+      }
     },
     "users": {
       "summary": {

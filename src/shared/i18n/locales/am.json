@@ -1487,7 +1487,7 @@
       "navAudit": "የኦዲት መዝገቦች",
       "navManageAdmins": "አስተዳዳሪዎችን አስተዳድር",
       "overviewPageTitle": "አጠቃላይ እይታ",
-      "overviewPageSubtitle": "የአስተዳዳድ የስራ ቦታ (አሻራ)።",
+      "overviewPageSubtitle": "የመድረኩ ተጠቃሚዎች፣ የንግድ እንቅስቃሴ እና ከ30 ቀናት በኋላ ያሉ አዝማሚያዎች።",
       "brokerPageTitle": "የብሮከር ማረጋገጫ",
       "brokerPageSubtitle": "ከIAM ወረፋ በመጠባበቅ ላይ ያሉ የብሮከር እና ዲለር ማመልከቻዎችን ይገምግሙ።",
       "listingsPageTitle": "የዝርዝር ማስተካከያ",
@@ -1502,6 +1502,76 @@
       "settingsPageSubtitle": "መለያ እና የመግቢያ ምርጫዎች (አሻራ)።",
       "placeholderTitle": "አሻራ",
       "placeholderDescription": "ይህ ቦታ ባዶ ነው። ዝግጁ ሲሆኑ የራስዎን ይዘት እና ውሂብ ይጨምሩ።"
+    },
+    "overview": {
+      "defaultPeriod": "የመጨረሻዎቹ 30 ቀናት (UTC)",
+      "loadingPeriod": "የሪፖርት ጊዜ በመጫን ላይ…",
+      "periodRange": "{from} – {to} · {granularity} ባልዎች",
+      "granularityLabel": "የጊዜ ባልድ",
+      "granularity": {
+        "day": "በየቀኑ",
+        "week": "በየሳምንቱ",
+        "month": "በየወሩ"
+      },
+      "refresh": "አድስ",
+      "refreshing": "በማደስ ላይ…",
+      "retry": "እንደገና ሞክር",
+      "sections": {
+        "users": "ተጠቃሚዎች",
+        "trades": "የንግድ እንቅስቃሴ"
+      },
+      "kpis": {
+        "totalUsers": "ጠቅላላ ተጠቃሚዎች",
+        "totalUsersHint": "በመድረኩ ላይ ያሉ ሁሉም IAM መለያዎች።",
+        "totalClients": "ኢንቨስተሮች",
+        "totalClientsHint": "Client ሚና ያላቸው ተጠቃሚዎች።",
+        "activatedClients": "የተነቁ ኢንቨስተሮች",
+        "activatedClientsHint": "የኢንቨስተር ማግበርያ ያጠናቀቁ ደንበኞች።",
+        "totalBrokers": "ብሮከሮች እና ዲለሮች",
+        "totalBrokersHint": "Broker ወይም Dealer ሚና ያላቸው ተጠቃሚዎች።",
+        "totalAdmins": "አስተዳዳሪዎች",
+        "totalAdminsHint": "Admin ወይም Super Admin ሚና ያላቸው ተጠቃሚዎች።",
+        "totalBuyRequests": "የግዢ ጥያቄዎች (ሁሉም ጊዜ)",
+        "totalBuyRequestsHint": "በመድረኩ ላይ የተፈጠሩ ሁሉም የግዢ ጥያቄዎች።",
+        "totalSellRequests": "የሽያጭ ጥያቄዎች (ሁሉም ጊዜ)",
+        "totalSellRequestsHint": "በመድረኩ ላይ የተፈጠሩ ሁሉም የሽያጭ ጥያቄዎች።",
+        "openBuyRequests": "ክፍት የግዢ ጥያቄዎች",
+        "openBuyRequestsHint": "በሂደት ላይ ያሉ ግዢ ጥያቄዎች።",
+        "openSellRequests": "ክፍት የሽያጭ ጥያቄዎች",
+        "openSellRequestsHint": "በሂደት ላይ ያሉ ሽያጭ ጥያቄዎች።"
+      },
+      "charts": {
+        "registrationsTitle": "አዲስ ምዝገባዎች",
+        "registrationsHint": "በተመረጠው ጊዜ ውስጥ በእያንዳንዱ ባልድ የተመዘገቡ ተጠቃሚዎች።",
+        "tradeRequestsTitle": "አዲስ የንግድ ጥያቄዎች",
+        "tradeRequestsHint": "በእያንዳንዱ ባልድ የተፈጠሩ ግዢ እና ሽያጭ ጥያቄዎች (አረንጓዴ = ግዢ፣ ቀይ = ሽያጭ)።",
+        "empty": "ለዚህ ጊዜ ውሂብ የለም።"
+      },
+      "breakdown": {
+        "usersByRole": "ተጠቃሚዎች በሚና",
+        "usersByRoleHint": "የአሁኑ IAM ሚና ክፍፍል።",
+        "requestsByType": "ጥያቄዎች በአይነት",
+        "requestsByTypeHint": "ሁሉንም ጊዜ የግዢ እና የሽያጭ ድምር።",
+        "requestsByStatus": "ጥያቄዎች በሁኔታ",
+        "requestsByStatusHint": "በሁኔታ እና በጥያቄ አይነት ሁሉንም ጊዜ ቆጠራዎች።",
+        "empty": "የተከፋፈለ ውሂብ ገና የለም።"
+      },
+      "table": {
+        "type": "አይነት",
+        "status": "ሁኔታ",
+        "count": "ብዛት"
+      },
+      "requestType": {
+        "buy": "ግዢ",
+        "sell": "ሽያጭ"
+      },
+      "roles": {
+        "Client": "ኢንቨስተር",
+        "Broker": "ብሮከር",
+        "Dealer": "ዲለር",
+        "Admin": "አስተዳዳሪ",
+        "SuperAdmin": "Super Admin"
+      }
     },
     "users": {
       "summary": {
