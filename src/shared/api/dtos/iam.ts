@@ -101,6 +101,14 @@ export interface ResetPasswordRequestDto {
   newPassword: string;
 }
 
+/** Body for `POST /api/v1/auth/admin/invitations/accept`. */
+export interface AcceptAdminInvitationRequestDto {
+  token: string;
+  password?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
 // ─── POST /api/v1/auth/mfa/enable | mfa/confirm | mfa/disable ────────────
 /** TOTP (authenticator app) only in OpenAPI v1; login uses `LoginRequestDto.otpCode` with the same 6-digit codes. */
 

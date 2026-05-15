@@ -10,6 +10,7 @@ export type {
   RefreshTokenRequestDto,
   RegisterUserRequestDto,
   RegisterCreatedResponseDto,
+  AcceptAdminInvitationRequestDto,
   ApiErrorBody,
   SessionDto,
   BrokerDocumentDto,
