@@ -2,7 +2,7 @@
 
 import { type ComponentType, type ReactNode, useEffect } from "react";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
   CircleHelp,
   ClipboardList,
@@ -18,7 +18,14 @@ import {
   Plus,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
+import {
+  isAdminRole,
+  isBrokerPortalRole,
+  isClientRole,
+  normalizeUserRole,
+} from "@/shared/lib/user-role";
 import { cn } from "@/shared/lib/utils";
 import type { UserRole } from "@/shared/api/types";
 import { Input } from "@/shared/ui/input";
@@ -86,7 +93,7 @@ function shouldShowSearch(pathname: string): boolean {
 }
 
 function getPrimaryNavItems(role: UserRole | undefined): ShellItem[] {
-  if (role === "Admin") return ADMIN_ITEMS;
+  if (isAdminRole(role)) return ADMIN_ITEMS;
   return investorNavAsShellItems();
 }
 
@@ -111,6 +118,7 @@ export function AuthenticatedShell({
   const tCommon = useTranslations("common");
   const pathname = usePathname();
   const accessToken = serverAccessToken ?? session?.accessToken;
+  const { logout, pending: logoutPending } = useAppLogout();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -120,26 +128,24 @@ export function AuthenticatedShell({
     // );
   }, [status, accessToken]);
 
-  const sessionRole = session?.user?.role as UserRole | undefined;
-  const effectiveRole = role ?? sessionRole;
+  const sessionRole = normalizeUserRole(session?.user?.role) ?? undefined;
+  const effectiveRole = normalizeUserRole(role ?? sessionRole) ?? undefined;
   const isAdminPanelRoute =
-    effectiveRole === "Admin" && pathname.startsWith("/admin");
+    isAdminRole(effectiveRole) && pathname.startsWith("/admin");
 
   const primaryNav = getPrimaryNavItems(effectiveRole);
   const showSearch = shouldShowSearch(pathname);
   const onLanding = isLandingPage(pathname);
-  const investorChrome = effectiveRole === "Client" && !onLanding;
-  const brokerChrome =
-    (effectiveRole === "Broker" || effectiveRole === "Dealer") && !onLanding;
+  const investorChrome = isClientRole(effectiveRole) && !onLanding;
+  const brokerChrome = isBrokerPortalRole(effectiveRole) && !onLanding;
 
-  const settingsHref =
-    effectiveRole === "Admin"
-      ? "/profile/admin"
-      : effectiveRole === "Broker" || effectiveRole === "Dealer"
-        ? "/profile/broker"
-        : "/profile/client";
+  const settingsHref = isAdminRole(effectiveRole)
+    ? "/profile/admin"
+    : isBrokerPortalRole(effectiveRole)
+      ? "/profile/broker"
+      : "/profile/client";
 
-  if (effectiveRole === "Admin" && pathname.startsWith("/profile/admin")) {
+  if (isAdminRole(effectiveRole) && pathname.startsWith("/profile/admin")) {
     return <AdminPanelShell>{children}</AdminPanelShell>;
   }
 
@@ -194,7 +200,8 @@ export function AuthenticatedShell({
             </Link>
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+              disabled={logoutPending}
+              onClick={() => void logout(`/${locale}/login`)}
               className="text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] transition-colors"
             >
               <LogOut className="size-5 shrink-0" />

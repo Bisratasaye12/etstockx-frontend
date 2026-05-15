@@ -8,6 +8,7 @@ import { Lock, Shield } from "lucide-react";
 import { useAdminMe } from "@/features/admin/api/use-admin-me";
 import type { AdminMeDto } from "@/shared/api/dtos/admin-me";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
+import { normalizeUserRole } from "@/shared/lib/user-role";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 
@@ -55,7 +56,8 @@ export function AdminAccountShell() {
 
   const email = session?.user?.email ?? "";
   const name = session?.user?.name?.trim() ?? "";
-  const role = session?.user?.role ?? "";
+  const role =
+    normalizeUserRole(session?.user?.role) ?? session?.user?.role ?? "";
 
   const roleLabel = useMemo(() => {
     switch (role) {

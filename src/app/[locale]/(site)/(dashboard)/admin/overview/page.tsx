@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { AdminWiringStatusCard } from "@/features/admin/components/admin-wiring-status-card";
-import { AdminPlaceholderPanel } from "@/features/admin/components/admin-placeholder-panel";
+import { AdminOverviewDashboard } from "@/features/admin/components/admin-overview-dashboard";
 
 export default async function AdminOverviewPage() {
   const t = await getTranslations("admin");
@@ -15,11 +14,7 @@ export default async function AdminOverviewPage() {
           {t("shell.overviewPageSubtitle")}
         </p>
       </div>
-      <AdminWiringStatusCard />
-      <AdminPlaceholderPanel
-        title={t("shell.placeholderTitle")}
-        description={t("shell.placeholderDescription")}
-      />
+      <AdminOverviewDashboard />
     </div>
   );
 }

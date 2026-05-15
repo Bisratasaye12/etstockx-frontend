@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import { type ReactNode } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { LogOut, Mail, Search, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
+import { isSuperAdminRole } from "@/shared/lib/user-role";
 import { Input } from "@/shared/ui/input";
-import { adminNavPlaceholders } from "@/features/admin/config";
+import { getAdminNavItems } from "@/features/admin/config";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
@@ -29,7 +31,10 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const { data: session, status } = useSession();
+  const { logout, pending: logoutPending } = useAppLogout();
   const sessionRole = session?.user?.role as UserRole | undefined;
+  const isSuperAdmin = isSuperAdminRole(session?.user?.rawRole);
+  const navItems = getAdminNavItems(isSuperAdmin);
   const tShell = useTranslations("admin");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -74,7 +79,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 px-3">
-          {adminNavPlaceholders.map((item) => {
+          {navItems.map((item) => {
             const active = isActiveAdminNav(pathname, item.href);
             const Icon = item.icon;
             return (
@@ -107,8 +112,8 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
           </Link>
           <button
             type="button"
-            disabled={status === "loading"}
-            onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
+            disabled={status === "loading" || logoutPending}
+            onClick={() => void logout(`/${locale}/login`)}
             className="text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] transition-colors disabled:opacity-50"
           >
             <LogOut className="size-5 shrink-0" aria-hidden />

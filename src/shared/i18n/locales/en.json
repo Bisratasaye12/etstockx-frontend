@@ -363,7 +363,27 @@
     "resetPasswordMissingTokenBody": "This page needs the reset token from your email. Open the link from your message again, or request a new reset email.",
     "resetPasswordSuccessTitle": "Success",
     "resetPasswordSuccessBody": "Password reset successfully. You can now log in with your new password.",
-    "resetPasswordProceedLogin": "Proceed to Login"
+    "resetPasswordProceedLogin": "Proceed to Login",
+    "acceptInviteHeroTitle": "Activate your administrator account",
+    "acceptInviteTitle": "Set your administrator password",
+    "acceptInviteSubtitle": "Accept the invitation, create your password, and activate your admin access in one step.",
+    "acceptInvitePasswordLabel": "Create password",
+    "acceptInviteConfirmLabel": "Confirm password",
+    "acceptInviteHelper": "Use a strong password that meets the platform policy. Submitting this form accepts the invitation and activates the account.",
+    "acceptInviteSubmit": "Activate account",
+    "acceptInviteSubmitting": "Activating account…",
+    "acceptInviteSuccessTitle": "Administrator account activated",
+    "acceptInviteSuccessBody": "Your invitation has been accepted and your administrator account is now active. You can sign in with the password you just created.",
+    "acceptInviteMissingTokenTitle": "Invalid invitation link",
+    "acceptInviteMissingTokenBody": "This invitation link is incomplete or invalid. Open the invitation email again or request a fresh link from your Super Admin.",
+    "acceptInviteErrorTitle": "Could not activate account",
+    "acceptInviteExpiryHint": "Invitation links can expire or be revoked. If this link no longer works, ask the sender to issue a new invitation.",
+    "acceptInviteAsideValue1Title": "Invitation-backed activation",
+    "acceptInviteAsideValue1Body": "Your administrator access is created only after the signed invitation token is accepted.",
+    "acceptInviteAsideValue2Title": "Password-first security",
+    "acceptInviteAsideValue2Body": "Set your own password immediately so the account starts with credentials known only to you.",
+    "acceptInviteAsideValue3Title": "Ready for secure sign-in",
+    "acceptInviteAsideValue3Body": "Once activated, you can sign in to the admin portal and continue with two-factor setup if required."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1465,18 +1485,172 @@
       "navBrokers": "Broker verification",
       "navListings": "Listing moderation",
       "navAudit": "Audit logs",
+      "navManageAdmins": "Manage admins",
       "overviewPageTitle": "Overview",
-      "overviewPageSubtitle": "High-level admin workspace (placeholder).",
+      "overviewPageSubtitle": "Platform-wide users, trade activity, and trends from the last 30 days.",
       "brokerPageTitle": "Broker verification",
       "brokerPageSubtitle": "Review pending broker and dealer applications from the IAM queue.",
       "listingsPageTitle": "Listing moderation",
       "listingsPageSubtitle": "Approve, reject, hide, or request clarification on listings awaiting moderation.",
       "auditPageTitle": "Audit logs",
       "auditPageSubtitle": "Filter and review compliance and admin actions recorded by the platform.",
+      "manageAdminsPageTitle": "Manage admins",
+      "manageAdminsPageSubtitle": "Super Admin workspace for administrator accounts, invitations, resets, and deactivation.",
+      "manageAdminsPlaceholderTitle": "Admin users wiring pending",
+      "manageAdminsPlaceholderDescription": "Connect this page to /api/v1/admin/users and /api/v1/admin/users/invitations to list admins, invite new admins, revoke invitations, trigger password resets, and deactivate accounts.",
       "settingsPageTitle": "Settings",
       "settingsPageSubtitle": "Account and portal preferences (placeholder).",
       "placeholderTitle": "Placeholder",
       "placeholderDescription": "This area is intentionally empty. Add your own content and data wiring when you are ready."
+    },
+    "overview": {
+      "defaultPeriod": "Last 30 days (UTC)",
+      "loadingPeriod": "Loading reporting period…",
+      "periodRange": "{from} – {to} · {granularity} buckets",
+      "granularityLabel": "Time bucket",
+      "granularity": {
+        "day": "Daily",
+        "week": "Weekly",
+        "month": "Monthly"
+      },
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "retry": "Try again",
+      "sections": {
+        "users": "Users",
+        "trades": "Trade activity"
+      },
+      "kpis": {
+        "totalUsers": "Total users",
+        "totalUsersHint": "All IAM accounts on the platform.",
+        "totalClients": "Investors",
+        "totalClientsHint": "Users with the Client role.",
+        "activatedClients": "Activated investors",
+        "activatedClientsHint": "Clients who completed investor activation.",
+        "totalBrokers": "Brokers & dealers",
+        "totalBrokersHint": "Users with Broker or Dealer role.",
+        "totalAdmins": "Administrators",
+        "totalAdminsHint": "Users with Admin or Super Admin role.",
+        "totalBuyRequests": "Buy requests (all time)",
+        "totalBuyRequestsHint": "Platform-wide buy requests ever created.",
+        "totalSellRequests": "Sell requests (all time)",
+        "totalSellRequestsHint": "Platform-wide sell requests ever created.",
+        "openBuyRequests": "Open buy requests",
+        "openBuyRequestsHint": "Non-terminal buy requests in the pipeline.",
+        "openSellRequests": "Open sell requests",
+        "openSellRequestsHint": "Non-terminal sell requests in the pipeline."
+      },
+      "charts": {
+        "registrationsTitle": "New registrations",
+        "registrationsHint": "User sign-ups per time bucket in the selected period.",
+        "tradeRequestsTitle": "New trade requests",
+        "tradeRequestsHint": "Buy and sell requests created per bucket (green = buy, red = sell).",
+        "empty": "No data for this period."
+      },
+      "breakdown": {
+        "usersByRole": "Users by role",
+        "usersByRoleHint": "Current IAM role distribution.",
+        "requestsByType": "Requests by type",
+        "requestsByTypeHint": "All-time buy vs sell totals.",
+        "requestsByStatus": "Requests by status",
+        "requestsByStatusHint": "All-time counts per status and request type.",
+        "empty": "No breakdown data yet."
+      },
+      "table": {
+        "type": "Type",
+        "status": "Status",
+        "count": "Count"
+      },
+      "requestType": {
+        "buy": "Buy",
+        "sell": "Sell"
+      },
+      "roles": {
+        "Client": "Investor",
+        "Broker": "Broker",
+        "Dealer": "Dealer",
+        "Admin": "Admin",
+        "SuperAdmin": "Super Admin"
+      }
+    },
+    "users": {
+      "summary": {
+        "totalAdmins": "Administrator accounts",
+        "totalAdminsHint": "Current admin users returned by the platform.",
+        "activeAdmins": "Active admins",
+        "activeAdminsHint": "Accounts that can still access the admin portal.",
+        "pendingInvitations": "Pending invitations",
+        "pendingInvitationsHint": "Invites waiting for recipients to complete signup."
+      },
+      "fields": {
+        "email": "Email",
+        "fullName": "Full name",
+        "phone": "Phone",
+        "preferredLang": "Preferred language"
+      },
+      "languages": {
+        "en": "English",
+        "am": "Amharic"
+      },
+      "actions": {
+        "refresh": "Refresh",
+        "revoke": "Revoke invitation",
+        "resetPassword": "Reset password",
+        "deactivate": "Deactivate"
+      },
+      "badges": {
+        "admin": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "invitation": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "revoked": "Revoked",
+          "expired": "Expired"
+        }
+      },
+      "fallbacks": {
+        "notAvailable": "—",
+        "noName": "Unnamed admin"
+      },
+      "invite": {
+        "title": "Invite administrator",
+        "description": "Send a secure invitation email to create a new admin account.",
+        "emailPlaceholder": "name@company.com",
+        "fullNamePlaceholder": "e.g. Hana Bekele",
+        "phonePlaceholder": "Optional phone number",
+        "helper": "The invited admin receives an email to create their account. Preferred language defaults to English if not changed.",
+        "submit": "Send invitation",
+        "submitting": "Sending invitation…",
+        "success": "Admin invitation sent successfully."
+      },
+      "invitations": {
+        "title": "Admin invitations",
+        "description": "{count, plural, one {# invitation recorded} other {# invitations recorded}}",
+        "empty": "No admin invitations yet.",
+        "sentAt": "Sent",
+        "expiresAt": "Expires",
+        "revokeSuccess": "Invitation revoked."
+      },
+      "roster": {
+        "title": "Administrator roster",
+        "description": "{count, plural, one {# admin account} other {# admin accounts}}",
+        "empty": "No administrator accounts found.",
+        "memberSince": "Member since",
+        "lastSignIn": "Last sign-in",
+        "department": "Department",
+        "jobTitle": "Job title",
+        "resetting": "Sending reset…",
+        "resetSuccess": "Password reset email sent.",
+        "deactivateSuccess": "Admin deactivated."
+      },
+      "confirm": {
+        "revokeTitle": "Revoke invitation",
+        "revokeDescription": "This will invalidate the invitation for {email}. The recipient will need a new invite to create an account.",
+        "deactivateTitle": "Deactivate admin",
+        "deactivateDescription": "This will deactivate {name} and remove their access to the admin portal."
+      }
     },
     "profile": {
       "figmaTitle": "Administrator account",

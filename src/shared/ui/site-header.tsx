@@ -6,6 +6,11 @@ import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 import { MarketingNavLink } from "@/shared/ui/marketing-nav-link";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { buttonVariants } from "@/shared/ui/button";
+import {
+  isAdminRole,
+  isBrokerPortalRole,
+  isClientRole,
+} from "@/shared/lib/user-role";
 import { cn } from "@/shared/lib/utils";
 
 export async function SiteHeader() {
@@ -43,17 +48,17 @@ export async function SiteHeader() {
               </MarketingNavLink>
               <Link
                 href={
-                  session.user?.role === "Admin"
+                  isAdminRole(session.user?.role)
                     ? "/admin/overview"
                     : "/dashboard"
                 }
                 className="text-muted-foreground hover:text-foreground"
               >
-                {session.user?.role === "Admin"
+                {isAdminRole(session.user?.role)
                   ? t("adminPortal")
                   : t("dashboard")}
               </Link>
-              {session.user?.role === "Client" ? (
+              {isClientRole(session.user?.role) ? (
                 <Link
                   href="/profile/client"
                   className="text-muted-foreground hover:text-foreground"
@@ -61,8 +66,7 @@ export async function SiteHeader() {
                   {t("profile")}
                 </Link>
               ) : null}
-              {session.user?.role === "Broker" ||
-              session.user?.role === "Dealer" ? (
+              {isBrokerPortalRole(session.user?.role) ? (
                 <Link
                   href="/profile/broker"
                   className="text-muted-foreground hover:text-foreground"

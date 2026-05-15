@@ -1,16 +1,21 @@
 import type { UserRole } from "@/shared/api/types";
+import {
+  isAdminRole,
+  isBrokerPortalRole,
+  isClientRole,
+} from "@/shared/lib/user-role";
 
 /** Full-page notifications route for the signed-in role (API is the same for all roles). */
 export function getNotificationsFullPagePath(
   role: UserRole | undefined,
 ): string {
-  if (role === "Admin") {
+  if (isAdminRole(role)) {
     return "/profile/admin/notifications";
   }
-  if (role === "Broker" || role === "Dealer") {
+  if (isBrokerPortalRole(role)) {
     return "/profile/broker/notifications";
   }
-  if (role === "Client") {
+  if (isClientRole(role)) {
     return "/profile/client/notifications";
   }
   return "/dashboard";
