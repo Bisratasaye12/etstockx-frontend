@@ -19,6 +19,12 @@ import {
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/shared/i18n/routing";
+import {
+  isAdminRole,
+  isBrokerPortalRole,
+  isClientRole,
+  normalizeUserRole,
+} from "@/shared/lib/user-role";
 import { cn } from "@/shared/lib/utils";
 import type { UserRole } from "@/shared/api/types";
 import { Input } from "@/shared/ui/input";
@@ -86,7 +92,7 @@ function shouldShowSearch(pathname: string): boolean {
 }
 
 function getPrimaryNavItems(role: UserRole | undefined): ShellItem[] {
-  if (role === "Admin") return ADMIN_ITEMS;
+  if (isAdminRole(role)) return ADMIN_ITEMS;
   return investorNavAsShellItems();
 }
 
@@ -120,26 +126,24 @@ export function AuthenticatedShell({
     // );
   }, [status, accessToken]);
 
-  const sessionRole = session?.user?.role as UserRole | undefined;
-  const effectiveRole = role ?? sessionRole;
+  const sessionRole = normalizeUserRole(session?.user?.role) ?? undefined;
+  const effectiveRole = normalizeUserRole(role ?? sessionRole) ?? undefined;
   const isAdminPanelRoute =
-    effectiveRole === "Admin" && pathname.startsWith("/admin");
+    isAdminRole(effectiveRole) && pathname.startsWith("/admin");
 
   const primaryNav = getPrimaryNavItems(effectiveRole);
   const showSearch = shouldShowSearch(pathname);
   const onLanding = isLandingPage(pathname);
-  const investorChrome = effectiveRole === "Client" && !onLanding;
-  const brokerChrome =
-    (effectiveRole === "Broker" || effectiveRole === "Dealer") && !onLanding;
+  const investorChrome = isClientRole(effectiveRole) && !onLanding;
+  const brokerChrome = isBrokerPortalRole(effectiveRole) && !onLanding;
 
-  const settingsHref =
-    effectiveRole === "Admin"
-      ? "/profile/admin"
-      : effectiveRole === "Broker" || effectiveRole === "Dealer"
-        ? "/profile/broker"
-        : "/profile/client";
+  const settingsHref = isAdminRole(effectiveRole)
+    ? "/profile/admin"
+    : isBrokerPortalRole(effectiveRole)
+      ? "/profile/broker"
+      : "/profile/client";
 
-  if (effectiveRole === "Admin" && pathname.startsWith("/profile/admin")) {
+  if (isAdminRole(effectiveRole) && pathname.startsWith("/profile/admin")) {
     return <AdminPanelShell>{children}</AdminPanelShell>;
   }
 

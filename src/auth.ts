@@ -5,6 +5,7 @@ import type { User } from "next-auth";
 import { getServerApiBaseUrl } from "@/shared/config/env";
 import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
 import type { LoginResultDto } from "@/shared/api/dtos/iam";
+import { normalizeUserRole } from "@/shared/lib/user-role";
 
 class BackendCredentialsSignin extends CredentialsSignin {
   code: string;
@@ -74,12 +75,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return {
           id: data.userId,
           email: credentials.email as string,
-          role: data.role ?? "Client",
+          role: normalizeUserRole(data.role) ?? "Client",
+          rawRole: data.role ?? undefined,
           isActivated: data.isActivated,
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
         } as User & {
           role: string;
+          rawRole?: string;
           isActivated: boolean;
           accessToken: string;
           refreshToken: string;
@@ -94,11 +97,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           accessToken: string;
           refreshToken: string;
           role: string;
+          rawRole?: string;
           isActivated: boolean;
         };
         token.accessToken = u.accessToken;
         token.refreshToken = u.refreshToken;
-        token.role = u.role;
+        token.role = normalizeUserRole(u.role) ?? "Client";
+        token.rawRole = u.rawRole ?? u.role;
         token.isActivated = u.isActivated;
         token.sub = u.id;
         if (u.email) token.email = u.email;
@@ -114,7 +119,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
-        session.user.role = (token.role as string) ?? "";
+        session.user.role = normalizeUserRole(token.role as string) ?? "Client";
+        session.user.rawRole =
+          typeof token.rawRole === "string" ? token.rawRole : undefined;
         session.user.isActivated = Boolean(token.isActivated);
         session.accessToken = token.accessToken as string;
         if (token.email) session.user.email = token.email as string;

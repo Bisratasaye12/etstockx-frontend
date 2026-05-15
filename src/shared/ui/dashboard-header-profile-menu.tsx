@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
+import { normalizeUserRole } from "@/shared/lib/user-role";
 import { cn } from "@/shared/lib/utils";
 
 function initialsFromEmail(email: string) {
@@ -32,7 +33,8 @@ export function DashboardHeaderProfileMenu({
   const rootRef = useRef<HTMLDivElement>(null);
 
   const email = session?.user?.email ?? "";
-  const role = session?.user?.role ?? "";
+  const role =
+    normalizeUserRole(session?.user?.role) ?? session?.user?.role ?? "";
   const initials = useMemo(() => initialsFromEmail(email), [email]);
 
   const roleLabel = useMemo(() => {

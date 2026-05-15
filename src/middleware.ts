@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { auth } from "@/auth";
 import { routing } from "@/shared/i18n/routing";
+import {
+  isAdminRole,
+  isBrokerPortalRole,
+  isClientRole,
+  isSuperAdminRole,
+} from "@/shared/lib/user-role";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -41,7 +47,7 @@ export default auth((req) => {
     return NextResponse.redirect(url);
   }
 
-  if (/^\/(en|am)\/admin/.test(path) && req.auth?.user?.role !== "Admin") {
+  if (/^\/(en|am)\/admin/.test(path) && !isAdminRole(req.auth?.user?.role)) {
     return NextResponse.redirect(
       new URL(`/${locale}/dashboard`, req.nextUrl.origin),
     );
@@ -49,7 +55,7 @@ export default auth((req) => {
 
   if (
     /^\/(en|am)\/profile\/admin/.test(path) &&
-    req.auth?.user?.role !== "Admin"
+    !isAdminRole(req.auth?.user?.role)
   ) {
     return NextResponse.redirect(
       new URL(`/${locale}/dashboard`, req.nextUrl.origin),
@@ -57,9 +63,17 @@ export default auth((req) => {
   }
 
   if (
+    /^\/(en|am)\/admin\/users(\/|$)/.test(path) &&
+    !isSuperAdminRole(req.auth?.user?.rawRole ?? req.auth?.user?.role)
+  ) {
+    return NextResponse.redirect(
+      new URL(`/${locale}/admin/overview`, req.nextUrl.origin),
+    );
+  }
+
+  if (
     /^\/(en|am)\/profile\/broker/.test(path) &&
-    req.auth?.user?.role !== "Broker" &&
-    req.auth?.user?.role !== "Dealer"
+    !isBrokerPortalRole(req.auth?.user?.role)
   ) {
     return NextResponse.redirect(
       new URL(`/${locale}/dashboard`, req.nextUrl.origin),
@@ -68,8 +82,7 @@ export default auth((req) => {
 
   if (
     /^\/(en|am)\/dashboard\/broker/.test(path) &&
-    req.auth?.user?.role !== "Broker" &&
-    req.auth?.user?.role !== "Dealer"
+    !isBrokerPortalRole(req.auth?.user?.role)
   ) {
     return NextResponse.redirect(
       new URL(`/${locale}/dashboard`, req.nextUrl.origin),
@@ -78,7 +91,7 @@ export default auth((req) => {
 
   if (
     /^\/(en|am)\/profile\/client/.test(path) &&
-    req.auth?.user?.role !== "Client"
+    !isClientRole(req.auth?.user?.role)
   ) {
     return NextResponse.redirect(
       new URL(`/${locale}/dashboard`, req.nextUrl.origin),

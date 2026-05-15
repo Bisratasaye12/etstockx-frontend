@@ -6,6 +6,7 @@ declare module "next-auth" {
     user: {
       id: string;
       role: string;
+      rawRole?: string;
       isActivated: boolean;
     } & DefaultSession["user"];
   }
@@ -16,6 +17,7 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     refreshToken?: string;
     role?: string;
+    rawRole?: string;
     isActivated?: boolean;
     email?: string;
   }

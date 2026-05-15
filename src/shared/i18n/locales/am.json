@@ -1465,6 +1465,7 @@
       "navBrokers": "የብሮከር ማረጋገጫ",
       "navListings": "የዝርዝር ማስተካከያ",
       "navAudit": "የኦዲት መዝገቦች",
+      "navManageAdmins": "አስተዳዳሪዎችን አስተዳድር",
       "overviewPageTitle": "አጠቃላይ እይታ",
       "overviewPageSubtitle": "የአስተዳዳድ የስራ ቦታ (አሻራ)።",
       "brokerPageTitle": "የብሮከር ማረጋገጫ",
@@ -1473,10 +1474,93 @@
       "listingsPageSubtitle": "ለማስተካከያ በመጠባበቅ ላይ ያሉ ዝርዝሮችን ያጽድቁ፣ ውድቅ ያድርጉ፣ ይደብቁ ወይም ግልጽ ማብራሪያ ይጠይቁ።",
       "auditPageTitle": "የኦዲት መዝገቦች",
       "auditPageSubtitle": "የመድረኙ የተመዘገቡ የአስተዳዳድ እና የማመለከቻ እርምጃዎችን ያጣሩ እና ይገምግሙ።",
+      "manageAdminsPageTitle": "አስተዳዳሪዎችን አስተዳድር",
+      "manageAdminsPageSubtitle": "ለSuper Admin የተሰራ የአስተዳዳሪ መለያዎች፣ ጥሪዎች፣ የይለፍ ቃል ዳግም ማስጀመር እና መቦዘን የስራ ቦታ።",
+      "manageAdminsPlaceholderTitle": "የአስተዳዳሪ ተጠቃሚዎች ግንኙነት ገና አልተጠናቀቀም",
+      "manageAdminsPlaceholderDescription": "ይህን ገጽ ከ /api/v1/admin/users እና /api/v1/admin/users/invitations ጋር በማገናኘት አስተዳዳሪዎችን ዝርዝር ለማሳየት፣ አዲስ አስተዳዳሪዎችን ለመጋበዝ፣ ጥሪዎችን ለመሰረዝ፣ የይለፍ ቃል ዳግም ለማስጀመር እና መለያዎችን ለመቦዘን ያዘጋጁ።",
       "settingsPageTitle": "ቅንብሮች",
       "settingsPageSubtitle": "መለያ እና የመግቢያ ምርጫዎች (አሻራ)።",
       "placeholderTitle": "አሻራ",
       "placeholderDescription": "ይህ ቦታ ባዶ ነው። ዝግጁ ሲሆኑ የራስዎን ይዘት እና ውሂብ ይጨምሩ።"
+    },
+    "users": {
+      "summary": {
+        "totalAdmins": "የአስተዳዳሪ መለያዎች",
+        "totalAdminsHint": "በመድረኩ የተመለሱ አሁን ያሉ የአስተዳዳሪ ተጠቃሚዎች።",
+        "activeAdmins": "ንቁ አስተዳዳሪዎች",
+        "activeAdminsHint": "አሁንም ወደ አስተዳዳድ መግቢያ ሊገቡ የሚችሉ መለያዎች።",
+        "pendingInvitations": "በመጠባበቅ ላይ ያሉ ጥሪዎች",
+        "pendingInvitationsHint": "ተቀባዮች ምዝገባቸውን እስኪያጠናቅቁ ድረስ የሚጠብቁ ጥሪዎች።"
+      },
+      "fields": {
+        "email": "ኢሜይል",
+        "fullName": "ሙሉ ስም",
+        "phone": "ስልክ",
+        "preferredLang": "የሚመርጡት ቋንቋ"
+      },
+      "languages": {
+        "en": "እንግሊዝኛ",
+        "am": "አማርኛ"
+      },
+      "actions": {
+        "refresh": "እንደገና አድስ",
+        "revoke": "ጥሪውን ሰርዝ",
+        "resetPassword": "የይለፍ ቃል ዳግም አስጀምር",
+        "deactivate": "አቦዝን"
+      },
+      "badges": {
+        "admin": {
+          "active": "ንቁ",
+          "inactive": "የቦዘነ"
+        },
+        "invitation": {
+          "pending": "በመጠባበቅ ላይ",
+          "accepted": "ተቀባይነት አግኝቷል",
+          "revoked": "ተሰርዟል",
+          "expired": "ጊዜው አልፏል"
+        }
+      },
+      "fallbacks": {
+        "notAvailable": "—",
+        "noName": "ስም የሌለው አስተዳዳሪ"
+      },
+      "invite": {
+        "title": "አስተዳዳሪ ጋብዝ",
+        "description": "አዲስ የአስተዳዳሪ መለያ ለመፍጠር የደህንነት የኢሜይል ጥሪ ላክ።",
+        "emailPlaceholder": "name@company.com",
+        "fullNamePlaceholder": "ለምሳሌ ሀና በቀለ",
+        "phonePlaceholder": "አማራጭ የስልክ ቁጥር",
+        "helper": "የተጋበዘው አስተዳዳሪ መለያውን ለመፍጠር ኢሜይል ይቀበላል። ካልተቀየረ የሚመረጠው ቋንቋ እንግሊዝኛ ይሆናል።",
+        "submit": "ጥሪ ላክ",
+        "submitting": "ጥሪ በመላክ ላይ…",
+        "success": "የአስተዳዳሪ ጥሪ በተሳካ ሁኔታ ተልኳል።"
+      },
+      "invitations": {
+        "title": "የአስተዳዳሪ ጥሪዎች",
+        "description": "{count, plural, one {# ጥሪ ተመዝግቧል} other {# ጥሪዎች ተመዝግበዋል}}",
+        "empty": "እስካሁን ምንም የአስተዳዳሪ ጥሪ የለም።",
+        "sentAt": "የተላከበት ጊዜ",
+        "expiresAt": "የሚያበቃበት ጊዜ",
+        "revokeSuccess": "ጥሪው ተሰርዟል።"
+      },
+      "roster": {
+        "title": "የአስተዳዳሪዎች ዝርዝር",
+        "description": "{count, plural, one {# የአስተዳዳሪ መለያ} other {# የአስተዳዳሪ መለያዎች}}",
+        "empty": "ምንም የአስተዳዳሪ መለያ አልተገኘም።",
+        "memberSince": "አባል ከሆነበት ጊዜ ጀምሮ",
+        "lastSignIn": "የመጨረሻ መግቢያ",
+        "department": "ክፍል",
+        "jobTitle": "የሥራ ሹም",
+        "resetting": "የዳግም ማስጀመሪያ ኢሜይል በመላክ ላይ…",
+        "resetSuccess": "የይለፍ ቃል ዳግም ማስጀመሪያ ኢሜይል ተልኳል።",
+        "deactivateSuccess": "አስተዳዳሪው ተቦዝኗል።"
+      },
+      "confirm": {
+        "revokeTitle": "ጥሪውን ሰርዝ",
+        "revokeDescription": "ይህ የ {email} ጥሪን ያሰናክላል። መለያ ለመፍጠር አዲስ ጥሪ ያስፈልገዋል።",
+        "deactivateTitle": "አስተዳዳሪን አቦዝን",
+        "deactivateDescription": "ይህ {name}ን ያቦዝናል እና ከአስተዳዳድ መግቢያ መዳረሻውን ያስወግዳል።"
+      }
     },
     "profile": {
       "figmaTitle": "የአስተዳዳድ መለያ",

@@ -22,6 +22,7 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
+import { getDefaultSignedInHref } from "@/shared/lib/user-role";
 import { Button } from "@/shared/ui/button";
 import { useAppDispatch } from "@/shared/store/hooks";
 import { setAuthError } from "@/features/auth/model/auth-slice";
@@ -73,11 +74,32 @@ export function MfaChallengeScreen() {
     dispatch(setAuthError(null));
     try {
       try {
-        await browserApi.post("/v1/auth/login", {
+        const { data } = await browserApi.post("/v1/auth/login", {
           email: pending.email,
           password: pending.password,
           otpCode: otp.trim(),
         });
+        const redirectHref = getDefaultSignedInHref(data.role);
+        const res = await signIn("credentials", {
+          email: pending.email,
+          password: pending.password,
+          otpCode: otp.trim(),
+          redirect: false,
+        });
+        if (res?.error) {
+          setError(t("mfaIncorrect"));
+          dispatch(setAuthError(t("mfaIncorrect")));
+          return;
+        }
+        clearLoginMfaPending();
+        if (callbackUrl && callbackUrl.startsWith("/")) {
+          router.push(callbackUrl);
+          router.refresh();
+          return;
+        }
+        router.push(redirectHref);
+        router.refresh();
+        return;
       } catch (backendErr) {
         const raw = getApiErrorMessage(backendErr);
         const msg = raw.toLowerCase();
@@ -94,26 +116,6 @@ export function MfaChallengeScreen() {
         dispatch(setAuthError(raw));
         return;
       }
-
-      const res = await signIn("credentials", {
-        email: pending.email,
-        password: pending.password,
-        otpCode: otp.trim(),
-        redirect: false,
-      });
-      if (res?.error) {
-        setError(t("mfaIncorrect"));
-        dispatch(setAuthError(t("mfaIncorrect")));
-        return;
-      }
-      clearLoginMfaPending();
-      if (callbackUrl && callbackUrl.startsWith("/")) {
-        router.push(callbackUrl);
-        router.refresh();
-        return;
-      }
-      router.push("/dashboard");
-      router.refresh();
     } finally {
       setSubmitting(false);
     }

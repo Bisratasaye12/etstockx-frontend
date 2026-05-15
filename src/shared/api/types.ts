@@ -16,6 +16,12 @@ export type {
   BrokerApplicationDto,
   VerifyBrokerRequestDto,
 } from "./dtos/iam";
+export type {
+  AdminUserDto,
+  AdminInvitationDto,
+  InviteAdminRequestDto,
+  InviteAdminResponseDto,
+} from "./dtos/admin-users";
 
 /** @deprecated Use `LoginResultDto` — kept for existing imports. */
 export type { LoginResultDto as LoginResult } from "./dtos/iam";

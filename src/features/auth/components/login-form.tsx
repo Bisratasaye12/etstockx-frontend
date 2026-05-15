@@ -12,6 +12,7 @@ import { useAppDispatch } from "@/shared/store/hooks";
 import { browserApi } from "@/shared/api/browser-api";
 import type { LoginResultDto } from "@/shared/api/dtos/iam";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
+import { getDefaultSignedInHref } from "@/shared/lib/user-role";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -130,12 +131,7 @@ export function LoginForm() {
         router.refresh();
         return;
       }
-      if (loginRole === "Admin") {
-        router.push("/admin/overview");
-        router.refresh();
-        return;
-      }
-      router.push("/dashboard");
+      router.push(getDefaultSignedInHref(loginRole));
       router.refresh();
     } finally {
       setPending(false);

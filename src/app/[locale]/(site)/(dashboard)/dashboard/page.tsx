@@ -4,6 +4,11 @@ import { Link, redirect } from "@/shared/i18n/routing";
 import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { InvestorOverview } from "@/features/investor/components/investor-overview";
+import {
+  isAdminRole,
+  isBrokerPortalRole,
+  isClientRole,
+} from "@/shared/lib/user-role";
 
 export default async function DashboardPage({
   params,
@@ -14,15 +19,15 @@ export default async function DashboardPage({
   const session = await safeAuth();
   const t = await getTranslations("dashboard");
 
-  if (session?.user?.role === "Admin") {
+  if (isAdminRole(session?.user?.role)) {
     redirect({ href: "/admin/overview", locale });
   }
 
-  if (session?.user?.role === "Broker" || session?.user?.role === "Dealer") {
+  if (isBrokerPortalRole(session?.user?.role)) {
     redirect({ href: "/dashboard/broker", locale });
   }
 
-  if (session?.user?.role === "Client") {
+  if (isClientRole(session?.user?.role)) {
     return <InvestorOverview />;
   }
 
@@ -63,7 +68,7 @@ export default async function DashboardPage({
           <p className="text-muted-foreground mt-1 text-sm">{t("stubTrade")}</p>
         </div>
       </div>
-      {session?.user?.role === "Client" ? (
+      {isClientRole(session?.user?.role) ? (
         <Link
           href="/profile/client"
           className={cn(buttonVariants({ variant: "outline" }), "inline-flex")}
