@@ -66,6 +66,25 @@ export interface BrokerProfile {
   updatedAt: string;
 }
 
+/** GET /api/v1/profiles/admin/me */
+export interface AdminProfile {
+  userId: string;
+  preferredLang: string | null;
+  department: string | null;
+  jobTitle: string | null;
+  avatarPath: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** PUT /api/v1/profiles/admin/me */
+export interface UpdateAdminProfileRequest {
+  department?: string | null;
+  jobTitle?: string | null;
+  avatarPath?: string | null;
+  preferredLang?: string | null;
+}
+
 export interface BrokerDirectoryEntry {
   userId: string;
   /** When the API joins IAM display name into the directory payload (camelCase). */
