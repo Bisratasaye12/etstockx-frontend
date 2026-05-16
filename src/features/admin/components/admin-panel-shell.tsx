@@ -58,11 +58,11 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const { collapsed } = useSidebarCollapsed();
 
   return (
-    <div className="bg-muted/30 flex min-h-screen w-full">
+    <div className="bg-muted/30 flex min-h-screen w-full items-stretch">
       <aside className={portalSidebarAsideClass(collapsed, "hidden md:flex")}>
         <div
           className={cn(
-            "pt-3 pb-2",
+            "shrink-0 pt-3 pb-2",
             collapsed ? "flex justify-center px-2" : "px-6",
           )}
         >
@@ -97,7 +97,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
         </div>
 
         {!collapsed ? (
-          <div className="px-4 pb-4">
+          <div className="shrink-0 px-4 pb-4">
             <div className="relative">
               <Search
                 className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
@@ -114,7 +114,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
           </div>
         ) : null}
 
-        <nav className="flex flex-1 flex-col gap-1 px-3">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 px-3">
           {navItems.map((item) => {
             const active = isNavigating
               ? pendingHref === item.href
@@ -138,7 +138,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
           })}
         </nav>
 
-        <div className="border-border mt-auto border-t px-3 py-4">
+        <div className="border-border shrink-0 border-t px-3 py-4">
           <Link
             href="/profile/admin"
             title={collapsed ? tNav("settings") : undefined}

@@ -5,6 +5,7 @@ import type { User } from "next-auth";
 import { getServerApiBaseUrl } from "@/shared/config/env";
 import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
 import type { LoginResultDto } from "@/shared/api/dtos/iam";
+import { normalizeTokenPair } from "@/shared/auth/token-pair";
 import { normalizeUserRole } from "@/shared/lib/user-role";
 
 class BackendCredentialsSignin extends CredentialsSignin {
@@ -66,20 +67,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
-        if (!res.ok || !data.accessToken || !data.refreshToken) {
+        const tokens = normalizeTokenPair(data);
+        if (!res.ok || !tokens) {
           throw new BackendCredentialsSignin(
             mapBackendLoginErrorToCode(data.error),
           );
         }
 
+        const userId =
+          typeof data.userId === "string"
+            ? data.userId
+            : String((data as { userId?: unknown }).userId ?? "");
+
         return {
-          id: data.userId,
+          id: userId,
           email: credentials.email as string,
           role: normalizeUserRole(data.role) ?? "Client",
           rawRole: data.role ?? undefined,
-          isActivated: data.isActivated,
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
+          isActivated: Boolean(data.isActivated),
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
         } as User & {
           role: string;
           rawRole?: string;
@@ -108,11 +115,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sub = u.id;
         if (u.email) token.email = u.email;
       }
-      if (trigger === "update" && session) {
-        if (typeof session.accessToken === "string")
-          token.accessToken = session.accessToken;
-        if (typeof session.refreshToken === "string")
-          token.refreshToken = session.refreshToken;
+      if (trigger === "update" && session && typeof session === "object") {
+        const patch = session as Record<string, unknown>;
+        const tokens = normalizeTokenPair(patch);
+        if (tokens) {
+          token.accessToken = tokens.accessToken;
+          token.refreshToken = tokens.refreshToken;
+        } else {
+          if (typeof patch.accessToken === "string") {
+            token.accessToken = patch.accessToken;
+          }
+          if (typeof patch.refreshToken === "string") {
+            token.refreshToken = patch.refreshToken;
+          }
+        }
       }
       return token;
     },

@@ -52,9 +52,9 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
     : pathname.startsWith("/profile/client");
 
   return (
-    <div className="bg-muted/30 flex min-h-screen w-full">
+    <div className="bg-muted/30 flex min-h-screen w-full items-stretch">
       <aside className={portalSidebarAsideClass(collapsed, "hidden md:flex")}>
-        <div className={cn("pt-3 pb-2", collapsed ? "px-2" : "px-6")}>
+        <div className={cn("shrink-0 pt-3 pb-2", collapsed ? "px-2" : "px-6")}>
           <Link
             href="/"
             className={cn(
@@ -82,7 +82,7 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
             </p>
           ) : null}
         </div>
-        <div className={cn("pb-5", collapsed ? "px-2" : "px-4")}>
+        <div className={cn("shrink-0 pb-5", collapsed ? "px-2" : "px-4")}>
           <Link
             href="/requests/new"
             prefetch
@@ -106,7 +106,7 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
           onNavClick={beginNavigation}
           collapsed={collapsed}
         />
-        <div className="border-border mt-auto border-t px-3 py-4">
+        <div className="border-border shrink-0 border-t px-3 py-4">
           <Link
             href="/profile/client"
             prefetch

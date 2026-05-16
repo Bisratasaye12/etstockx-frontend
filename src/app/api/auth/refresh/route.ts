@@ -2,32 +2,46 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getServerApiBaseUrl } from "@/shared/config/env";
 import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
-import type { TokenRefreshResultDto } from "@/shared/api/dtos/iam";
+import {
+  applySessionTokenCookie,
+  resolveSecureSessionCookie,
+} from "@/shared/auth/session-cookie";
+import { refreshTokenPairWithBackend } from "@/shared/auth/token-pair";
 
 export async function POST(req: Request) {
-  const token = await getToken({ req, secret: resolveAuthSecret() });
-  const refreshToken = token?.refreshToken as string | undefined;
+  const secret = resolveAuthSecret();
+  const secure = resolveSecureSessionCookie(req);
+
+  const token = await getToken({
+    req,
+    secret,
+    secureCookie: secure,
+  });
+
+  const refreshToken =
+    typeof token?.refreshToken === "string" ? token.refreshToken : undefined;
+
   if (!refreshToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const apiUrl = getServerApiBaseUrl();
-  const res = await fetch(`${apiUrl}/api/v1/auth/refresh-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
+  const refreshed = await refreshTokenPairWithBackend(apiUrl, refreshToken);
 
-  const data = (await res.json()) as TokenRefreshResultDto & { error?: string };
-  if (!res.ok || !data.accessToken || !data.refreshToken) {
+  if (!refreshed.ok) {
     return NextResponse.json(
-      { error: data.error ?? "Refresh failed" },
+      { error: refreshed.error ?? "Refresh failed" },
       { status: 401 },
     );
   }
 
-  return NextResponse.json({
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
+  const response = NextResponse.json(refreshed.tokens);
+
+  await applySessionTokenCookie(response, req, {
+    ...token,
+    accessToken: refreshed.tokens.accessToken,
+    refreshToken: refreshed.tokens.refreshToken,
   });
+
+  return response;
 }

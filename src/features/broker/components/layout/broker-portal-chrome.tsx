@@ -117,9 +117,9 @@ export function BrokerPortalChrome({ children }: Props) {
     : pathname.startsWith("/profile/broker");
 
   return (
-    <div className="bg-muted/20 flex min-h-screen w-full">
+    <div className="bg-muted/20 flex min-h-screen w-full items-stretch">
       <aside className={portalSidebarAsideClass(collapsed)}>
-        <div className={cn("pt-5 pb-3", collapsed ? "px-2" : "px-5")}>
+        <div className={cn("shrink-0 pt-5 pb-3", collapsed ? "px-2" : "px-5")}>
           <Link
             href="/"
             className={cn(
@@ -148,7 +148,7 @@ export function BrokerPortalChrome({ children }: Props) {
           ) : null}
         </div>
 
-        <div className={cn("pb-4", collapsed ? "px-2" : "px-4")}>
+        <div className={cn("shrink-0 pb-4", collapsed ? "px-2" : "px-4")}>
           <Link
             href="/dashboard/broker/listings/new"
             prefetch
@@ -168,7 +168,7 @@ export function BrokerPortalChrome({ children }: Props) {
           </Link>
         </div>
 
-        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 px-3 pb-4">
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 px-3">
           {BROKER_PORTAL_NAV.map((item) => {
             const Icon = item.icon;
             const active = isItemActive(item.href);
@@ -217,47 +217,47 @@ export function BrokerPortalChrome({ children }: Props) {
               </Link>
             );
           })}
-
-          <div className="mt-auto flex flex-col gap-0.5 pt-2">
-            <Link
-              href="/profile/broker"
-              prefetch
-              title={collapsed ? t("settings") : undefined}
-              onClick={() => beginNavigation("/profile/broker")}
-              className={cn(
-                BROKER_PORTAL_SIDEBAR_ROW_CLASS,
-                collapsed && "justify-center gap-0 px-2",
-                settingsActive && BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
-              )}
-            >
-              <Settings className="size-[18px] shrink-0" aria-hidden />
-              <span className={portalSidebarNavLabelClass(collapsed)}>
-                {t("settings")}
-              </span>
-            </Link>
-            <button
-              type="button"
-              disabled={logoutPending}
-              title={collapsed ? tNav("signOut") : undefined}
-              onClick={() => void logout(`/${locale}/login`)}
-              className={cn(
-                BROKER_PORTAL_SIDEBAR_ROW_CLASS,
-                collapsed && "justify-center gap-0 px-2",
-                "cursor-pointer",
-              )}
-            >
-              <LogOut className="size-[18px] shrink-0" aria-hidden />
-              <span
-                className={cn(
-                  portalSidebarNavLabelClass(collapsed),
-                  !collapsed && "flex-1 text-left",
-                )}
-              >
-                {tNav("signOut")}
-              </span>
-            </button>
-          </div>
         </nav>
+
+        <div className="border-border shrink-0 border-t px-3 py-4">
+          <Link
+            href="/profile/broker"
+            prefetch
+            title={collapsed ? t("settings") : undefined}
+            onClick={() => beginNavigation("/profile/broker")}
+            className={cn(
+              BROKER_PORTAL_SIDEBAR_ROW_CLASS,
+              collapsed && "justify-center gap-0 px-2",
+              settingsActive && BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
+            )}
+          >
+            <Settings className="size-[18px] shrink-0" aria-hidden />
+            <span className={portalSidebarNavLabelClass(collapsed)}>
+              {t("settings")}
+            </span>
+          </Link>
+          <button
+            type="button"
+            disabled={logoutPending}
+            title={collapsed ? tNav("signOut") : undefined}
+            onClick={() => void logout(`/${locale}/login`)}
+            className={cn(
+              BROKER_PORTAL_SIDEBAR_ROW_CLASS,
+              collapsed && "justify-center gap-0 px-2",
+              "cursor-pointer",
+            )}
+          >
+            <LogOut className="size-[18px] shrink-0" aria-hidden />
+            <span
+              className={cn(
+                portalSidebarNavLabelClass(collapsed),
+                !collapsed && "flex-1 text-left",
+              )}
+            >
+              {tNav("signOut")}
+            </span>
+          </button>
+        </div>
       </aside>
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">

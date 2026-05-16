@@ -70,7 +70,7 @@ export function InvestorSidebarNav({
       : isInvestorPortalNavActive(pathname, href);
 
   return (
-    <nav className="flex flex-1 flex-col gap-1 px-3">
+    <nav className="flex min-h-0 flex-1 flex-col gap-1 px-3">
       {items.map((item) => {
         const active = resolveActive(item.href);
         const Icon = item.icon;

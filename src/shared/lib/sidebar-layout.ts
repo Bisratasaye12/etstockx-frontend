@@ -5,7 +5,7 @@ export const PORTAL_SIDEBAR_TRANSITION =
 
 export function portalSidebarAsideClass(collapsed: boolean, extra?: string) {
   return cn(
-    "border-border bg-card flex shrink-0 flex-col border-r overflow-hidden",
+    "border-border bg-card flex min-h-screen shrink-0 flex-col self-stretch overflow-hidden border-r",
     PORTAL_SIDEBAR_TRANSITION,
     collapsed ? "w-[4.5rem]" : "w-64",
     extra,
