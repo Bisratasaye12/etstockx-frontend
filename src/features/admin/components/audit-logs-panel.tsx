@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 function toIsoStartOfDay(dateStr: string): string | undefined {
   if (!dateStr.trim()) return undefined;
@@ -237,9 +238,11 @@ export function AuditLogsPanel() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p className="text-muted-foreground text-sm">
-              {t("audit.loading")}
-            </p>
+            <div className="space-y-2" aria-busy="true">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
           ) : sorted.length === 0 ? (
             <div className="text-muted-foreground space-y-2 py-8 text-center text-sm">
               <p>{t("audit.noResults")}</p>

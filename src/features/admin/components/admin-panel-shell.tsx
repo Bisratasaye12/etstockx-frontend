@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { LogOut, Mail, Search, Settings } from "lucide-react";
+import { LogOut, Search, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
@@ -11,10 +11,18 @@ import { cn } from "@/shared/lib/utils";
 import { isSuperAdminRole } from "@/shared/lib/user-role";
 import { Input } from "@/shared/ui/input";
 import { getAdminNavItems } from "@/features/admin/config";
+import { AdminNavigatingSkeleton } from "@/features/admin/components/admin-skeletons";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
+import { useSidebarCollapsed } from "@/shared/hooks/use-sidebar-collapsed";
+import {
+  portalSidebarAsideClass,
+  portalSidebarNavLabelClass,
+  portalSidebarNavRowClass,
+} from "@/shared/lib/sidebar-layout";
 import { DashboardHeaderProfileMenu } from "@/shared/ui/dashboard-header-profile-menu";
+import { SidebarCollapseToggle } from "@/shared/ui/sidebar-collapse-toggle";
 
 function isActiveAdminNav(pathname: string, href: string): boolean {
   if (href === "/admin/overview") {
@@ -29,6 +37,15 @@ type AdminPanelShellProps = {
 
 export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const pathname = usePathname();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
+
+  const isNavigating =
+    pendingHref !== null && !isActiveAdminNav(pathname, pendingHref);
+
   const locale = useLocale();
   const { data: session, status } = useSession();
   const { logout, pending: logoutPending } = useAppLogout();
@@ -38,86 +55,117 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const tShell = useTranslations("admin");
   const tNav = useTranslations("nav");
   const tCommon = useTranslations("common");
+  const { collapsed } = useSidebarCollapsed();
 
   return (
-    <div className="bg-muted/30 flex min-h-screen w-full">
-      <aside className="border-border bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
-        <div className="px-6 pt-3 pb-2">
+    <div className="bg-muted/30 flex min-h-screen w-full items-stretch">
+      <aside className={portalSidebarAsideClass(collapsed, "hidden md:flex")}>
+        <div
+          className={cn(
+            "shrink-0 pt-3 pb-2",
+            collapsed ? "flex justify-center px-2" : "px-6",
+          )}
+        >
           <Link
             href="/admin/overview"
-            className="relative block h-9 w-[148px] shrink-0"
+            prefetch
+            onClick={() => setPendingHref("/admin/overview")}
+            className={cn(
+              "relative block h-9 shrink-0",
+              collapsed ? "w-9" : "w-[148px]",
+            )}
+            title={collapsed ? tCommon("appName") : undefined}
           >
             <Image
               src="/EtStockX.svg"
               alt={tCommon("appName")}
               fill
-              className="object-contain object-left"
-              sizes="148px"
+              className={cn(
+                "object-contain",
+                collapsed ? "object-center" : "object-left",
+              )}
+              sizes={collapsed ? "36px" : "148px"}
               unoptimized
               priority
             />
           </Link>
-          <p className="text-muted-foreground mt-1 ml-1 text-sm font-medium">
-            {tShell("shell.brandSubtitle")}
-          </p>
+          {!collapsed ? (
+            <p className="text-muted-foreground mt-1 ml-1 text-sm font-medium">
+              {tShell("shell.brandSubtitle")}
+            </p>
+          ) : null}
         </div>
 
-        <div className="px-4 pb-4">
-          <div className="relative">
-            <Search
-              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-              aria-hidden
-            />
-            <Input
-              readOnly
-              tabIndex={-1}
-              placeholder={tShell("shell.sidebarSearchPlaceholder")}
-              className="border-border bg-background text-muted-foreground h-10 cursor-default rounded-lg pl-9 text-sm shadow-none"
-              aria-label={tShell("shell.sidebarSearchPlaceholder")}
-            />
+        {!collapsed ? (
+          <div className="shrink-0 px-4 pb-4">
+            <div className="relative">
+              <Search
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                aria-hidden
+              />
+              <Input
+                readOnly
+                tabIndex={-1}
+                placeholder={tShell("shell.sidebarSearchPlaceholder")}
+                className="border-border bg-background text-muted-foreground h-10 cursor-default rounded-lg pl-9 text-sm shadow-none"
+                aria-label={tShell("shell.sidebarSearchPlaceholder")}
+              />
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        <nav className="flex flex-1 flex-col gap-1 px-3">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 px-3">
           {navItems.map((item) => {
-            const active = isActiveAdminNav(pathname, item.href);
+            const active = isNavigating
+              ? pendingHref === item.href
+              : isActiveAdminNav(pathname, item.href);
             const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
-                  active && "bg-primary/15 text-primary font-semibold",
-                )}
+                prefetch
+                onClick={() => setPendingHref(item.href)}
+                title={collapsed ? tShell(`shell.${item.labelKey}`) : undefined}
+                className={portalSidebarNavRowClass(collapsed, active)}
               >
                 <Icon className="size-5 shrink-0" aria-hidden />
-                <span>{tShell(`shell.${item.labelKey}`)}</span>
+                <span className={portalSidebarNavLabelClass(collapsed)}>
+                  {tShell(`shell.${item.labelKey}`)}
+                </span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-border mt-auto border-t px-3 py-4">
+        <div className="border-border shrink-0 border-t px-3 py-4">
           <Link
             href="/profile/admin"
-            className={cn(
-              "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
-              pathname.startsWith("/profile/admin") &&
-                "bg-primary/15 text-primary font-semibold",
+            title={collapsed ? tNav("settings") : undefined}
+            className={portalSidebarNavRowClass(
+              collapsed,
+              pathname.startsWith("/profile/admin"),
             )}
           >
             <Settings className="size-5 shrink-0" aria-hidden />
-            <span>{tNav("settings")}</span>
+            <span className={portalSidebarNavLabelClass(collapsed)}>
+              {tNav("settings")}
+            </span>
           </Link>
           <button
             type="button"
             disabled={status === "loading" || logoutPending}
+            title={collapsed ? tNav("signOut") : undefined}
             onClick={() => void logout(`/${locale}/login`)}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] transition-colors disabled:opacity-50"
+            className={cn(
+              portalSidebarNavRowClass(collapsed),
+              "w-full cursor-pointer disabled:opacity-50",
+            )}
           >
             <LogOut className="size-5 shrink-0" aria-hidden />
-            <span>{tNav("signOut")}</span>
+            <span className={portalSidebarNavLabelClass(collapsed)}>
+              {tNav("signOut")}
+            </span>
           </button>
         </div>
       </aside>
@@ -125,6 +173,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <header className="border-border bg-background/95 sticky top-0 z-40 border-b backdrop-blur-md">
           <div className="flex h-16 items-center gap-4 px-6 md:px-8">
+            <SidebarCollapseToggle className="hidden md:inline-flex" />
             <div className="flex min-w-0 flex-1 justify-center">
               <div className="relative w-full max-w-2xl">
                 <Search
@@ -145,13 +194,6 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}
                 enabled={status === "authenticated"}
               />
-              <Link
-                href="/messages"
-                className="text-muted-foreground hover:text-foreground rounded-full p-2.5"
-                aria-label={tNav("messages")}
-              >
-                <Mail className="size-5" aria-hidden />
-              </Link>
               <div className="bg-border mx-1 hidden h-8 w-px md:block" />
               <DashboardHeaderProfileMenu profileHref="/profile/admin" />
             </div>
@@ -159,7 +201,11 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
         </header>
 
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-5 py-8 md:px-10">
-          {children}
+          {isNavigating && pendingHref ? (
+            <AdminNavigatingSkeleton href={pendingHref} />
+          ) : (
+            <div key={pathname}>{children}</div>
+          )}
         </main>
       </div>
     </div>

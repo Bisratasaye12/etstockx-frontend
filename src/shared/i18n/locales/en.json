@@ -7,7 +7,9 @@
     "cancel": "Cancel",
     "submit": "Submit",
     "back": "Back",
-    "optional": "Optional"
+    "optional": "Optional",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "nav": {
     "home": "Home",
@@ -640,9 +642,8 @@
       "toggleOpen": "OPEN",
       "toggleClosed": "CLOSED",
       "professionalDetails": "Professional Details",
-      "logoUploadCta": "Upload New Logo",
-      "logoHint": "SVG, PNG, JPG or GIF (max. 800×800px). Paste a public HTTPS URL for your logo image.",
-      "logoUrlLabel": "Logo image URL",
+      "logoUploadCta": "Upload profile photo",
+      "logoHint": "JPG, PNG, or WEBP up to 5 MB.",
       "firmNameLabel": "Institution / Firm Name",
       "licenseLabel": "License Number",
       "professionalBio": "Professional Bio",
@@ -1430,6 +1431,15 @@
     }
   },
   "profile": {
+    "avatar": {
+      "uploadCta": "Upload photo",
+      "uploading": "Uploading…",
+      "changePhoto": "Change profile photo",
+      "hint": "JPG, PNG, or WEBP up to 5 MB. Your photo is stored securely and shown on your profile.",
+      "invalidType": "Use a JPG, PNG, or WEBP image.",
+      "tooLarge": "Image must be 5 MB or smaller.",
+      "uploadFailed": "Could not upload your photo. Please try again."
+    },
     "clientTitle": "Investor profile",
     "brokerTitle": "Broker profile",
     "brokerPendingTitle": "Pending verification",
@@ -1669,22 +1679,26 @@
         "linkPasswordBody": "Update your credentials via the authenticated change-password endpoint.",
         "linkMfaTitle": "Two-factor authentication",
         "linkMfaBody": "Add TOTP to protect admin sign-in and sensitive actions.",
-        "meSectionTitle": "Directory profile",
-        "meSectionHint": "Read-only details from GET /api/v1/admin/me. They appear automatically when the API exposes this route.",
-        "meLoading": "Loading directory profile…",
-        "meLoadError": "Could not load directory profile.",
-        "meRetry": "Try again",
-        "meEmpty": "No directory fields returned yet. When the backend enables GET /api/v1/admin/me, additional read-only attributes will show here.",
-        "meField": {
+        "profileSectionTitle": "Profile details",
+        "profileSectionHint": "Your administrator profile from the platform. Upload a photo, then update department, job title, and language.",
+        "profileLoading": "Loading profile…",
+        "profileLoadError": "Could not load your profile.",
+        "profileRetry": "Try again",
+        "saveSuccess": "Profile saved successfully.",
+        "saveProfile": "Save profile",
+        "saving": "Saving…",
+        "discardChanges": "Discard changes",
+        "avatarUploadCta": "Upload photo",
+        "langEnglish": "English",
+        "langAmharic": "Amharic",
+        "field": {
           "userId": "User ID",
-          "email": "Email",
-          "fullName": "Full name",
-          "phone": "Phone",
           "preferredLang": "Preferred language",
           "department": "Department",
           "jobTitle": "Job title",
-          "createdAt": "Account created",
-          "lastSignInAt": "Last sign-in"
+          "avatarPath": "Avatar URL",
+          "createdAt": "Profile created",
+          "updatedAt": "Last updated"
         }
       }
     },
@@ -1770,6 +1784,35 @@
   "errors": {
     "generic": "Something went wrong.",
     "unauthorized": "You need to sign in.",
-    "forbidden": "You do not have access to this page."
+    "forbidden": "You do not have access to this page.",
+    "actions": {
+      "goHome": "Go to home",
+      "goBack": "Go back",
+      "goToDashboard": "Go to dashboard",
+      "signIn": "Sign in",
+      "tryAgain": "Try again"
+    },
+    "screens": {
+      "notFound": {
+        "title": "Page not found",
+        "description": "The page you are looking for does not exist, was removed, or the link may be incorrect."
+      },
+      "unauthorized": {
+        "title": "Sign in required",
+        "description": "Your session has expired or you need to sign in before you can view this page."
+      },
+      "forbidden": {
+        "title": "Access denied",
+        "description": "You are signed in, but your account does not have permission to open this page."
+      },
+      "server": {
+        "title": "Something went wrong",
+        "description": "We hit an unexpected problem on our side. Please try again in a moment."
+      },
+      "generic": {
+        "title": "Unexpected error",
+        "description": "Something went wrong while loading this page. Please try again or return home."
+      }
+    }
   }
 }

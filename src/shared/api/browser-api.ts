@@ -1,5 +1,11 @@
-import axios, { type AxiosError } from "axios";
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { getPublicApiBaseUrl } from "@/shared/config/env";
+import type { TokenPair } from "@/shared/auth/token-pair";
+import {
+  handleRefreshSessionExpired,
+  refreshSessionTokens,
+  resetRefreshSessionState,
+} from "@/shared/auth/refresh-session";
 
 export const browserApi = axios.create({
   baseURL: getPublicApiBaseUrl(),
@@ -7,41 +13,35 @@ export const browserApi = axios.create({
   withCredentials: true,
 });
 
-let refreshPromise: Promise<{
-  accessToken: string;
-  refreshToken: string;
-} | null> | null = null;
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
-async function refreshTokens(): Promise<{
-  accessToken: string;
-  refreshToken: string;
-} | null> {
-  if (!refreshPromise) {
-    refreshPromise = fetch("/api/auth/refresh", { method: "POST" })
-      .then(async (res) => {
-        if (!res.ok) return null;
-        return (await res.json()) as {
-          accessToken: string;
-          refreshToken: string;
-        };
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
-  return refreshPromise;
+function requestHadAuth(
+  config: InternalAxiosRequestConfig,
+  getAccessToken: () => string | undefined,
+): boolean {
+  const header = config.headers?.Authorization;
+  if (typeof header === "string" && header.length > 0) return true;
+  return Boolean(getAccessToken());
+}
+
+function isAuthEndpoint(url: string | undefined): boolean {
+  if (!url) return false;
+  return (
+    url.includes("/auth/login") ||
+    url.includes("/auth/refresh-token") ||
+    url.includes("/auth/register")
+  );
 }
 
 export function attachBrowserApiAuth(
   getAccessToken: () => string | undefined,
-  onRefreshed: (tokens: {
-    accessToken: string;
-    refreshToken: string;
-  }) => Promise<unknown>,
+  onRefreshed: (tokens: TokenPair) => Promise<unknown>,
+  onRefreshFailed: () => Promise<void>,
 ) {
+  resetRefreshSessionState();
+
   const requestId = browserApi.interceptors.request.use((config) => {
     if (config.data instanceof FormData) {
-      // Let the browser set multipart boundary automatically.
       delete config.headers["Content-Type"];
     }
 
@@ -55,20 +55,33 @@ export function attachBrowserApiAuth(
   const responseId = browserApi.interceptors.response.use(
     (r) => r,
     async (error: AxiosError) => {
-      const original = error.config;
-      if (!original || (original as { _retry?: boolean })._retry) {
+      const original = error.config as RetriableConfig | undefined;
+      if (!original || original._retry) {
         return Promise.reject(error);
       }
       if (error.response?.status !== 401) {
         return Promise.reject(error);
       }
-      (original as { _retry?: boolean })._retry = true;
-      const tokens = await refreshTokens();
-      if (!tokens) {
+      if (isAuthEndpoint(original.url)) {
         return Promise.reject(error);
       }
-      await onRefreshed(tokens);
-      original.headers.Authorization = `Bearer ${tokens.accessToken}`;
+      if (!requestHadAuth(original, getAccessToken)) {
+        return Promise.reject(error);
+      }
+
+      original._retry = true;
+
+      const result = await refreshSessionTokens();
+
+      if (!result.ok) {
+        if (result.unauthorized) {
+          await handleRefreshSessionExpired(onRefreshFailed);
+        }
+        return Promise.reject(error);
+      }
+
+      await onRefreshed(result.tokens);
+      original.headers.Authorization = `Bearer ${result.tokens.accessToken}`;
       return browserApi(original);
     },
   );

@@ -24,6 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { AdminSplitPanelSkeleton } from "@/features/admin/components/admin-skeletons";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 const QUEUE_PAGE_SIZE = 50;
 
@@ -141,6 +143,10 @@ export function ListingModerationPanel() {
     );
   }
 
+  if (isFetching && items.length === 0) {
+    return <AdminSplitPanelSkeleton />;
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
       <Card className="min-h-[280px]">
@@ -156,9 +162,11 @@ export function ListingModerationPanel() {
           <div className="max-h-[520px] space-y-2 overflow-y-auto pr-1">
             {items.length === 0 ? (
               isFetching ? (
-                <p className="text-muted-foreground text-sm">
-                  {t("moderation.loadingQueue")}
-                </p>
+                <div className="space-y-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                  ))}
+                </div>
               ) : (
                 <p className="text-muted-foreground text-sm">
                   {t("moderation.emptyQueue")}

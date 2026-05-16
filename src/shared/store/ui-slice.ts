@@ -1,25 +1,26 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface UiState {
-  sidebarOpen: boolean;
+  /** When true, portal sidebar shows icons only. */
+  sidebarCollapsed: boolean;
 }
 
 const initialState: UiState = {
-  sidebarOpen: true,
+  sidebarCollapsed: false,
 };
 
 const uiSlice = createSlice({
   name: "ui",
   initialState,
   reducers: {
-    setSidebarOpen(state, action: PayloadAction<boolean>) {
-      state.sidebarOpen = action.payload;
+    setSidebarCollapsed(state, action: PayloadAction<boolean>) {
+      state.sidebarCollapsed = action.payload;
     },
-    toggleSidebar(state) {
-      state.sidebarOpen = !state.sidebarOpen;
+    toggleSidebarCollapsed(state) {
+      state.sidebarCollapsed = !state.sidebarCollapsed;
     },
   },
 });
 
-export const { setSidebarOpen, toggleSidebar } = uiSlice.actions;
+export const { setSidebarCollapsed, toggleSidebarCollapsed } = uiSlice.actions;
 export const uiReducer = uiSlice.reducer;

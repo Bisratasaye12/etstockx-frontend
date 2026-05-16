@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Provider as ReduxProvider } from "react-redux";
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession } from "next-auth/react";
+import { useLocale } from "next-intl";
 import {
   QueryClient,
   QueryClientProvider,
@@ -27,13 +28,32 @@ const queryClient = new QueryClient({
 
 const reduxStore = makeStore();
 
+function loginPathForLocale(locale: string): string {
+  return `/${locale}/login`;
+}
+
 function ApiAuthBridge({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
   const { data: session, update } = useSession();
   const tokenRef = useRef(session?.accessToken);
 
   useEffect(() => {
     tokenRef.current = session?.accessToken;
   }, [session?.accessToken]);
+
+  const onRefreshFailed = useCallback(async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("[auth] logout after refresh failure failed", error);
+    }
+
+    await signOut({ redirect: false });
+    window.location.assign(loginPathForLocale(locale));
+  }, [locale]);
 
   useEffect(() => {
     const detach = attachBrowserApiAuth(
@@ -45,9 +65,10 @@ function ApiAuthBridge({ children }: { children: React.ReactNode }) {
           refreshToken: tokens.refreshToken,
         });
       },
+      onRefreshFailed,
     );
     return detach;
-  }, [update]);
+  }, [update, onRefreshFailed]);
 
   return <>{children}</>;
 }

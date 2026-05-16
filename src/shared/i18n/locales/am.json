@@ -7,7 +7,9 @@
     "cancel": "ሰርዝ",
     "submit": "ላክ",
     "back": "ተመለስ",
-    "optional": "አማራጭ"
+    "optional": "አማራጭ",
+    "collapseSidebar": "ጎን አሞሌ አጥፋ",
+    "expandSidebar": "ጎን አሞሌ አስፋ"
   },
   "nav": {
     "home": "መነሻ",
@@ -640,9 +642,8 @@
       "toggleOpen": "ክፍት",
       "toggleClosed": "ዝግ",
       "professionalDetails": "ሙያዊ ዝርዝሮች",
-      "logoUploadCta": "አዲስ አርማ ይጭኑ",
-      "logoHint": "SVG፣ PNG፣ JPG ወይም GIF (ከፍተኛ 800×800 ፒክስል)። ለአርማዎ የHTTPS አድራሻ ይለጥፉ።",
-      "logoUrlLabel": "የአርማ ምስል URL",
+      "logoUploadCta": "የመገለጫ ፎቶ ይጭኑ",
+      "logoHint": "እስከ 5 ሜባባይት ድረስ JPG፣ PNG ወይም WEBP።",
       "firmNameLabel": "ተቋም / የድርጅት ስም",
       "licenseLabel": "የፍቃድ ቁጥር",
       "professionalBio": "ሙያዊ ራስ መግለጫ",
@@ -1430,6 +1431,15 @@
     }
   },
   "profile": {
+    "avatar": {
+      "uploadCta": "ፎቶ ይጭኑ",
+      "uploading": "በመጫን ላይ…",
+      "changePhoto": "የመገለጫ ፎቶ ቀይር",
+      "hint": "እስከ 5 ሜባባይት ድረስ JPG፣ PNG ወይም WEBP። ፎቶዎ በደህንነት ይከማቻል እና በመገለጫዎ ላይ ይታያል።",
+      "invalidType": "JPG፣ PNG ወይም WEBP ምስል ይጠቀሙ።",
+      "tooLarge": "ምስሉ 5 ሜባባይት ወይም ከዚያ በታች መሆን አለበት።",
+      "uploadFailed": "ፎቶ ማስገባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+    },
     "clientTitle": "የኢንቨስተር መገለጫ",
     "brokerTitle": "የብሮከር መገለጫ",
     "brokerPendingTitle": "በማረጋገጫ ሂደት ላይ",
@@ -1669,22 +1679,26 @@
         "linkPasswordBody": "የተረጋገጠውን የይለፍ ቃል ለውጥ ነጥብ በመጠቀም ያዘምኑ።",
         "linkMfaTitle": "ሁለት-ደረጃ ማረጋገጫ",
         "linkMfaBody": "የአስተዳዳድ መግቢያን እና ሚስጥራዊ እርምጃዎችን ለመጠበቅ TOTP ያክሉ።",
-        "meSectionTitle": "የማውጫ መገለጫ",
-        "meSectionHint": "ከ GET /api/v1/admin/me የሚመጡ የማንበብ ብቻ ዝርዝሮች። ነጥቡ በኤፒአይ ሲነቃ በራስ-ሰር ይታያሉ።",
-        "meLoading": "የማውጫ መገለጫ በመጫን ላይ…",
-        "meLoadError": "የማውጫ መገለጫ ሊጫን አልቻለም።",
-        "meRetry": "እንደገና ሞክር",
-        "meEmpty": "እስካሁን ምንም የማውጫ መስክ አልተመለሰም። ከኋላ ያለው GET /api/v1/admin/me ሲነቃ ተጨማሪ የማንበብ ብቻ ባህሪያት እዚህ ይታያሉ።",
-        "meField": {
+        "profileSectionTitle": "የመገለጫ ዝርዝሮች",
+        "profileSectionHint": "ከመድረኩ የአስተዳዳድ መገለጫዎ። ፎቶ ይጭኑ፣ ከዚያም ክፍል፣ የሥራ ሹም እና ቋንቋ ያዘምኑ።",
+        "profileLoading": "መገለጫ በመጫን ላይ…",
+        "profileLoadError": "መገለጫዎን ማስነበብ አልተቻለም።",
+        "profileRetry": "እንደገና ሞክር",
+        "saveSuccess": "መገለጫ በተሳካ ሁኔታ ተቀምጧል።",
+        "saveProfile": "መገለጫ አስቀምጥ",
+        "saving": "በማስቀመጥ ላይ…",
+        "discardChanges": "ለውጦችን አትቀበል",
+        "avatarUploadCta": "ፎቶ ይጭኑ",
+        "langEnglish": "እንግሊዝኛ",
+        "langAmharic": "አማርኛ",
+        "field": {
           "userId": "የተጠቃሚ መለያ",
-          "email": "ኢሜይል",
-          "fullName": "ሙሉ ስም",
-          "phone": "ስልክ",
           "preferredLang": "የሚመርጡት ቋንቋ",
           "department": "ክፍል",
           "jobTitle": "የሥራ ሹም",
-          "createdAt": "መለያ የተፈጠረበት ጊዜ",
-          "lastSignInAt": "የመጨረሻ መግቢያ"
+          "avatarPath": "የአቫታር URL",
+          "createdAt": "መገለጫ የተፈጠረበት",
+          "updatedAt": "የመጨረሻ ዝመና"
         }
       }
     },
@@ -1770,6 +1784,35 @@
   "errors": {
     "generic": "ችግር ተፈጥሯል።",
     "unauthorized": "መግባት ያስፈልግዎታል።",
-    "forbidden": "ወደዚህ ገጽ መዳረሻ የለዎትም።"
+    "forbidden": "ወደዚህ ገጽ መዳረሻ የለዎትም።",
+    "actions": {
+      "goHome": "ወደ መነሻ ተመለስ",
+      "goBack": "ተመለስ",
+      "goToDashboard": "ወደ ዳሽቦርድ",
+      "signIn": "ግባ",
+      "tryAgain": "እንደገና ሞክር"
+    },
+    "screens": {
+      "notFound": {
+        "title": "ገጹ አልተገኘም",
+        "description": "የሚፈልጉት ገጽ የለም፣ ተወግዷል፣ ወይም ሊንኩ ስህተት ሊሆን ይችላል።"
+      },
+      "unauthorized": {
+        "title": "መግባት ያስፈልጋል",
+        "description": "የእርስዎ ክፍለ ጊዜ አልቋይቋል ወይም ይህን ገጽ ለመመልከት መግባት ያስፈልግዎታል።"
+      },
+      "forbidden": {
+        "title": "መዳረሻ ተከልክሏል",
+        "description": "በመለያዎ ገብተዋል፣ ነገር ግን ይህን ገጽ ለመክፈት ፍቃድ የለዎትም።"
+      },
+      "server": {
+        "title": "ችግር ተፈጥሯል",
+        "description": "በእኛ ወገን ያልተጠበቀ ችግር ተፈጥሯል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።"
+      },
+      "generic": {
+        "title": "ያልተጠበቀ ስህተት",
+        "description": "ይህን ገጽ በማስነበብ ላይ ችግር ተፈጥሯል። እባክዎ እንደገና ይሞክሩ ወይም ወደ መነሻ ይመለሱ።"
+      }
+    }
   }
 }

@@ -2,25 +2,20 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getServerApiBaseUrl } from "@/shared/config/env";
 import { resolveAuthSecret } from "@/shared/auth/resolve-auth-secret";
-import type {
-  LogoutRequestDto,
-  TokenRefreshResultDto,
-} from "@/shared/api/dtos/iam";
+import { resolveSecureSessionCookie } from "@/shared/auth/session-cookie";
+import { refreshTokenPairWithBackend } from "@/shared/auth/token-pair";
+
+type LogoutRequestDto = {
+  refreshToken?: string;
+  revokeAll?: boolean;
+};
 
 async function refreshAccessToken(
   apiUrl: string,
   refreshToken: string,
 ): Promise<string | null> {
-  const res = await fetch(`${apiUrl}/api/v1/auth/refresh-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  if (!res.ok) return null;
-
-  const data = (await res.json()) as TokenRefreshResultDto & { error?: string };
-  return data.accessToken ?? null;
+  const result = await refreshTokenPairWithBackend(apiUrl, refreshToken);
+  return result.ok ? result.tokens.accessToken : null;
 }
 
 async function revokeBackendSession(
@@ -39,7 +34,9 @@ async function revokeBackendSession(
 }
 
 export async function POST(req: Request) {
-  const token = await getToken({ req, secret: resolveAuthSecret() });
+  const secret = resolveAuthSecret();
+  const secure = resolveSecureSessionCookie(req);
+  const token = await getToken({ req, secret, secureCookie: secure });
   const refreshToken = token?.refreshToken as string | undefined;
   let accessToken = token?.accessToken as string | undefined;
 
@@ -57,17 +54,22 @@ export async function POST(req: Request) {
   }
 
   if (accessToken) {
-    let res = await revokeBackendSession(apiUrl, accessToken, body);
+    const res = await revokeBackendSession(apiUrl, accessToken, body);
     if (res.status === 401 && refreshToken) {
-      const refreshedAccessToken = await refreshAccessToken(
-        apiUrl,
-        refreshToken,
-      );
-      if (refreshedAccessToken) {
-        res = await revokeBackendSession(apiUrl, refreshedAccessToken, body);
+      const refreshed = await refreshTokenPairWithBackend(apiUrl, refreshToken);
+      if (refreshed.ok) {
+        await revokeBackendSession(apiUrl, refreshed.tokens.accessToken, {
+          refreshToken: refreshed.tokens.refreshToken,
+          revokeAll: false,
+        });
       }
     }
   }
 
-  return new NextResponse(null, { status: 204 });
+  const response = new NextResponse(null, { status: 204 });
+  const cookieName = secure
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token";
+  response.cookies.delete(cookieName);
+  return response;
 }

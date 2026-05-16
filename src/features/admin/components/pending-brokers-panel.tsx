@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { AdminCardListSkeleton } from "@/features/admin/components/admin-skeletons";
 
 async function openBrokerDocument(documentId: string) {
   const res = await browserApi.get(`/v1/auth/brokers/documents/${documentId}`, {
@@ -30,16 +31,13 @@ async function openBrokerDocument(documentId: string) {
 
 export function PendingBrokersPanel() {
   const t = useTranslations("admin");
-  const tCommon = useTranslations("common");
   const { data, isLoading, error } = usePendingBrokerApplications();
   const verify = useVerifyBrokerApplication();
   const [reason, setReason] = useState("");
   const [docLoadingId, setDocLoadingId] = useState<string | null>(null);
 
   if (isLoading) {
-    return (
-      <p className="text-muted-foreground text-sm">{tCommon("loading")}</p>
-    );
+    return <AdminCardListSkeleton rows={3} />;
   }
   if (error) {
     return (

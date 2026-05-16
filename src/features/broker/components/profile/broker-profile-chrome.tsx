@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { Bell, Lock, MonitorSmartphone, Shield, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, usePathname } from "@/shared/i18n/routing";
+import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
+import { BrokerProfileSettingsSkeleton } from "@/features/broker/components/broker-skeletons";
+import { usePortalNavigation } from "@/shared/hooks/use-portal-navigation";
 
 type NavKey =
   | "navProfile"
@@ -50,9 +52,11 @@ export function BrokerProfileChrome({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const t = useTranslations("broker.profile");
   const [mounted, setMounted] = useState(false);
+
+  const { isNavigating, beginNavigation, isItemActive, pathname } =
+    usePortalNavigation(isNavActive);
 
   useEffect(() => {
     setMounted(true);
@@ -79,11 +83,13 @@ export function BrokerProfileChrome({
           {mounted
             ? NAV.map((item) => {
                 const Icon = item.icon;
-                const active = isNavActive(pathname, item.href);
+                const active = isItemActive(item.href);
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch
+                    onClick={() => beginNavigation(item.href)}
                     className={cn(
                       "text-muted-foreground hover:bg-muted/80 hover:text-foreground flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       active && "bg-primary/10 text-primary font-semibold",
@@ -100,7 +106,13 @@ export function BrokerProfileChrome({
             : null}
         </nav>
 
-        <div className="min-w-0 space-y-6">{children}</div>
+        <div className="min-w-0 space-y-6">
+          {isNavigating ? (
+            <BrokerProfileSettingsSkeleton />
+          ) : (
+            <div key={pathname}>{children}</div>
+          )}
+        </div>
       </div>
     </div>
   );
