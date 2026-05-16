@@ -7,7 +7,9 @@
     "cancel": "ሰርዝ",
     "submit": "ላክ",
     "back": "ተመለስ",
-    "optional": "አማራጭ"
+    "optional": "አማራጭ",
+    "collapseSidebar": "ጎን አሞሌ አጥፋ",
+    "expandSidebar": "ጎን አሞሌ አስፋ"
   },
   "nav": {
     "home": "መነሻ",

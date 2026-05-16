@@ -21,6 +21,13 @@ import { NotificationBellDropdown } from "@/features/notifications/components/no
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
 import { usePortalNavigation } from "@/shared/hooks/use-portal-navigation";
+import { useSidebarCollapsed } from "@/shared/hooks/use-sidebar-collapsed";
+import {
+  portalSidebarAsideClass,
+  portalSidebarNavLabelClass,
+  portalSidebarNavRowClass,
+} from "@/shared/lib/sidebar-layout";
+import { SidebarCollapseToggle } from "@/shared/ui/sidebar-collapse-toggle";
 
 type InvestorPortalChromeProps = {
   children: ReactNode;
@@ -38,69 +45,94 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
   const { isNavigating, pendingHref, beginNavigation, isItemActive, pathname } =
     usePortalNavigation(isInvestorPortalNavActive);
 
+  const { collapsed } = useSidebarCollapsed();
+
   const settingsActive = isNavigating
     ? pendingHref?.startsWith("/profile/client")
     : pathname.startsWith("/profile/client");
 
   return (
     <div className="bg-muted/30 flex min-h-screen w-full">
-      <aside className="border-border bg-card hidden w-64 shrink-0 flex-col border-r md:flex">
-        <div className="px-6 pt-3 pb-2">
-          <Link href="/" className="relative block h-9 w-[148px] shrink-0">
+      <aside className={portalSidebarAsideClass(collapsed, "hidden md:flex")}>
+        <div className={cn("pt-3 pb-2", collapsed ? "px-2" : "px-6")}>
+          <Link
+            href="/"
+            className={cn(
+              "relative block h-9 shrink-0",
+              collapsed ? "mx-auto w-9" : "w-[148px]",
+            )}
+            title={collapsed ? tCommon("appName") : undefined}
+          >
             <Image
               src="/EtStockX.svg"
               alt={tCommon("appName")}
               fill
-              className="object-contain object-left"
-              sizes="148px"
+              className={cn(
+                "object-contain",
+                collapsed ? "object-center" : "object-left",
+              )}
+              sizes={collapsed ? "36px" : "148px"}
               unoptimized
               priority
             />
           </Link>
-          <p className="text-muted-foreground mt-1 ml-1 mb-4 text-sm">
-            {tShell("panelSubtitle")}
-          </p>
+          {!collapsed ? (
+            <p className="text-muted-foreground mt-1 ml-1 mb-4 text-sm">
+              {tShell("panelSubtitle")}
+            </p>
+          ) : null}
         </div>
-        <div className="px-4 pb-5">
+        <div className={cn("pb-5", collapsed ? "px-2" : "px-4")}>
           <Link
             href="/requests/new"
             prefetch
             onClick={() => beginNavigation("/requests/new")}
+            title={collapsed ? tShell("newRequest") : undefined}
             className={cn(
               buttonVariants({ variant: "default", size: "default" }),
-              "h-11 w-full gap-2 rounded-full text-sm font-semibold shadow-none",
+              "rounded-full text-sm font-semibold shadow-none",
+              collapsed ? "mx-auto size-11 p-0" : "h-11 w-full gap-2",
             )}
           >
-            <Plus className="size-4" aria-hidden />
-            {tShell("newRequest")}
+            <Plus className={cn("size-4", collapsed ? "" : "")} aria-hidden />
+            <span className={portalSidebarNavLabelClass(collapsed)}>
+              {tShell("newRequest")}
+            </span>
           </Link>
         </div>
         <InvestorSidebarNav
           items={INVESTOR_PORTAL_NAV}
           isItemActive={isItemActive}
           onNavClick={beginNavigation}
+          collapsed={collapsed}
         />
         <div className="border-border mt-auto border-t px-3 py-4">
           <Link
             href="/profile/client"
             prefetch
+            title={collapsed ? t("settings") : undefined}
             onClick={() => beginNavigation("/profile/client")}
-            className={cn(
-              "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
-              settingsActive && "bg-primary/15 text-primary font-semibold",
-            )}
+            className={portalSidebarNavRowClass(collapsed, settingsActive)}
           >
             <Settings className="size-5 shrink-0" />
-            <span>{t("settings")}</span>
+            <span className={portalSidebarNavLabelClass(collapsed)}>
+              {t("settings")}
+            </span>
           </Link>
           <button
             type="button"
             disabled={logoutPending}
+            title={collapsed ? t("signOut") : undefined}
             onClick={() => void logout(`/${locale}/login`)}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-[15px] transition-colors"
+            className={cn(
+              portalSidebarNavRowClass(collapsed),
+              "w-full cursor-pointer",
+            )}
           >
             <LogOut className="size-5 shrink-0" />
-            <span>{t("signOut")}</span>
+            <span className={portalSidebarNavLabelClass(collapsed)}>
+              {t("signOut")}
+            </span>
           </button>
         </div>
       </aside>
@@ -108,6 +140,7 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <header className="border-border bg-background/95 sticky top-0 z-40 border-b backdrop-blur-md">
           <div className="flex h-16 items-center gap-4 px-6 md:px-8">
+            <SidebarCollapseToggle className="hidden md:inline-flex" />
             <div className="flex min-w-0 flex-1 justify-center">
               <div className="relative w-full max-w-2xl">
                 <Search

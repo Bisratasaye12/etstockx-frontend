@@ -7,7 +7,9 @@
     "cancel": "Cancel",
     "submit": "Submit",
     "back": "Back",
-    "optional": "Optional"
+    "optional": "Optional",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "nav": {
     "home": "Home",
