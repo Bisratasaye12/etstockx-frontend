@@ -1770,6 +1770,35 @@
   "errors": {
     "generic": "Something went wrong.",
     "unauthorized": "You need to sign in.",
-    "forbidden": "You do not have access to this page."
+    "forbidden": "You do not have access to this page.",
+    "actions": {
+      "goHome": "Go to home",
+      "goBack": "Go back",
+      "goToDashboard": "Go to dashboard",
+      "signIn": "Sign in",
+      "tryAgain": "Try again"
+    },
+    "screens": {
+      "notFound": {
+        "title": "Page not found",
+        "description": "The page you are looking for does not exist, was removed, or the link may be incorrect."
+      },
+      "unauthorized": {
+        "title": "Sign in required",
+        "description": "Your session has expired or you need to sign in before you can view this page."
+      },
+      "forbidden": {
+        "title": "Access denied",
+        "description": "You are signed in, but your account does not have permission to open this page."
+      },
+      "server": {
+        "title": "Something went wrong",
+        "description": "We hit an unexpected problem on our side. Please try again in a moment."
+      },
+      "generic": {
+        "title": "Unexpected error",
+        "description": "Something went wrong while loading this page. Please try again or return home."
+      }
+    }
   }
 }
