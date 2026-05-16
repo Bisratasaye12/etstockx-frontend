@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -8,16 +8,16 @@ import {
   Building2,
   CheckCircle2,
   CircleHelp,
-  Pencil,
   Plus,
   Radio,
   X,
 } from "lucide-react";
 import { Link } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
-import { getPublicApiBaseUrl } from "@/shared/config/env";
 import { useBrokerProfile } from "@/features/broker/api/use-broker-profile";
 import { brokerKeys } from "@/features/broker/api/keys";
+import { profileKeys } from "@/features/profiles/api/keys";
+import { ProfileAvatarUploadField } from "@/features/profiles/components/profile-avatar-upload-field";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -34,10 +34,6 @@ export function BrokerProfileSection() {
   const { data, isLoading, error } = useBrokerProfile();
   const qc = useQueryClient();
 
-  function focusLogoUrlField() {
-    document.getElementById("broker-logo-url")?.focus();
-  }
-
   function focusSpecField() {
     document.getElementById("broker-spec")?.focus();
   }
@@ -45,7 +41,6 @@ export function BrokerProfileSection() {
   const [institution, setInstitution] = useState("");
   const [bio, setBio] = useState("");
   const [licenseDisplay, setLicenseDisplay] = useState("");
-  const [logoPath, setLogoPath] = useState("");
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [specializationInput, setSpecializationInput] = useState("");
   const [isAccepting, setIsAccepting] = useState(true);
@@ -56,7 +51,6 @@ export function BrokerProfileSection() {
       setInstitution(data.institution ?? "");
       setBio(data.bio ?? "");
       setLicenseDisplay(data.licenseDisplay ?? "");
-      setLogoPath(data.logoPath ?? "");
       setSpecializations(data.specializations ?? []);
       setIsAccepting(data.isAcceptingRequests);
     }
@@ -69,25 +63,11 @@ export function BrokerProfileSection() {
       (item) => item.toLowerCase() === specializationInput.trim().toLowerCase(),
     );
 
-  const logoPreviewUrl = useMemo(() => {
-    const raw = logoPath.trim();
-    if (!raw) return null;
-    const u = raw.replace(/\\/g, "/");
-    if (u.startsWith("http://") || u.startsWith("https://")) return u;
-
-    const base = getPublicApiBaseUrl().replace(/\/$/, "");
-    if (!base) return null;
-
-    if (u.startsWith("/")) return `${base}${u}`;
-    return `${base}/${u}`;
-  }, [logoPath]);
-
   async function putBrokerProfile(nextAccepting: boolean) {
     await browserApi.put("/v1/profiles/broker/me", {
       institution: institution.trim() || null,
       bio: bio.trim() || null,
       licenseDisplay: licenseDisplay.trim() || null,
-      logoPath: logoPath.trim() || null,
       specializations,
       isAcceptingRequests: nextAccepting,
     });
@@ -102,6 +82,7 @@ export function BrokerProfileSection() {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: brokerKeys.brokerProfile() });
+      void qc.invalidateQueries({ queryKey: profileKeys.brokerMe() });
       setSaveSuccess(true);
     },
   });
@@ -136,7 +117,6 @@ export function BrokerProfileSection() {
     setInstitution(data.institution ?? "");
     setBio(data.bio ?? "");
     setLicenseDisplay(data.licenseDisplay ?? "");
-    setLogoPath(data.logoPath ?? "");
     setSpecializations(data.specializations ?? []);
     setIsAccepting(data.isAcceptingRequests);
     setSpecializationInput("");
@@ -248,65 +228,25 @@ export function BrokerProfileSection() {
         </div>
 
         <div className="space-y-6 px-5 py-6 sm:px-8 sm:py-8">
-          {/* Logo */}
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-            <div className="relative mx-auto shrink-0 sm:mx-0">
-              <div className="border-border bg-muted/40 flex size-28 items-center justify-center overflow-hidden rounded-full border-2 border-dashed">
-                {logoPreviewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- user-supplied arbitrary URL
-                  <img
-                    src={logoPreviewUrl}
-                    alt=""
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <Building2
-                    className="text-muted-foreground size-12"
-                    aria-hidden
-                  />
-                )}
-              </div>
-              <button
-                type="button"
-                className="border-background bg-primary text-primary-foreground absolute -right-1 bottom-0 flex size-9 items-center justify-center rounded-full border-2 shadow-md"
-                onClick={focusLogoUrlField}
-                aria-label={tb("logoUploadCta")}
-              >
-                <Pencil className="size-4" aria-hidden />
-              </button>
-            </div>
-            <div className="min-w-0 flex-1 space-y-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 rounded-lg font-medium"
-                onClick={focusLogoUrlField}
-              >
-                {tb("logoUploadCta")}
-              </Button>
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                {tb("logoHint")}
-              </p>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="broker-logo-url"
-                  className="text-sm font-medium"
-                >
-                  {tb("logoUrlLabel")}
-                </Label>
-                <Input
-                  id="broker-logo-url"
-                  value={logoPath}
-                  onChange={(e) => {
-                    setLogoPath(e.target.value);
-                    dismissSaveSuccess();
-                  }}
-                  placeholder="https://example.com/logo.png"
-                  className="h-11 max-w-lg rounded-lg"
+          {data ? (
+            <ProfileAvatarUploadField
+              userId={data.userId}
+              profileImageUrl={data.profileImageUrl}
+              storagePath={data.logoPath}
+              fallback={
+                <Building2
+                  className="text-muted-foreground size-12"
+                  aria-hidden
                 />
-              </div>
-            </div>
-          </div>
+              }
+              size="lg"
+              layout="inline"
+              invalidateQueryKeys={[
+                brokerKeys.brokerProfile(),
+                profileKeys.brokerMe(),
+              ]}
+            />
+          ) : null}
 
           <div className="grid gap-5 lg:max-w-2xl">
             <div className="space-y-2">

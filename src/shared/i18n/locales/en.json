@@ -640,9 +640,8 @@
       "toggleOpen": "OPEN",
       "toggleClosed": "CLOSED",
       "professionalDetails": "Professional Details",
-      "logoUploadCta": "Upload New Logo",
-      "logoHint": "SVG, PNG, JPG or GIF (max. 800×800px). Paste a public HTTPS URL for your logo image.",
-      "logoUrlLabel": "Logo image URL",
+      "logoUploadCta": "Upload profile photo",
+      "logoHint": "JPG, PNG, or WEBP up to 5 MB.",
       "firmNameLabel": "Institution / Firm Name",
       "licenseLabel": "License Number",
       "professionalBio": "Professional Bio",
@@ -1430,6 +1429,15 @@
     }
   },
   "profile": {
+    "avatar": {
+      "uploadCta": "Upload photo",
+      "uploading": "Uploading…",
+      "changePhoto": "Change profile photo",
+      "hint": "JPG, PNG, or WEBP up to 5 MB. Your photo is stored securely and shown on your profile.",
+      "invalidType": "Use a JPG, PNG, or WEBP image.",
+      "tooLarge": "Image must be 5 MB or smaller.",
+      "uploadFailed": "Could not upload your photo. Please try again."
+    },
     "clientTitle": "Investor profile",
     "brokerTitle": "Broker profile",
     "brokerPendingTitle": "Pending verification",
@@ -1670,7 +1678,7 @@
         "linkMfaTitle": "Two-factor authentication",
         "linkMfaBody": "Add TOTP to protect admin sign-in and sensitive actions.",
         "profileSectionTitle": "Profile details",
-        "profileSectionHint": "Your administrator profile from the platform. Update department, job title, language, and avatar, then save.",
+        "profileSectionHint": "Your administrator profile from the platform. Upload a photo, then update department, job title, and language.",
         "profileLoading": "Loading profile…",
         "profileLoadError": "Could not load your profile.",
         "profileRetry": "Try again",
@@ -1678,8 +1686,7 @@
         "saveProfile": "Save profile",
         "saving": "Saving…",
         "discardChanges": "Discard changes",
-        "avatarUploadCta": "Edit avatar",
-        "avatarHint": "Paste a public image URL or a path served by the API.",
+        "avatarUploadCta": "Upload photo",
         "langEnglish": "English",
         "langAmharic": "Amharic",
         "field": {

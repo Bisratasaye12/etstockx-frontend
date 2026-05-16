@@ -640,9 +640,8 @@
       "toggleOpen": "ክፍት",
       "toggleClosed": "ዝግ",
       "professionalDetails": "ሙያዊ ዝርዝሮች",
-      "logoUploadCta": "አዲስ አርማ ይጭኑ",
-      "logoHint": "SVG፣ PNG፣ JPG ወይም GIF (ከፍተኛ 800×800 ፒክስል)። ለአርማዎ የHTTPS አድራሻ ይለጥፉ።",
-      "logoUrlLabel": "የአርማ ምስል URL",
+      "logoUploadCta": "የመገለጫ ፎቶ ይጭኑ",
+      "logoHint": "እስከ 5 ሜባባይት ድረስ JPG፣ PNG ወይም WEBP።",
       "firmNameLabel": "ተቋም / የድርጅት ስም",
       "licenseLabel": "የፍቃድ ቁጥር",
       "professionalBio": "ሙያዊ ራስ መግለጫ",
@@ -1430,6 +1429,15 @@
     }
   },
   "profile": {
+    "avatar": {
+      "uploadCta": "ፎቶ ይጭኑ",
+      "uploading": "በመጫን ላይ…",
+      "changePhoto": "የመገለጫ ፎቶ ቀይር",
+      "hint": "እስከ 5 ሜባባይት ድረስ JPG፣ PNG ወይም WEBP። ፎቶዎ በደህንነት ይከማቻል እና በመገለጫዎ ላይ ይታያል።",
+      "invalidType": "JPG፣ PNG ወይም WEBP ምስል ይጠቀሙ።",
+      "tooLarge": "ምስሉ 5 ሜባባይት ወይም ከዚያ በታች መሆን አለበት።",
+      "uploadFailed": "ፎቶ ማስገባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።"
+    },
     "clientTitle": "የኢንቨስተር መገለጫ",
     "brokerTitle": "የብሮከር መገለጫ",
     "brokerPendingTitle": "በማረጋገጫ ሂደት ላይ",
@@ -1670,7 +1678,7 @@
         "linkMfaTitle": "ሁለት-ደረጃ ማረጋገጫ",
         "linkMfaBody": "የአስተዳዳድ መግቢያን እና ሚስጥራዊ እርምጃዎችን ለመጠበቅ TOTP ያክሉ።",
         "profileSectionTitle": "የመገለጫ ዝርዝሮች",
-        "profileSectionHint": "ከመድረኩ የአስተዳዳድ መገለጫዎ። ክፍል፣ የሥራ ሹም፣ ቋንቋ እና አቫታር ያዘምኑ ከዚያም ያስቀምጡ።",
+        "profileSectionHint": "ከመድረኩ የአስተዳዳድ መገለጫዎ። ፎቶ ይጭኑ፣ ከዚያም ክፍል፣ የሥራ ሹም እና ቋንቋ ያዘምኑ።",
         "profileLoading": "መገለጫ በመጫን ላይ…",
         "profileLoadError": "መገለጫዎን ማስነበብ አልተቻለም።",
         "profileRetry": "እንደገና ሞክር",
@@ -1678,8 +1686,7 @@
         "saveProfile": "መገለጫ አስቀምጥ",
         "saving": "በማስቀመጥ ላይ…",
         "discardChanges": "ለውጦችን አትቀበል",
-        "avatarUploadCta": "አቫታር አርትዕ",
-        "avatarHint": "የህዝብ የምስል URL ወይም በAPI የሚሰጥ መንገድ ያስገቡ።",
+        "avatarUploadCta": "ፎቶ ይጭኑ",
         "langEnglish": "እንግሊዝኛ",
         "langAmharic": "አማርኛ",
         "field": {

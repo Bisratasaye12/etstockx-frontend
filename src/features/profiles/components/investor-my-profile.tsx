@@ -9,7 +9,6 @@ import {
   FileText,
   Landmark,
   Lock,
-  Pencil,
   Shield,
   User,
   UserRound,
@@ -19,6 +18,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { browserApi } from "@/shared/api/browser-api";
 import type { ClientProfile } from "@/shared/api/types";
 import { profileKeys } from "@/features/profiles/api/keys";
+import { ProfileAvatarUploadField } from "@/features/profiles/components/profile-avatar-upload-field";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/button";
@@ -239,24 +239,26 @@ export function InvestorMyProfile({ profile }: Props) {
         <div className="flex flex-col gap-5">
           <div className={cn(panelSurface, "overflow-hidden")}>
             <div className="px-6 pb-6 pt-8">
-              <div className="relative mx-auto mb-5 flex w-fit">
-                <div
-                  className="flex size-[104px] items-center justify-center rounded-full bg-gradient-to-br from-[#3b82f6] via-[#2563eb] to-[#1d4ed8] shadow-md ring-4 ring-background"
-                  aria-hidden
-                >
-                  <UserRound
-                    className="size-[52px] text-white/95"
-                    strokeWidth={1.25}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="border-background bg-card text-muted-foreground hover:text-foreground absolute -right-0.5 bottom-0 flex size-9 items-center justify-center rounded-full border-2 shadow-md transition-colors"
-                  aria-label={t("editAvatar")}
-                >
-                  <Pencil className="size-4" />
-                </button>
-              </div>
+              <ProfileAvatarUploadField
+                userId={profile.userId}
+                profileImageUrl={profile.profileImageUrl}
+                storagePath={profile.avatarPath}
+                fallback={
+                  <div
+                    className="flex size-full items-center justify-center bg-gradient-to-br from-[#3b82f6] via-[#2563eb] to-[#1d4ed8]"
+                    aria-hidden
+                  >
+                    <UserRound
+                      className="size-[52px] text-white/95"
+                      strokeWidth={1.25}
+                    />
+                  </div>
+                }
+                size="xl"
+                layout="stacked"
+                className="mb-5"
+                invalidateQueryKeys={[profileKeys.clientMe()]}
+              />
 
               <div className="space-y-1 text-center">
                 <p className="text-foreground text-xl font-bold tracking-tight">

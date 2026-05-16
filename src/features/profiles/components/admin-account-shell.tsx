@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Lock, Pencil, Shield, UserRound } from "lucide-react";
+import { ArrowRight, Lock, Shield, UserRound } from "lucide-react";
 import { Link } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
-import { getPublicApiBaseUrl } from "@/shared/config/env";
 import { useAdminProfile } from "@/features/profiles/api/use-admin-profile";
 import { profileKeys } from "@/features/profiles/api/keys";
+import { ProfileAvatarUploadField } from "@/features/profiles/components/profile-avatar-upload-field";
 import type { UpdateAdminProfileRequest } from "@/shared/api/types";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { normalizeUserRole } from "@/shared/lib/user-role";
@@ -43,7 +43,6 @@ export function AdminAccountShell() {
   const [department, setDepartment] = useState("");
   const [jobTitle, setJobTitle] = useState("");
   const [preferredLang, setPreferredLang] = useState("en");
-  const [avatarPath, setAvatarPath] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const profile = profileQ.data;
@@ -53,7 +52,6 @@ export function AdminAccountShell() {
     setDepartment(profile.department ?? "");
     setJobTitle(profile.jobTitle ?? "");
     setPreferredLang(profile.preferredLang === "am" ? "am" : "en");
-    setAvatarPath(profile.avatarPath ?? "");
   }, [profile]);
 
   const email = session?.user?.email ?? "";
@@ -82,18 +80,15 @@ export function AdminAccountShell() {
     );
   }, [email, name]);
 
-  const avatarPreviewUrl = useMemo(() => {
-    const raw = avatarPath.trim();
-    if (!raw) return null;
-    const u = raw.replace(/\\/g, "/");
-    if (u.startsWith("http://") || u.startsWith("https://")) return u;
-
-    const base = getPublicApiBaseUrl().replace(/\/$/, "");
-    if (!base) return null;
-
-    if (u.startsWith("/")) return `${base}${u}`;
-    return `${base}/${u}`;
-  }, [avatarPath]);
+  const avatarFallback = useMemo(
+    () =>
+      status === "loading" ? (
+        <span className="text-sm">…</span>
+      ) : (
+        <span className="text-lg font-bold">{initials}</span>
+      ),
+    [initials, status],
+  );
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -101,7 +96,6 @@ export function AdminAccountShell() {
         department: department.trim() || null,
         jobTitle: jobTitle.trim() || null,
         preferredLang,
-        avatarPath: avatarPath.trim() || null,
       };
       await browserApi.put("/v1/profiles/admin/me", body);
     },
@@ -124,31 +118,34 @@ export function AdminAccountShell() {
     setDepartment(profile.department ?? "");
     setJobTitle(profile.jobTitle ?? "");
     setPreferredLang(profile.preferredLang === "am" ? "am" : "en");
-    setAvatarPath(profile.avatarPath ?? "");
   }
 
-  function focusAvatarField() {
-    document.getElementById("admin-avatar-url")?.focus();
-  }
+  const avatarProps = profile
+    ? {
+        userId: profile.userId,
+        profileImageUrl: profile.profileImageUrl,
+        storagePath: profile.avatarPath,
+        invalidateQueryKeys: [profileKeys.adminMe()],
+      }
+    : null;
 
   return (
     <div className="space-y-6">
       <div className={panelSurface}>
         <div className="border-border flex flex-col gap-6 border-b px-6 py-6 md:flex-row md:items-center md:px-8 md:py-8">
-          <span className="bg-primary text-primary-foreground relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-lg font-bold shadow-inner">
-            {avatarPreviewUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- user-supplied URL
-              <img
-                src={avatarPreviewUrl}
-                alt=""
-                className="size-full object-cover"
-              />
-            ) : status === "loading" ? (
-              "…"
-            ) : (
-              initials
-            )}
-          </span>
+          {avatarProps ? (
+            <ProfileAvatarUploadField
+              {...avatarProps}
+              fallback={avatarFallback}
+              size="sm"
+              layout="compact"
+              showHint={false}
+            />
+          ) : (
+            <span className="bg-primary text-primary-foreground flex size-16 shrink-0 items-center justify-center rounded-2xl shadow-inner">
+              {avatarFallback}
+            </span>
+          )}
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {t("signedInLabel")}
@@ -215,83 +212,46 @@ export function AdminAccountShell() {
             </div>
           ) : null}
 
-          {profile ? (
+          {profile && avatarProps ? (
             <>
-              <dl className="grid gap-4 sm:grid-cols-2 lg:max-w-2xl">
+              <div className="grid gap-4 sm:grid-cols-2 lg:max-w-2xl">
                 <div>
-                  <dt className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                     {t("field.userId")}
-                  </dt>
-                  <dd className="text-foreground mt-1 break-all font-mono text-sm">
+                  </p>
+                  <p className="text-foreground mt-1 break-all font-mono text-sm">
                     {profile.userId}
-                  </dd>
+                  </p>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                     {t("field.createdAt")}
-                  </dt>
-                  <dd className="text-foreground mt-1 text-sm font-medium">
+                  </p>
+                  <p className="text-foreground mt-1 text-sm font-medium">
                     {formatTimestamp(profile.createdAt)}
-                  </dd>
+                  </p>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                     {t("field.updatedAt")}
-                  </dt>
-                  <dd className="text-foreground mt-1 text-sm font-medium">
+                  </p>
+                  <p className="text-foreground mt-1 text-sm font-medium">
                     {formatTimestamp(profile.updatedAt)}
-                  </dd>
-                </div>
-              </dl>
-
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-start lg:max-w-2xl">
-                <div className="relative mx-auto shrink-0 sm:mx-0">
-                  <div className="border-border bg-muted/40 flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed">
-                    {avatarPreviewUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={avatarPreviewUrl}
-                        alt=""
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <UserRound
-                        className="text-muted-foreground size-10"
-                        aria-hidden
-                      />
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="border-background bg-primary text-primary-foreground absolute -right-1 bottom-0 flex size-8 items-center justify-center rounded-full border-2 shadow-md"
-                    onClick={focusAvatarField}
-                    aria-label={t("avatarUploadCta")}
-                  >
-                    <Pencil className="size-3.5" aria-hidden />
-                  </button>
-                </div>
-                <div className="min-w-0 flex-1 space-y-2">
-                  <Label
-                    htmlFor="admin-avatar-url"
-                    className="text-sm font-medium"
-                  >
-                    {t("field.avatarPath")}
-                  </Label>
-                  <Input
-                    id="admin-avatar-url"
-                    value={avatarPath}
-                    onChange={(e) => {
-                      setAvatarPath(e.target.value);
-                      dismissSaveSuccess();
-                    }}
-                    placeholder="https://example.com/avatar.png"
-                    className={cn(controlRound, "max-w-lg")}
-                  />
-                  <p className="text-muted-foreground text-xs leading-relaxed">
-                    {t("avatarHint")}
                   </p>
                 </div>
               </div>
+
+              <ProfileAvatarUploadField
+                {...avatarProps}
+                fallback={
+                  <UserRound
+                    className="text-muted-foreground size-10"
+                    aria-hidden
+                  />
+                }
+                size="md"
+                layout="inline"
+              />
 
               <div className="grid gap-5 lg:max-w-2xl">
                 <div className="space-y-2">
@@ -308,7 +268,6 @@ export function AdminAccountShell() {
                     className={controlRound}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="admin-title" className="text-sm font-medium">
                     {t("field.jobTitle")}
@@ -323,7 +282,6 @@ export function AdminAccountShell() {
                     className={controlRound}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="admin-lang" className="text-sm font-medium">
                     {t("field.preferredLang")}

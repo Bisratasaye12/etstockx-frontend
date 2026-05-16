@@ -48,6 +48,8 @@ export interface ClientProfile {
   contactPerson: string | null;
   settlementBank: string | null;
   accountNickname: string | null;
+  avatarPath: string | null;
+  profileImageUrl: string | null;
   isProfileComplete: boolean;
   profileCompletedAt: string | null;
   createdAt: string;
@@ -60,6 +62,7 @@ export interface BrokerProfile {
   bio: string | null;
   licenseDisplay: string | null;
   logoPath: string | null;
+  profileImageUrl: string | null;
   specializations: string[];
   isAcceptingRequests: boolean;
   createdAt: string;
@@ -73,6 +76,7 @@ export interface AdminProfile {
   department: string | null;
   jobTitle: string | null;
   avatarPath: string | null;
+  profileImageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,8 +85,13 @@ export interface AdminProfile {
 export interface UpdateAdminProfileRequest {
   department?: string | null;
   jobTitle?: string | null;
-  avatarPath?: string | null;
   preferredLang?: string | null;
+}
+
+/** POST /api/v1/profiles/me/avatar */
+export interface ProfileAvatarUploadResult {
+  profileImageUrl: string | null;
+  storagePath: string | null;
 }
 
 export interface BrokerDirectoryEntry {
