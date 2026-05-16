@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
-import { Link, usePathname } from "@/shared/i18n/routing";
+import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -26,6 +26,8 @@ import { NotificationBellDropdown } from "@/features/notifications/components/no
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
 import { DashboardHeaderProfileMenu } from "@/shared/ui/dashboard-header-profile-menu";
+import { BrokerNavigatingSkeleton } from "@/features/broker/components/broker-skeletons";
+import { usePortalNavigation } from "@/shared/hooks/use-portal-navigation";
 
 export type BrokerPortalNavItem = {
   href: string;
@@ -83,7 +85,6 @@ type Props = { children: ReactNode };
 
 /** Primary broker / dealer app chrome (sidebar + header + main). Rendered from `AuthenticatedShell`. */
 export function BrokerPortalChrome({ children }: Props) {
-  const pathname = usePathname();
   const locale = useLocale();
   const t = useTranslations("broker.shell");
   const tNav = useTranslations("nav");
@@ -99,6 +100,13 @@ export function BrokerPortalChrome({ children }: Props) {
       (sessionRole === "Broker" || sessionRole === "Dealer"),
   );
   const unreadTotal = unreadMessages.data ?? 0;
+
+  const { isNavigating, pendingHref, beginNavigation, isItemActive, pathname } =
+    usePortalNavigation(isBrokerPortalNavActive);
+
+  const settingsActive = isNavigating
+    ? pendingHref?.startsWith("/profile/broker")
+    : pathname.startsWith("/profile/broker");
 
   return (
     <div className="bg-muted/20 flex min-h-screen w-full">
@@ -123,6 +131,8 @@ export function BrokerPortalChrome({ children }: Props) {
         <div className="px-4 pb-4">
           <Link
             href="/dashboard/broker/listings/new"
+            prefetch
+            onClick={() => beginNavigation("/dashboard/broker/listings/new")}
             className={cn(
               buttonVariants({ variant: "default", size: "default" }),
               "h-11 w-full rounded-lg text-sm font-semibold shadow-sm",
@@ -135,15 +145,15 @@ export function BrokerPortalChrome({ children }: Props) {
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 px-3 pb-4">
           {BROKER_PORTAL_NAV.map((item) => {
             const Icon = item.icon;
-            const active = isBrokerPortalNavActive(pathname, item.href);
+            const active = isItemActive(item.href);
             const showIncomingBadge =
               Boolean(item.badgeFromTotal) &&
               queueTotal > 0 &&
-              !isBrokerPortalNavActive(pathname, "/dashboard/broker/requests");
+              !isItemActive("/dashboard/broker/requests");
             const showMessagesBadge =
               Boolean(item.badgeFromUnreadMessages) &&
               unreadTotal > 0 &&
-              !isBrokerPortalNavActive(pathname, "/dashboard/broker/messages");
+              !isItemActive("/dashboard/broker/messages");
             const badge = showIncomingBadge
               ? Math.min(queueTotal, 99)
               : showMessagesBadge
@@ -154,6 +164,8 @@ export function BrokerPortalChrome({ children }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch
+                onClick={() => beginNavigation(item.href)}
                 className={cn(
                   BROKER_PORTAL_SIDEBAR_ROW_CLASS,
                   active && BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
@@ -173,10 +185,11 @@ export function BrokerPortalChrome({ children }: Props) {
           <div className="mt-auto flex flex-col gap-0.5 pt-2">
             <Link
               href="/profile/broker"
+              prefetch
+              onClick={() => beginNavigation("/profile/broker")}
               className={cn(
                 BROKER_PORTAL_SIDEBAR_ROW_CLASS,
-                pathname.startsWith("/profile/broker") &&
-                  BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
+                settingsActive && BROKER_PORTAL_SIDEBAR_ROW_ACTIVE_CLASS,
               )}
             >
               <Settings className="size-[18px] shrink-0" aria-hidden />
@@ -218,6 +231,8 @@ export function BrokerPortalChrome({ children }: Props) {
               />
               <Link
                 href="/dashboard/broker/messages"
+                prefetch
+                onClick={() => beginNavigation("/dashboard/broker/messages")}
                 className="text-muted-foreground hover:text-foreground rounded-full p-2.5"
                 aria-label={t("messages")}
               >
@@ -229,7 +244,11 @@ export function BrokerPortalChrome({ children }: Props) {
         </header>
 
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-5 py-8 lg:px-10">
-          {children}
+          {isNavigating && pendingHref ? (
+            <BrokerNavigatingSkeleton href={pendingHref} />
+          ) : (
+            <div key={pathname}>{children}</div>
+          )}
         </main>
       </div>
     </div>

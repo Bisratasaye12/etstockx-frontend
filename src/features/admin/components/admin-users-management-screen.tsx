@@ -30,6 +30,7 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Modal } from "@/shared/ui/modal";
+import { AdminUsersSkeleton } from "@/features/admin/components/admin-skeletons";
 
 type Feedback =
   | { tone: "success"; message: string }
@@ -294,6 +295,12 @@ export function AdminUsersManagementScreen() {
       },
     });
   };
+
+  const initialLoading = adminsQ.isLoading && invitationsQ.isLoading;
+
+  if (initialLoading) {
+    return <AdminUsersSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

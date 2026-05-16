@@ -1,20 +1,18 @@
-import { getTranslations } from "next-intl/server";
-import { AuditLogsPanel } from "@/features/admin/components/audit-logs-panel";
+"use client";
 
-export default async function AdminAuditLogsPage() {
-  const t = await getTranslations("admin");
+import { useTranslations } from "next-intl";
+import { AuditLogsPanel } from "@/features/admin/components/audit-logs-panel";
+import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
+
+export default function AdminAuditLogsPage() {
+  const t = useTranslations("admin.shell");
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("shell.auditPageTitle")}
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {t("shell.auditPageSubtitle")}
-        </p>
-      </div>
+    <AdminPageShell
+      title={t("auditPageTitle")}
+      subtitle={t("auditPageSubtitle")}
+    >
       <AuditLogsPanel />
-    </div>
+    </AdminPageShell>
   );
 }

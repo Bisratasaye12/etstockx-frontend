@@ -1,20 +1,18 @@
-import { getTranslations } from "next-intl/server";
-import { ListingModerationPanel } from "@/features/admin/components/listing-moderation-panel";
+"use client";
 
-export default async function AdminListingsPage() {
-  const t = await getTranslations("admin");
+import { useTranslations } from "next-intl";
+import { ListingModerationPanel } from "@/features/admin/components/listing-moderation-panel";
+import { AdminPageShell } from "@/features/admin/components/admin-page-shell";
+
+export default function AdminListingsPage() {
+  const t = useTranslations("admin.shell");
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("shell.listingsPageTitle")}
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          {t("shell.listingsPageSubtitle")}
-        </p>
-      </div>
+    <AdminPageShell
+      title={t("listingsPageTitle")}
+      subtitle={t("listingsPageSubtitle")}
+    >
       <ListingModerationPanel />
-    </div>
+    </AdminPageShell>
   );
 }

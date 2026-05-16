@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { LogOut, Mail, Search, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -11,6 +11,7 @@ import { cn } from "@/shared/lib/utils";
 import { isSuperAdminRole } from "@/shared/lib/user-role";
 import { Input } from "@/shared/ui/input";
 import { getAdminNavItems } from "@/features/admin/config";
+import { AdminNavigatingSkeleton } from "@/features/admin/components/admin-skeletons";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import type { UserRole } from "@/shared/api/types";
@@ -29,6 +30,15 @@ type AdminPanelShellProps = {
 
 export function AdminPanelShell({ children }: AdminPanelShellProps) {
   const pathname = usePathname();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [pathname]);
+
+  const isNavigating =
+    pendingHref !== null && !isActiveAdminNav(pathname, pendingHref);
+
   const locale = useLocale();
   const { data: session, status } = useSession();
   const { logout, pending: logoutPending } = useAppLogout();
@@ -45,6 +55,8 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
         <div className="px-6 pt-3 pb-2">
           <Link
             href="/admin/overview"
+            prefetch
+            onClick={() => setPendingHref("/admin/overview")}
             className="relative block h-9 w-[148px] shrink-0"
           >
             <Image
@@ -80,12 +92,16 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
 
         <nav className="flex flex-1 flex-col gap-1 px-3">
           {navItems.map((item) => {
-            const active = isActiveAdminNav(pathname, item.href);
+            const active = isNavigating
+              ? pendingHref === item.href
+              : isActiveAdminNav(pathname, item.href);
             const Icon = item.icon;
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch
+                onClick={() => setPendingHref(item.href)}
                 className={cn(
                   "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] transition-colors",
                   active && "bg-primary/15 text-primary font-semibold",
@@ -159,7 +175,11 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
         </header>
 
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-5 py-8 md:px-10">
-          {children}
+          {isNavigating && pendingHref ? (
+            <AdminNavigatingSkeleton href={pendingHref} />
+          ) : (
+            <div key={pathname}>{children}</div>
+          )}
         </main>
       </div>
     </div>

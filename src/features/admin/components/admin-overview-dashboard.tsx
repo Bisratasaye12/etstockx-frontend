@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAdminStats } from "@/features/admin/api/use-admin-stats";
+import { AdminOverviewSkeleton } from "@/features/admin/components/admin-skeletons";
 import type {
   RegistrationsTimeSeriesPointDto,
   StatsGranularity,
@@ -476,6 +477,10 @@ export function AdminOverviewDashboard() {
     if (lower.includes("sell")) return t("requestType.sell");
     return humanizeEnum(type);
   };
+
+  if (isLoading && !data) {
+    return <AdminOverviewSkeleton />;
+  }
 
   const kpis = data?.kpis;
 
