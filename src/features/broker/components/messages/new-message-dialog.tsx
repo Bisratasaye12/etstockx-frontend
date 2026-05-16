@@ -6,14 +6,21 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
+import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
 import { Textarea } from "@/shared/ui/textarea";
 import type { BrokerDirectoryEntry } from "@/shared/api/types";
+import type { UserSearchRole } from "@/shared/api/dtos/user-search";
 import type { BrokerClientListRow } from "@/entities/broker/model/types";
 import { useBrokerIncomingRequests } from "@/features/broker/api/use-broker-incoming-requests";
 import { useBrokerDirectory } from "@/features/profiles/api/use-broker-directory";
+import {
+  USER_SEARCH_MIN_QUERY_LENGTH,
+  useUserSearch,
+} from "@/features/profiles/api/use-user-search";
+import { userSearchItemToRecipient } from "@/features/profiles/lib/user-search-mappers";
 import { uniqueClientsFromIncoming } from "@/features/broker/lib/unique-clients-from-incoming";
 import { useSendMessage } from "@/features/messaging/api/use-send-message";
 import { getConversationInitials } from "@/features/messaging/lib/conversation-initials";
@@ -29,7 +36,6 @@ type Recipient = {
   userId: string;
   primaryLabel: string;
   secondaryLabel: string | null;
-  /** When false (brokers with `isAcceptingRequests=false`), the row is shown but disabled. */
   isSelectable: boolean;
 };
 
@@ -39,6 +45,8 @@ type Props = {
 };
 
 const INCOMING_PAGE_SIZE = 200;
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_PAGE_SIZE = 50;
 
 function clientToRecipient(c: BrokerClientListRow): Recipient {
   return {
@@ -83,12 +91,30 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
   const [selected, setSelected] = useState<Recipient | null>(null);
   const [content, setContent] = useState("");
 
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const searchRole: UserSearchRole =
+    portal === "investor" || tab === "broker" ? "Broker" : "Client";
+  const recipientKind: RecipientKind =
+    searchRole === "Broker" ? "broker" : "client";
+  const useApiSearch =
+    open && debouncedQuery.trim().length >= USER_SEARCH_MIN_QUERY_LENGTH;
+
   const incoming = useBrokerIncomingRequests(
     1,
     INCOMING_PAGE_SIZE,
-    portal === "broker",
+    portal === "broker" && open && !useApiSearch,
   );
-  const directory = useBrokerDirectory();
+  const directory = useBrokerDirectory({
+    enabled:
+      open && !useApiSearch && (portal === "investor" || tab === "broker"),
+  });
+  const userSearch = useUserSearch({
+    role: searchRole,
+    q: debouncedQuery,
+    page: 1,
+    pageSize: SEARCH_PAGE_SIZE,
+    enabled: useApiSearch,
+  });
   const sendMessage = useSendMessage();
 
   const clientRecipients = useMemo<Recipient[]>(
@@ -107,20 +133,60 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
     return all.filter((r) => r.userId !== currentUserId);
   }, [directory.data, currentUserId, t]);
 
-  const list =
+  const localList =
     portal === "investor"
       ? brokerRecipients
       : tab === "client"
         ? clientRecipients
         : brokerRecipients;
-  const q = query.trim().toLowerCase();
-  const filtered = useMemo(
-    () => list.filter((r) => matchesQuery(r, q)),
-    [list, q],
-  );
 
-  const activeQuery =
-    portal === "investor" ? directory : tab === "client" ? incoming : directory;
+  const q = query.trim().toLowerCase();
+
+  const filtered = useMemo(() => {
+    if (useApiSearch) {
+      const fallback = t("brokerUnnamed");
+      return (userSearch.data?.items ?? [])
+        .filter((item) => item.userId !== currentUserId)
+        .map((item) => {
+          const mapped = userSearchItemToRecipient(item, {
+            brokerFallbackLabel: fallback,
+          });
+          return {
+            kind: recipientKind,
+            userId: mapped.userId,
+            primaryLabel: mapped.primaryLabel,
+            secondaryLabel: mapped.secondaryLabel,
+            isSelectable: mapped.isSelectable,
+          } satisfies Recipient;
+        });
+    }
+    return localList.filter((r) => matchesQuery(r, q));
+  }, [
+    useApiSearch,
+    userSearch.data?.items,
+    localList,
+    q,
+    currentUserId,
+    recipientKind,
+    t,
+  ]);
+
+  const listLoading = useApiSearch
+    ? userSearch.isLoading
+    : portal === "investor"
+      ? directory.isLoading
+      : tab === "client"
+        ? incoming.isLoading
+        : directory.isLoading;
+
+  const listError = useApiSearch
+    ? userSearch.error
+    : portal === "investor"
+      ? directory.error
+      : tab === "client"
+        ? incoming.error
+        : directory.error;
+
   const trimmedContent = content.trim();
   const canSend =
     selected != null &&
@@ -199,6 +265,7 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
                   onClick={() => {
                     setTab(key);
                     setSelected(null);
+                    setQuery("");
                   }}
                   className={cn(
                     "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
@@ -213,23 +280,31 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
             </div>
           ) : null}
 
-          <div className="relative">
-            <Search
-              aria-hidden
-              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2"
-            />
-            <Input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={
-                portal === "investor" || tab === "broker"
-                  ? t("searchBrokersPlaceholder")
-                  : t("searchClientsPlaceholder")
-              }
-              aria-label={t("searchAria")}
-              className="border-border bg-background h-10 rounded-lg pl-10"
-            />
+          <div className="space-y-1.5">
+            <div className="relative">
+              <Search
+                aria-hidden
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2"
+              />
+              <Input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={
+                  portal === "investor" || tab === "broker"
+                    ? t("searchBrokersPlaceholder")
+                    : t("searchClientsPlaceholder")
+                }
+                aria-label={t("searchAria")}
+                className="border-border bg-background h-10 rounded-lg pl-10"
+              />
+            </div>
+            {query.trim().length > 0 &&
+            query.trim().length < USER_SEARCH_MIN_QUERY_LENGTH ? (
+              <p className="text-muted-foreground text-xs">
+                {t("searchMinChars", { count: USER_SEARCH_MIN_QUERY_LENGTH })}
+              </p>
+            ) : null}
           </div>
 
           <div
@@ -237,13 +312,13 @@ export function NewMessageDialog({ open, onOpenChange }: Props) {
             role="listbox"
             aria-label={t("recipientListAria")}
           >
-            {activeQuery.isLoading ? (
+            {listLoading ? (
               <p className="text-muted-foreground px-4 py-6 text-sm">
                 {t("loading")}
               </p>
-            ) : activeQuery.isError ? (
+            ) : listError ? (
               <p className="text-destructive px-4 py-6 text-sm" role="alert">
-                {getApiErrorMessage(activeQuery.error)}
+                {getApiErrorMessage(listError)}
               </p>
             ) : filtered.length === 0 ? (
               <p className="text-muted-foreground px-4 py-6 text-sm">

@@ -14,7 +14,6 @@ import {
 } from "@/shared/lib/user-role";
 import { cn } from "@/shared/lib/utils";
 import type { UserRole } from "@/shared/api/types";
-import { Input } from "@/shared/ui/input";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
 import { BrokerPortalChrome } from "@/features/broker/components/layout/broker-portal-chrome";
@@ -46,20 +45,6 @@ type AuthenticatedShellProps = {
   role?: UserRole;
   accessToken?: string;
 };
-
-function shouldShowSearch(pathname: string): boolean {
-  return (
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/market") ||
-    pathname.startsWith("/brokers") ||
-    pathname.startsWith("/requests") ||
-    pathname.startsWith("/messages") ||
-    pathname.startsWith("/watchlist") ||
-    pathname.startsWith("/profile/client") ||
-    pathname.startsWith("/profile/broker") ||
-    pathname.startsWith("/profile/admin")
-  );
-}
 
 function getPrimaryNavItems(role: UserRole | undefined): ShellItem[] {
   if (isAdminRole(role)) return ADMIN_ITEMS;
@@ -100,7 +85,6 @@ export function AuthenticatedShell({
     isAdminRole(effectiveRole) && pathname.startsWith("/admin");
 
   const primaryNav = getPrimaryNavItems(effectiveRole);
-  const showSearch = shouldShowSearch(pathname);
   const onLanding = isLandingPage(pathname);
   const investorChrome = isClientRole(effectiveRole) && !onLanding;
   const brokerChrome = isBrokerPortalRole(effectiveRole) && !onLanding;
@@ -138,13 +122,7 @@ export function AuthenticatedShell({
               />
             </span>
           </Link>
-          {showSearch ? (
-            <div className="mx-auto w-full max-w-xl">
-              <Input placeholder={t("searchPlaceholder")} className="h-10" />
-            </div>
-          ) : (
-            <div className="flex-1" />
-          )}
+          <div className="flex-1" />
           <div className="flex items-center gap-2">
             <NotificationBellDropdown
               viewAllHref={getNotificationsFullPagePath(effectiveRole)}
