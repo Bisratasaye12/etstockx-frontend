@@ -10,7 +10,6 @@ import {
   LogOut,
   Mail,
   MessageSquare,
-  Search,
   Settings,
   Users,
 } from "lucide-react";
@@ -19,7 +18,6 @@ import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 import { useBrokerIncomingRequests } from "@/features/broker/api/use-broker-incoming-requests";
 import { useUnreadMessageTotal } from "@/features/messaging/api/use-unread-message-total";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
@@ -264,19 +262,7 @@ export function BrokerPortalChrome({ children }: Props) {
         <header className="border-border bg-background/95 sticky top-0 z-40 border-b backdrop-blur-md">
           <div className="flex h-[60px] items-center gap-4 px-5 lg:px-8">
             <SidebarCollapseToggle />
-            <div className="flex min-w-0 flex-1 justify-center">
-              <div className="relative w-full max-w-2xl">
-                <Search
-                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                  aria-hidden
-                />
-                <Input
-                  placeholder={t("searchPlaceholder")}
-                  className="border-border bg-background h-10 rounded-full pl-10 shadow-sm"
-                  aria-label={t("searchPlaceholder")}
-                />
-              </div>
-            </div>
+            <div className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1">
               <NotificationBellDropdown
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}

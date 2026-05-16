@@ -3,13 +3,12 @@
 import Image from "next/image";
 import { type ReactNode, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { LogOut, Search, Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link, usePathname } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { isSuperAdminRole } from "@/shared/lib/user-role";
-import { Input } from "@/shared/ui/input";
 import { getAdminNavItems } from "@/features/admin/config";
 import { AdminNavigatingSkeleton } from "@/features/admin/components/admin-skeletons";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
@@ -96,24 +95,6 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
           ) : null}
         </div>
 
-        {!collapsed ? (
-          <div className="shrink-0 px-4 pb-4">
-            <div className="relative">
-              <Search
-                className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                aria-hidden
-              />
-              <Input
-                readOnly
-                tabIndex={-1}
-                placeholder={tShell("shell.sidebarSearchPlaceholder")}
-                className="border-border bg-background text-muted-foreground h-10 cursor-default rounded-lg pl-9 text-sm shadow-none"
-                aria-label={tShell("shell.sidebarSearchPlaceholder")}
-              />
-            </div>
-          </div>
-        ) : null}
-
         <nav className="flex min-h-0 flex-1 flex-col gap-1 px-3">
           {navItems.map((item) => {
             const active = isNavigating
@@ -174,21 +155,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
         <header className="border-border bg-background/95 sticky top-0 z-40 border-b backdrop-blur-md">
           <div className="flex h-16 items-center gap-4 px-6 md:px-8">
             <SidebarCollapseToggle className="hidden md:inline-flex" />
-            <div className="flex min-w-0 flex-1 justify-center">
-              <div className="relative w-full max-w-2xl">
-                <Search
-                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                  aria-hidden
-                />
-                <Input
-                  readOnly
-                  tabIndex={-1}
-                  placeholder={tShell("shell.headerSearchPlaceholder")}
-                  className="border-border bg-background text-muted-foreground h-11 cursor-default rounded-full pl-10 shadow-sm"
-                  aria-label={tShell("shell.headerSearchPlaceholder")}
-                />
-              </div>
-            </div>
+            <div className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1 md:gap-2">
               <NotificationBellDropdown
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}

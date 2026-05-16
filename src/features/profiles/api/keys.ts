@@ -7,4 +7,6 @@ export const profileKeys = {
     [...profileKeys.all, "avatar", userId, cacheKey] as const,
   watchlist: () => [...profileKeys.all, "watchlist"] as const,
   brokerDirectory: () => [...profileKeys.all, "brokers", "directory"] as const,
+  userSearch: (role: string, q: string, page: number, pageSize: number) =>
+    [...profileKeys.all, "users", "search", role, q, page, pageSize] as const,
 };

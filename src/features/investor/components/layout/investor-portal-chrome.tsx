@@ -2,14 +2,13 @@
 
 import type { ReactNode } from "react";
 import Image from "next/image";
-import { LogOut, Mail, Plus, Search, Settings } from "lucide-react";
+import { LogOut, Mail, Plus, Settings } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 import { InvestorHeaderProfileMenu } from "@/features/investor/components/investor-header-profile-menu";
 import { InvestorSidebarNav } from "@/features/investor/components/investor-sidebar-nav";
 import { InvestorNavigatingSkeleton } from "@/features/investor/components/investor-skeletons";
@@ -141,19 +140,7 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
         <header className="border-border bg-background/95 sticky top-0 z-40 border-b backdrop-blur-md">
           <div className="flex h-16 items-center gap-4 px-6 md:px-8">
             <SidebarCollapseToggle className="hidden md:inline-flex" />
-            <div className="flex min-w-0 flex-1 justify-center">
-              <div className="relative w-full max-w-2xl">
-                <Search
-                  className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                  aria-hidden
-                />
-                <Input
-                  placeholder={tShell("searchPlaceholder")}
-                  className="border-border bg-background h-11 rounded-full pl-10 shadow-sm"
-                  aria-label={tShell("searchPlaceholder")}
-                />
-              </div>
-            </div>
+            <div className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1 md:gap-2">
               <NotificationBellDropdown
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}

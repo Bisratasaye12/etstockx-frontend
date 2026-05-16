@@ -6,7 +6,13 @@ import { Loader2, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { useBrokerDirectory } from "@/features/profiles/api/use-broker-directory";
+import {
+  USER_SEARCH_MIN_QUERY_LENGTH,
+  useUserSearch,
+} from "@/features/profiles/api/use-user-search";
+import { userSearchItemToBrokerDirectoryEntry } from "@/features/profiles/lib/user-search-mappers";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
+import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { cn } from "@/shared/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -23,19 +29,59 @@ const SECTORS: { value: SectorFilter | null; labelKey: string }[] = [
   { value: "Agriculture", labelKey: "chipAgriculture" },
 ];
 
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_PAGE_SIZE = 50;
+
 export function BrokersExplorer() {
   const t = useTranslations("investor.brokers");
   const { status } = useSession();
-  const { data, isLoading, error } = useBrokerDirectory();
 
   const [search, setSearch] = useState("");
   const [sector, setSector] = useState<SectorFilter | null>(null);
   const [acceptingOnly, setAcceptingOnly] = useState(false);
 
-  const filtered = useMemo(
-    () => filterBrokers(data ?? [], { search, sector, acceptingOnly }),
-    [data, search, sector, acceptingOnly],
-  );
+  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const useApiSearch =
+    debouncedSearch.trim().length >= USER_SEARCH_MIN_QUERY_LENGTH;
+
+  const directory = useBrokerDirectory({ enabled: !useApiSearch });
+  const userSearch = useUserSearch({
+    role: "Broker",
+    q: debouncedSearch,
+    page: 1,
+    pageSize: SEARCH_PAGE_SIZE,
+    enabled: status === "authenticated" && useApiSearch,
+  });
+
+  const filtered = useMemo(() => {
+    if (useApiSearch) {
+      const items = userSearch.data?.items ?? [];
+      let brokers = items.map(userSearchItemToBrokerDirectoryEntry);
+      if (acceptingOnly) {
+        brokers = brokers.filter((b) => b.isAcceptingRequests);
+      }
+      return filterBrokers(brokers, {
+        search: "",
+        sector,
+        acceptingOnly: false,
+      });
+    }
+    return filterBrokers(directory.data ?? [], {
+      search,
+      sector,
+      acceptingOnly,
+    });
+  }, [
+    useApiSearch,
+    userSearch.data?.items,
+    directory.data,
+    search,
+    sector,
+    acceptingOnly,
+  ]);
+
+  const isLoading = useApiSearch ? userSearch.isLoading : directory.isLoading;
+  const error = useApiSearch ? userSearch.error : directory.error;
 
   if (status === "loading") {
     return (
@@ -84,15 +130,23 @@ export function BrokersExplorer() {
       </div>
 
       <section className="border-border/80 bg-card space-y-5 rounded-2xl border p-5 shadow-sm">
-        <div className="relative">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="h-11 rounded-xl border pl-10 text-base md:text-sm"
-            aria-label={t("searchPlaceholder")}
-          />
+        <div className="space-y-1.5">
+          <div className="relative">
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="h-11 rounded-xl border pl-10 text-base md:text-sm"
+              aria-label={t("searchPlaceholder")}
+            />
+          </div>
+          {search.trim().length > 0 &&
+          search.trim().length < USER_SEARCH_MIN_QUERY_LENGTH ? (
+            <p className="text-muted-foreground text-xs">
+              {t("searchMinChars", { count: USER_SEARCH_MIN_QUERY_LENGTH })}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -109,7 +163,14 @@ export function BrokersExplorer() {
                     active
                       ? "border-primary/30 bg-primary/15 text-primary"
                       : "border-border bg-background text-muted-foreground hover:bg-muted/60",
+                    useApiSearch && value !== null && "opacity-60",
                   )}
+                  disabled={useApiSearch && value !== null}
+                  title={
+                    useApiSearch && value !== null
+                      ? t("sectorFilterDisabledDuringSearch")
+                      : undefined
+                  }
                 >
                   {t(labelKey)}
                 </button>
