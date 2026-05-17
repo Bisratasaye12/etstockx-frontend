@@ -419,8 +419,6 @@
       "marketUpdateTitle": "High Volume Alert on Financials",
       "marketUpdateBody": "Institutional buy-side activity detected across major banking tickers in today’s session.",
       "marketUpdateAction": "Refresh market briefing",
-      "maintenanceTitle": "System Maintenance Notice",
-      "maintenanceBody": "Scheduled matching engine restart at 18:00 EAT. Downtime expected: 15 mins.",
       "pendingReview": "Pending Review",
       "pendingReviewHint": "! Action Required",
       "inNegotiation": "In Negotiation",
