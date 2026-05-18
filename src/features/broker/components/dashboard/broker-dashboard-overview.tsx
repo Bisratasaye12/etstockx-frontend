@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Hourglass,
   List,
-  Megaphone,
   MessageCircle,
   RefreshCw,
 } from "lucide-react";
@@ -274,23 +273,6 @@ export function BrokerDashboardOverview() {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-sky-200/80 bg-sky-50/70 dark:border-sky-900/40 dark:bg-sky-950/20">
-        <CardContent className="flex gap-3 pt-5">
-          <Megaphone
-            className="text-sky-700 mt-0.5 size-5 shrink-0 dark:text-sky-300"
-            aria-hidden
-          />
-          <div>
-            <p className="font-semibold text-sky-950 dark:text-sky-100">
-              {t("maintenanceTitle")}
-            </p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {t("maintenanceBody")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card className="overflow-hidden shadow-sm">
         <div className="border-border flex flex-col gap-1 border-b px-4 py-4 sm:flex-row sm:items-center sm:justify-between">

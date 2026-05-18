@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { browserApi } from "@/shared/api/browser-api";
+import { brokerKeys } from "./keys";
 
 interface SendBrokerProposalPayload {
   requestId: string;
@@ -33,6 +34,7 @@ export function useSendBrokerProposal() {
         queryKey: ["broker", "incoming"],
         exact: false,
       });
+      void qc.invalidateQueries({ queryKey: brokerKeys.summary() });
     },
   });
 }

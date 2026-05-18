@@ -18,7 +18,7 @@ import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
 import { buttonVariants } from "@/shared/ui/button";
-import { useBrokerIncomingRequests } from "@/features/broker/api/use-broker-incoming-requests";
+import { useBrokerSummary } from "@/features/broker/api/use-broker-summary";
 import { useUnreadMessageTotal } from "@/features/messaging/api/use-unread-message-total";
 import { NotificationBellDropdown } from "@/features/notifications/components/notification-bell-dropdown";
 import { getNotificationsFullPagePath } from "@/features/notifications/lib/get-notifications-full-page-path";
@@ -42,8 +42,8 @@ export type BrokerPortalNavItem = {
     | "navClients"
     | "navMessages";
   icon: ComponentType<{ className?: string }>;
-  /** Badge from incoming trade request queue total (hidden while on that route). */
-  badgeFromTotal?: boolean;
+  /** Badge from unreviewed incoming requests (`pendingReview`; hidden on requests route). */
+  badgeFromPendingReview?: boolean;
   /** Badge from unread message aggregate (hidden while on messages route). */
   badgeFromUnreadMessages?: boolean;
 };
@@ -58,7 +58,7 @@ export const BROKER_PORTAL_NAV: BrokerPortalNavItem[] = [
     href: "/dashboard/broker/requests",
     labelKey: "navIncoming",
     icon: ClipboardList,
-    badgeFromTotal: true,
+    badgeFromPendingReview: true,
   },
   { href: "/dashboard/broker/listings", labelKey: "navListings", icon: List },
   { href: "/dashboard/broker/clients", labelKey: "navClients", icon: Users },
@@ -97,8 +97,8 @@ export function BrokerPortalChrome({ children }: Props) {
   const { logout, pending: logoutPending } = useAppLogout();
   const sessionRole = session?.user?.role as UserRole | undefined;
 
-  const incomingTotal = useBrokerIncomingRequests(1, 1);
-  const queueTotal = incomingTotal.data?.total ?? 0;
+  const brokerSummary = useBrokerSummary();
+  const pendingReviewCount = brokerSummary.data?.pendingReview ?? 0;
   const unreadMessages = useUnreadMessageTotal(
     status === "authenticated" &&
       (sessionRole === "Broker" || sessionRole === "Dealer"),
@@ -171,15 +171,15 @@ export function BrokerPortalChrome({ children }: Props) {
             const Icon = item.icon;
             const active = isItemActive(item.href);
             const showIncomingBadge =
-              Boolean(item.badgeFromTotal) &&
-              queueTotal > 0 &&
+              Boolean(item.badgeFromPendingReview) &&
+              pendingReviewCount > 0 &&
               !isItemActive("/dashboard/broker/requests");
             const showMessagesBadge =
               Boolean(item.badgeFromUnreadMessages) &&
               unreadTotal > 0 &&
               !isItemActive("/dashboard/broker/messages");
             const badge = showIncomingBadge
-              ? Math.min(queueTotal, 99)
+              ? Math.min(pendingReviewCount, 99)
               : showMessagesBadge
                 ? Math.min(unreadTotal, 99)
                 : null;
