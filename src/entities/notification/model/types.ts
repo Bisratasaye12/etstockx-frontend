@@ -24,3 +24,31 @@ export interface NotificationPagedResult {
 export interface NotificationUnreadCountResponse {
   unreadCount: number;
 }
+
+/** Aligned with `NotificationPreferenceDto` from the API. */
+export interface NotificationPreference {
+  eventType: string | null;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  pushEnabled: boolean;
+  isMandatory: boolean;
+}
+
+export type NotificationPreferenceChannel =
+  | "inAppEnabled"
+  | "emailEnabled"
+  | "smsEnabled"
+  | "pushEnabled";
+
+export interface UpdateNotificationPreferenceItem {
+  eventType: string;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  pushEnabled: boolean;
+}
+
+export interface UpdateNotificationPreferencesRequest {
+  preferences: UpdateNotificationPreferenceItem[];
+}

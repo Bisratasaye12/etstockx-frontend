@@ -8,4 +8,5 @@ export const notificationKeys = {
     page: number;
     pageSize: number;
   }) => [...notificationKeys.all, "paged", params] as const,
+  preferences: () => [...notificationKeys.all, "preferences"] as const,
 };

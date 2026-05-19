@@ -59,6 +59,68 @@
     "row": {
       "untitled": "ማሳወቂያ"
     },
+    "history": {
+      "title": "ሁሉም ማሳወቂያዎች"
+    },
+    "preferences": {
+      "title": "የማሳወቂያ ምርጫዎች",
+      "subtitle": "ስለ መለያ እንቅስቃሴ፣ የገበያ ክስተቶች እና የመድረክ ዝመናዎች እንዴት እንደሚታወቁ ይምረጡ።",
+      "loading": "ምርጫዎች በመጫን ላይ…",
+      "empty": "የማሳወቂያ ምርጫዎች አልተገኙም።",
+      "reset": "ወደ ነባሪ መልስ",
+      "save": "ምርጫዎችን አስቀምጥ",
+      "saveSuccess": "የማሳወቂያ ምርጫዎችዎ ተቀምጠዋል።",
+      "mandatoryAria": "አስፈላጊ ማሳወቂያ — ማጥፋት አይቻልም",
+      "toggleAria": "{event} በ {channel}",
+      "table": {
+        "eventColumn": "ማሳወቂያ",
+        "channelsMobile": "ሰርጦች",
+        "mandatoryColumn": "አስፈላጊ"
+      },
+      "channelSummary": {
+        "inApp": {
+          "title": "በመተግበሪያ ውስጥ",
+          "description": "የድር እና የመተግበሪያ ማሳወቂያዎች"
+        },
+        "email": {
+          "title": "ኢሜይል",
+          "description": "ወደ ዋናው የኢሜይል ሳጥንዎ"
+        },
+        "sms": {
+          "title": "ኤስኤምኤስ",
+          "description": "የጽሁፍ መልዕክት ማንቂያዎች"
+        },
+        "push": {
+          "title": "ፑሽ",
+          "description": "በመሣሪያ ደረጃ ማንቂያዎች"
+        }
+      },
+      "events": {
+        "unknown": "ማሳወቂያ",
+        "Welcome": "እንኳን ደህና መጡ",
+        "BuyRequestReceived": "የግዢ ጥያቄ ተቀበለ",
+        "SellRequestReceived": "የሽያጭ ጥያቄ ተቀበለ",
+        "ProposalSent": "ሀሳብ ተቀበለ",
+        "TermsAgreed": "ውሎች ተስማምተዋል",
+        "OrderStatusChanged": "የትዕዛዝ ሁኔታ ተቀይሯል",
+        "MessageReceived": "መልዕክት ተቀበለ",
+        "BrokerVerified": "የብሮከር ማረጋገጫ",
+        "ListingModerated": "ዝርዝር ተቆጣጠረ",
+        "Security": "የደህንነት ማንቂያዎች"
+      },
+      "eventDescriptions": {
+        "Welcome": "ወደ ETStockX ሲቀላቀሉ የሚደርስ የእንኳን ደህና መጡ መልዕክት።",
+        "BuyRequestReceived": "አዲስ የግዢ ጥያቄ ሲደርስ ማንቂያዎች።",
+        "SellRequestReceived": "አዲስ የሽያጭ ጥያቄ ሲደርስ ማንቂያዎች።",
+        "ProposalSent": "ለአዲስ የንግድ ሀሳቦች ወይም ተቃዋሚ ቅርቢያዎች ማንቂያዎች።",
+        "TermsAgreed": "የንግድ ውሎች ሲስማሙ ማሳወቂያዎች።",
+        "OrderStatusChanged": "የትዕዛዝ ሁኔታ ሲቀየር ዝመናዎች።",
+        "MessageReceived": "ለገቢ ውይይት እና የስርዓት መልዕክቶች ማሳወቂያዎች።",
+        "BrokerVerified": "ስለ ብሮከር ማረጋገጫ ሁኔታዎ ዝመናዎች።",
+        "ListingModerated": "ዝርዝር ሲጸድቅ ወይም ሲተወ መልዕክቶች።",
+        "Security": "ያልተለመደ የመግቢያ እንቅስቃሴ፣ የይለፍ ቃል ለውጦች እና ሌሎች የደህንነት ክስተቶች።"
+      }
+    },
     "feed": {
       "title": "ማሳወቂያዎች",
       "unreadBadge": "{count} ያልተነበቡ",
