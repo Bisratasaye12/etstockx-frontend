@@ -1,0 +1,33 @@
+name: Sync dev to mirror main
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push dev to mirror main branch
+        env:
+          MIRROR_SYNC_TOKEN: ${{ secrets.MIRROR_SYNC_TOKEN }}
+        run: |
+          if [ -z "$MIRROR_SYNC_TOKEN" ]; then
+            echo "::error::Add repository secret MIRROR_SYNC_TOKEN (PAT with push access to Bisratasaye12/etstockx-frontend)."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote add mirror "https://x-access-token:${MIRROR_SYNC_TOKEN}@github.com/Bisratasaye12/etstockx-frontend.git"
+          git push mirror "HEAD:main" --force
