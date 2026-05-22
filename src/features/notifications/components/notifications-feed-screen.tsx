@@ -191,7 +191,7 @@ export function NotificationsFeedScreen() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="text-foreground text-xl font-bold tracking-tight md:text-2xl">
-            {t("feed.title")}
+            {t("history.title")}
           </h2>
           {unreadCount > 0 ? (
             <Badge variant="default" className="font-semibold">

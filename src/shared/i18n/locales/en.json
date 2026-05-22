@@ -59,6 +59,68 @@
     "row": {
       "untitled": "Notification"
     },
+    "history": {
+      "title": "All notifications"
+    },
+    "preferences": {
+      "title": "Notification preferences",
+      "subtitle": "Choose how you want to be notified about account activity, market events, and platform updates.",
+      "loading": "Loading preferences…",
+      "empty": "No notification preferences are available.",
+      "reset": "Reset to defaults",
+      "save": "Save preferences",
+      "saveSuccess": "Your notification preferences were saved.",
+      "mandatoryAria": "Required notification — cannot be disabled",
+      "toggleAria": "{event} via {channel}",
+      "table": {
+        "eventColumn": "Notification",
+        "channelsMobile": "Channels",
+        "mandatoryColumn": "Required"
+      },
+      "channelSummary": {
+        "inApp": {
+          "title": "In-app",
+          "description": "Web and app notifications"
+        },
+        "email": {
+          "title": "Email",
+          "description": "Direct to your primary inbox"
+        },
+        "sms": {
+          "title": "SMS",
+          "description": "Text message alerts"
+        },
+        "push": {
+          "title": "Push",
+          "description": "Device-level alerts"
+        }
+      },
+      "events": {
+        "unknown": "Notification",
+        "Welcome": "Welcome",
+        "BuyRequestReceived": "Buy request received",
+        "SellRequestReceived": "Sell request received",
+        "ProposalSent": "Proposal received",
+        "TermsAgreed": "Terms agreed",
+        "OrderStatusChanged": "Order status changed",
+        "MessageReceived": "Message received",
+        "BrokerVerified": "Broker verification",
+        "ListingModerated": "Listing moderated",
+        "Security": "Security alerts"
+      },
+      "eventDescriptions": {
+        "Welcome": "Welcome message when you join ETStockX.",
+        "BuyRequestReceived": "Alerts when a new buy request is received.",
+        "SellRequestReceived": "Alerts when a new sell request is received.",
+        "ProposalSent": "Alerts for new trade proposals or counter-offers.",
+        "TermsAgreed": "Notifications when trade terms are agreed.",
+        "OrderStatusChanged": "Updates when an order status changes.",
+        "MessageReceived": "Notifications for incoming chat and system messages.",
+        "BrokerVerified": "Updates about your broker verification status.",
+        "ListingModerated": "Notices when a listing is approved or rejected.",
+        "Security": "Unusual login activity, password changes, and other security events."
+      }
+    },
     "feed": {
       "title": "Notifications",
       "unreadBadge": "{count} unread",
