@@ -142,18 +142,20 @@ export function NotificationPreferencesScreen() {
   );
 
   const [draft, setDraft] = useState<NotificationPreference[]>([]);
+  const [baseline, setBaseline] = useState<NotificationPreference[]>([]);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    if (serverRows.length > 0) {
-      setDraft(serverRows);
-    }
-  }, [serverRows]);
-
   const isDirty = useMemo(
-    () => draft.length > 0 && !preferencesEqual(draft, serverRows),
-    [draft, serverRows],
+    () => baseline.length > 0 && !preferencesEqual(draft, baseline),
+    [draft, baseline],
   );
+
+  // Hydrate from the server only when there are no unsaved local edits.
+  useEffect(() => {
+    if (serverRows.length === 0 || isDirty) return;
+    setDraft(serverRows);
+    setBaseline(serverRows);
+  }, [serverRows, isDirty]);
 
   function eventLabel(eventType: string | null): string {
     const key = (eventType ?? "").trim();
@@ -208,7 +210,10 @@ export function NotificationPreferencesScreen() {
     saveMutation.mutate(
       { preferences },
       {
-        onSuccess: () => setSaveSuccess(true),
+        onSuccess: () => {
+          setBaseline(draft);
+          setSaveSuccess(true);
+        },
       },
     );
   }
