@@ -17,6 +17,7 @@ jobs:
         with:
           ref: dev
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Push dev to mirror main branch
         env:
@@ -27,8 +28,12 @@ jobs:
             exit 1
           fi
 
+          # checkout@v4 can leave GITHUB_TOKEN on github.com; that overrides the PAT in the remote URL.
+          git config --global --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+          git config --global --unset-all credential.helper 2>/dev/null || true
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git remote add mirror "https://x-access-token:${MIRROR_SYNC_TOKEN}@github.com/Bisratasaye12/etstockx-frontend.git"
-          git push mirror "HEAD:main" --force
+          git -c credential.helper= push mirror "HEAD:main" --force
