@@ -27,4 +27,7 @@ export const marketKeys = {
   listingDetail: (id: string) => [...marketKeys.all, "detail", id] as const,
   securities: (f: SecuritiesSearchFilters) =>
     [...marketKeys.all, "securities", f] as const,
+  securityDetail: (id: string) => [...marketKeys.all, "security", id] as const,
+  securityPriceHistory: (id: string, limit: number) =>
+    [...marketKeys.all, "price-history", id, limit] as const,
 };

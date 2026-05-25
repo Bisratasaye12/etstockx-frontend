@@ -13,8 +13,7 @@ import { useWatchlist } from "@/features/profiles/api/use-watchlist";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { cn } from "@/shared/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/button";
-import { useSecurityPrediction } from "@/features/market/api/use-security-prediction";
-import { PredictionBadge } from "@/features/market/components/prediction-badge";
+import { ListingPredictionPanel } from "@/features/market/components/listing-prediction-panel";
 
 type Props = { listingId: string };
 
@@ -54,11 +53,6 @@ export function ListingDetailView({ listingId }: Props) {
       return data;
     },
   });
-
-  const predictionQuery = useSecurityPrediction(
-    detailQuery.data?.securityId ?? "",
-    status === "authenticated" && Boolean(detailQuery.data?.securityId),
-  );
 
   const { data: watchlist } = useWatchlist({
     enabled: status === "authenticated" && isClient && isActivated,
@@ -172,12 +166,6 @@ export function ListingDetailView({ listingId }: Props) {
               {d.ticker}
             </p>
           ) : null}
-          {predictionQuery.data ? (
-            <PredictionBadge
-              prediction={predictionQuery.data}
-              currency={d.currency}
-            />
-          ) : null}
         </div>
         {isClient && isActivated ? (
           <Button
@@ -195,6 +183,8 @@ export function ListingDetailView({ listingId }: Props) {
           </Button>
         ) : null}
       </header>
+
+      <ListingPredictionPanel securityId={d.securityId} currency={d.currency} />
 
       <div className="border-border/80 bg-card divide-border grid gap-0 divide-y rounded-2xl border shadow-sm sm:grid-cols-2 sm:divide-x sm:divide-y-0">
         <div className="space-y-1 p-6">

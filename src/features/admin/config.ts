@@ -5,6 +5,7 @@ import {
   ListChecks,
   ScrollText,
   Users,
+  Landmark,
 } from "lucide-react";
 
 /**
@@ -17,6 +18,7 @@ type AdminNavItem = {
     | "navOverview"
     | "navBrokers"
     | "navListings"
+    | "navSecurities"
     | "navAudit"
     | "navManageAdmins";
   icon: LucideIcon;
@@ -26,6 +28,7 @@ const baseAdminNavItems: readonly AdminNavItem[] = [
   { href: "/admin/overview", labelKey: "navOverview", icon: LayoutGrid },
   { href: "/admin/brokers", labelKey: "navBrokers", icon: ShieldCheck },
   { href: "/admin/listings", labelKey: "navListings", icon: ListChecks },
+  { href: "/admin/securities", labelKey: "navSecurities", icon: Landmark },
   { href: "/admin/audit-logs", labelKey: "navAudit", icon: ScrollText },
 ];
 
