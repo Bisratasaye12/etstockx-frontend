@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { CircleCheckBig, Clock3 } from "lucide-react";
 import { useRouter } from "@/shared/i18n/routing";
 import { usePublishBrokerListing } from "@/features/broker/api/use-publish-broker-listing";
+import { useMarketSecurities } from "@/features/market/api/use-market-securities";
+import type { SecurityDto } from "@/features/market/model/security-types";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -12,9 +14,7 @@ import { Modal } from "@/shared/ui/modal";
 import { Textarea } from "@/shared/ui/textarea";
 
 type FormState = {
-  instrumentName: string;
-  ticker: string;
-  sector: string;
+  securityId: string;
   currency: string;
   price: string;
   quantity: string;
@@ -25,9 +25,7 @@ type FormState = {
 };
 
 const initialState: FormState = {
-  instrumentName: "",
-  ticker: "",
-  sector: "Banking",
+  securityId: "",
   currency: "ETB",
   price: "",
   quantity: "",
@@ -40,15 +38,20 @@ const initialState: FormState = {
 export function BrokerNewListingPage() {
   const router = useRouter();
   const publish = usePublishBrokerListing();
+  const [securitySearch, setSecuritySearch] = useState("");
+  const securities = useMarketSecurities(securitySearch);
   const [form, setForm] = useState<FormState>(initialState);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [submittedInstrumentName, setSubmittedInstrumentName] = useState("");
+  const [submittedLabel, setSubmittedLabel] = useState("");
+
+  const selectedSecurity = useMemo(() => {
+    return securities.data?.items.find((s) => s.id === form.securityId) ?? null;
+  }, [form.securityId, securities.data?.items]);
 
   const isComplete = useMemo(() => {
     return (
-      form.instrumentName.trim().length > 0 &&
-      form.ticker.trim().length > 0 &&
+      form.securityId.length > 0 &&
       form.price.trim().length > 0 &&
       form.quantity.trim().length > 0 &&
       form.validFrom.trim().length > 0 &&
@@ -56,13 +59,25 @@ export function BrokerNewListingPage() {
     );
   }, [form]);
 
+  function selectSecurity(security: SecurityDto) {
+    setForm((prev) => ({
+      ...prev,
+      securityId: security.id,
+      price:
+        prev.price.trim().length > 0
+          ? prev.price
+          : security.referencePrice != null
+            ? String(security.referencePrice)
+            : prev.price,
+    }));
+    setSecuritySearch(`${security.ticker} — ${security.name}`);
+  }
+
   async function handlePublish() {
     setFeedback(null);
     try {
       await publish.mutateAsync({
-        instrumentName: form.instrumentName.trim() || null,
-        ticker: form.ticker.trim() || null,
-        sector: form.sector.trim() || null,
+        securityId: form.securityId,
         price: Number(form.price),
         currency: form.currency.trim() || null,
         quantity: Number(form.quantity),
@@ -71,7 +86,11 @@ export function BrokerNewListingPage() {
         validFrom: form.validFrom || null,
         validTo: form.validTo || null,
       });
-      setSubmittedInstrumentName(form.instrumentName.trim() || "your listing");
+      setSubmittedLabel(
+        selectedSecurity
+          ? `${selectedSecurity.ticker} — ${selectedSecurity.name}`
+          : "your listing",
+      );
       setShowSuccessModal(true);
     } catch (error) {
       setFeedback(getApiErrorMessage(error));
@@ -88,7 +107,8 @@ export function BrokerNewListingPage() {
             Publish New Listing
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Create a new instrument offering for the Ethiopian market.
+            Select a security from the platform catalog, then set your offer
+            price and quantity.
           </p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-full border bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
@@ -100,64 +120,67 @@ export function BrokerNewListingPage() {
       <section className="border-border space-y-5 rounded-xl border p-5">
         <div>
           <p className="text-xs font-semibold tracking-wide uppercase">
-            Instrument Details
+            Security (from catalog)
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Choose the listed company. Instrument name and ticker are set
+            automatically.
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="instrumentName">Instrument Name</Label>
-            <Input
-              id="instrumentName"
-              className="h-11"
-              value={form.instrumentName}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, instrumentName: e.target.value }))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="sector">Sector</Label>
-            <select
-              id="sector"
-              value={form.sector}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, sector: e.target.value }))
-              }
-              className="border-border bg-background h-11 w-full rounded-md border px-3 text-sm"
-            >
-              <option>Banking</option>
-              <option>Insurance</option>
-              <option>Telecom</option>
-              <option>Industrial</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ticker">Ticker Symbol</Label>
-            <Input
-              id="ticker"
-              className="h-11"
-              value={form.ticker}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, ticker: e.target.value }))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="currency">Currency</Label>
-            <select
-              id="currency"
-              value={form.currency}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, currency: e.target.value }))
-              }
-              className="border-border bg-background h-11 w-full rounded-md border px-3 text-sm"
-            >
-              <option>ETB</option>
-              <option>USD</option>
-            </select>
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="securitySearch">Search securities</Label>
+          <Input
+            id="securitySearch"
+            className="h-11"
+            placeholder="Search by ticker or name (e.g. ETEL)"
+            value={securitySearch}
+            onChange={(e) => setSecuritySearch(e.target.value)}
+          />
         </div>
+        {securities.isLoading ? (
+          <p className="text-muted-foreground text-sm">Loading securities…</p>
+        ) : null}
+        <ul className="border-border max-h-48 space-y-1 overflow-y-auto rounded-md border p-2">
+          {(securities.data?.items ?? []).map((s) => (
+            <li key={s.id}>
+              <button
+                type="button"
+                onClick={() => selectSecurity(s)}
+                className={`hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                  form.securityId === s.id ? "bg-muted font-medium" : ""
+                }`}
+              >
+                <span className="font-mono">{s.ticker}</span>
+                <span className="mx-2 text-muted-foreground">—</span>
+                {s.name}
+                {s.referencePrice != null ? (
+                  <span className="text-muted-foreground ml-2">
+                    (ref. {s.referencePrice.toLocaleString()}{" "}
+                    {s.referenceCurrency})
+                  </span>
+                ) : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+        {selectedSecurity ? (
+          <p className="text-sm">
+            Selected:{" "}
+            <span className="font-medium">
+              {selectedSecurity.ticker} — {selectedSecurity.name}
+            </span>
+            {selectedSecurity.sector ? (
+              <span className="text-muted-foreground">
+                {" "}
+                · {selectedSecurity.sector}
+              </span>
+            ) : null}
+          </p>
+        ) : (
+          <p className="text-destructive text-sm">
+            Select a security to continue.
+          </p>
+        )}
 
         <div>
           <p className="text-xs font-semibold tracking-wide uppercase">
@@ -166,7 +189,7 @@ export function BrokerNewListingPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="price">Indicative Price</Label>
+            <Label htmlFor="price">Your offer price</Label>
             <Input
               id="price"
               className="h-11"
@@ -197,6 +220,20 @@ export function BrokerNewListingPage() {
                 setForm((prev) => ({ ...prev, minLotSize: e.target.value }))
               }
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="currency">Currency</Label>
+            <select
+              id="currency"
+              value={form.currency}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, currency: e.target.value }))
+              }
+              className="border-border bg-background h-11 w-full rounded-md border px-3 text-sm"
+            >
+              <option>ETB</option>
+              <option>USD</option>
+            </select>
           </div>
         </div>
 
@@ -283,9 +320,9 @@ export function BrokerNewListingPage() {
               Listing Submitted for Review
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Your listing for {submittedInstrumentName} has been submitted. An
-              admin will review it within 1-2 business days. You&apos;ll be
-              notified once it&apos;s approved or if more information is needed.
+              Your listing for {submittedLabel} has been submitted. An admin
+              will review it within 1-2 business days. You&apos;ll be notified
+              once it&apos;s approved or if more information is needed.
             </p>
           </div>
           <Button

@@ -1049,8 +1049,15 @@
       "views": "Views",
       "status": "Status",
       "broker": "Broker",
-      "priceLabel": "Price",
-      "perShare": "per share"
+      "priceLabel": "Offer price",
+      "perShare": "per share",
+      "referencePriceLabel": "Reference price",
+      "referencePriceHint": "Platform reference for this security",
+      "predictionLabel": "AI forecast: {direction} toward {price}",
+      "predictionUp": "Up",
+      "predictionDown": "Down",
+      "predictionConfidence": "{pct}% confidence",
+      "submitBuyRequest": "Submit buy request"
     },
     "brokers": {
       "title": "Brokers",
@@ -1325,8 +1332,13 @@
       "completeProfile": "Complete My Profile",
       "errorBroker": "Please select a brokerage firm.",
       "errorInstrument": "Please enter an instrument name.",
+      "errorSecurity": "Please select a security from the catalog.",
       "errorQuantity": "Enter a valid quantity greater than zero.",
-      "errorPrice": "Enter a valid price or leave the field blank."
+      "errorPrice": "Enter a valid price or leave the field blank.",
+      "securityLabel": "Security",
+      "securitySearchPlaceholder": "Search by ticker or name…",
+      "securityHint": "Pick the listed share you want to sell.",
+      "listingPrefillNote": "Buying from listing: instrument and broker are pre-filled."
     },
     "requestNegotiation": {
       "back": "← Back to Requests",

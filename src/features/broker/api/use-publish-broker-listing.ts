@@ -3,9 +3,7 @@ import { browserApi } from "@/shared/api/browser-api";
 import { brokerKeys } from "./keys";
 
 export interface PublishBrokerListingRequest {
-  instrumentName: string | null;
-  ticker: string | null;
-  sector: string | null;
+  securityId: string;
   price: number;
   currency: string | null;
   quantity: number;

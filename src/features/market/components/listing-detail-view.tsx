@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Bookmark, Loader2 } from "lucide-react";
+import { ArrowLeft, Bookmark, Loader2, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
@@ -13,6 +13,8 @@ import { useWatchlist } from "@/features/profiles/api/use-watchlist";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { cn } from "@/shared/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/button";
+import { useSecurityPrediction } from "@/features/market/api/use-security-prediction";
+import { PredictionBadge } from "@/features/market/components/prediction-badge";
 
 type Props = { listingId: string };
 
@@ -52,6 +54,11 @@ export function ListingDetailView({ listingId }: Props) {
       return data;
     },
   });
+
+  const predictionQuery = useSecurityPrediction(
+    detailQuery.data?.securityId ?? "",
+    status === "authenticated" && Boolean(detailQuery.data?.securityId),
+  );
 
   const { data: watchlist } = useWatchlist({
     enabled: status === "authenticated" && isClient && isActivated,
@@ -165,6 +172,12 @@ export function ListingDetailView({ listingId }: Props) {
               {d.ticker}
             </p>
           ) : null}
+          {predictionQuery.data ? (
+            <PredictionBadge
+              prediction={predictionQuery.data}
+              currency={d.currency}
+            />
+          ) : null}
         </div>
         {isClient && isActivated ? (
           <Button
@@ -207,6 +220,19 @@ export function ListingDetailView({ listingId }: Props) {
           </p>
           <p className="text-muted-foreground text-xs">{t("perShare")}</p>
         </div>
+        {d.securityReferencePrice != null ? (
+          <div className="space-y-1 p-6">
+            <p className="text-muted-foreground text-xs font-medium uppercase">
+              {t("referencePriceLabel")}
+            </p>
+            <p className="text-foreground text-lg font-semibold tabular-nums">
+              {formatMoney(d.securityReferencePrice, d.currency)}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {t("referencePriceHint")}
+            </p>
+          </div>
+        ) : null}
         <div className="space-y-1 p-6">
           <p className="text-muted-foreground text-xs font-medium uppercase">
             {t("volumeLabel")}
@@ -254,6 +280,21 @@ export function ListingDetailView({ listingId }: Props) {
           </div>
         ) : null}
       </div>
+
+      {isClient && isActivated ? (
+        <div className="flex flex-wrap justify-end gap-3">
+          <Link
+            href={`/requests/new?brokerId=${encodeURIComponent(d.brokerId)}&listingId=${encodeURIComponent(d.id)}`}
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "inline-flex h-11 items-center gap-2 rounded-full px-6 font-semibold",
+            )}
+          >
+            <Send className="size-4" aria-hidden />
+            {t("submitBuyRequest")}
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

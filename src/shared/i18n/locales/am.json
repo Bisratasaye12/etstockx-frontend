@@ -1048,8 +1048,15 @@
       "views": "እይታዎች",
       "status": "ሁኔታ",
       "broker": "ብሮከር",
-      "priceLabel": "ዋጋ",
-      "perShare": "ለአንድ አክሲዮን"
+      "priceLabel": "የቅርብ ዋጋ",
+      "perShare": "ለአንድ አክሲዮን",
+      "referencePriceLabel": "የማጣቀሻ ዋጋ",
+      "referencePriceHint": "ለዚህ ዋስትና የመድረክ ማጣቀሻ",
+      "predictionLabel": "የኤአይ ትንበያ፡ {direction} ወደ {price}",
+      "predictionUp": "ወጣ",
+      "predictionDown": "ወረደ",
+      "predictionConfidence": "{pct}% እምነት",
+      "submitBuyRequest": "የግዢ ጥያቄ አስገባ"
     },
     "brokers": {
       "title": "ብሮከሮች",
@@ -1322,8 +1329,13 @@
       "completeProfile": "መገለጫዬን አጠናቅ",
       "errorBroker": "እባክዎ የብሮከርage ተቋም ይምረጡ።",
       "errorInstrument": "እባክዎ የመሳሪያ ስም ያስገቡ።",
+      "errorSecurity": "እባክዎ ከካታሎጉ ዋስትና ይምረጡ።",
       "errorQuantity": "ከዜሮ የሚበልጥ ትክክለኛ ብዛት ያስገቡ።",
-      "errorPrice": "ትክክለኛ ዋጋ ያስገቡ ወይም መስኑን ባዶ ይተዉ።"
+      "errorPrice": "ትክክለኛ ዋጋ ያስገቡ ወይም መስኑን ባዶ ይተዉ።",
+      "securityLabel": "ዋስትና",
+      "securitySearchPlaceholder": "በቲከር ወይም በስም ይፈልጉ…",
+      "securityHint": "ለመሸጥ የሚፈልጉትን የተመዘገበ አክሲዮን ይምረጡ።",
+      "listingPrefillNote": "ከዝርዝር ግዢ፡ መሳሪያ እና ብሮከር ቀድመው ተሞልተዋል።"
     },
     "requestNegotiation": {
       "back": "← ወደ ጥያቄዎች ተመለስ",

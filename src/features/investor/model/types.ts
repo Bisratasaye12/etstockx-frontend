@@ -7,6 +7,7 @@ export interface BuyRequestDto {
   brokerName?: string | null;
   brokerInstitution?: string | null;
   listingId?: string | null;
+  securityId?: string | null;
   instrumentName: string | null;
   ticker: string | null;
   quantity: number;
@@ -26,6 +27,7 @@ export interface SellRequestDto {
   clientName?: string | null;
   brokerName?: string | null;
   brokerInstitution?: string | null;
+  securityId?: string | null;
   instrumentName: string | null;
   ticker: string | null;
   quantity: number;
