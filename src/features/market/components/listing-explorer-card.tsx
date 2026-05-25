@@ -94,6 +94,16 @@ export function ListingExplorerCard({
         <p className="text-foreground pt-2 text-2xl font-bold tabular-nums">
           {formatPriceShare(listing.price)}
         </p>
+        {listing.securityReferencePrice != null ? (
+          <p className="text-muted-foreground text-xs">
+            {t("referencePriceShort", {
+              price: listing.securityReferencePrice.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }),
+            })}
+          </p>
+        ) : null}
         <p className="text-muted-foreground text-sm">
           {t("qtyLabel", { qty: formatQty(listing.quantity) })}
         </p>
@@ -108,15 +118,26 @@ export function ListingExplorerCard({
             {brokerLabel}
           </span>
         </div>
-        <Link
-          href={`/market/${listing.id}`}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "shrink-0 rounded-lg px-3 text-xs font-medium",
-          )}
-        >
-          {t("viewDetails")}
-        </Link>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          <Link
+            href={`/market/${listing.id}`}
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "rounded-lg px-3 text-xs font-medium",
+            )}
+          >
+            {t("viewDetails")}
+          </Link>
+          <Link
+            href={`/market/securities/${listing.securityId}`}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "text-muted-foreground rounded-lg px-3 text-[11px]",
+            )}
+          >
+            {t("viewSecurity")}
+          </Link>
+        </div>
       </div>
     </article>
   );

@@ -5,6 +5,7 @@
 
 export interface ListingSummaryDto {
   id: string;
+  securityId: string;
   brokerId: string;
   brokerName: string | null;
   brokerInstitution: string | null;
@@ -13,6 +14,7 @@ export interface ListingSummaryDto {
   sector: string | null;
   price: number;
   currency: string;
+  securityReferencePrice: number | null;
   quantity: number;
   status: string | null;
   createdAt: string;
@@ -20,6 +22,7 @@ export interface ListingSummaryDto {
 
 export interface ListingDetailDto {
   id: string;
+  securityId: string;
   brokerId: string;
   brokerName: string | null;
   brokerInstitution: string | null;
@@ -28,6 +31,7 @@ export interface ListingDetailDto {
   sector: string | null;
   price: number;
   currency: string;
+  securityReferencePrice: number | null;
   quantity: number;
   minLotSize: number | null;
   notes: string | null;

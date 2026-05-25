@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Loader2, Send, ShoppingCart, Tag } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -11,6 +11,10 @@ import { Link, useRouter } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
 import { investorKeys } from "@/features/investor/api/keys";
 import { useBrokerDirectory } from "@/features/profiles/api/use-broker-directory";
+import { useMarketSecurities } from "@/features/market/api/use-market-securities";
+import { marketKeys } from "@/features/market/api/keys";
+import type { ListingDetailDto } from "@/features/market/model/types";
+import type { SecurityDto } from "@/features/market/model/security-types";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
@@ -37,17 +41,44 @@ export function InvestorCreateRequestView() {
   const { data: brokers, isLoading: brokersLoading } = useBrokerDirectory();
   const searchParams = useSearchParams();
   const brokerIdFromUrl = searchParams.get("brokerId")?.trim() ?? "";
+  const listingIdFromUrl = searchParams.get("listingId")?.trim() ?? "";
 
   const isActivated = Boolean(session?.user?.isActivated);
 
   const [kind, setKind] = useState<RequestKind>("buy");
   const [brokerId, setBrokerId] = useState("");
+  const [securityId, setSecurityId] = useState("");
+  const [securitySearch, setSecuritySearch] = useState("");
   const [instrumentName, setInstrumentName] = useState("");
   const [ticker, setTicker] = useState("");
+  const [listingId, setListingId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [desiredPrice, setDesiredPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
+
+  const listingPrefill = useQuery({
+    queryKey: marketKeys.listingDetail(listingIdFromUrl),
+    enabled: listingIdFromUrl.length > 0 && isActivated,
+    queryFn: async () => {
+      const { data } = await browserApi.get<ListingDetailDto>(
+        `/v1/market/listings/${listingIdFromUrl}`,
+      );
+      return data;
+    },
+  });
+
+  const securities = useMarketSecurities(
+    securitySearch,
+    1,
+    30,
+    kind === "sell",
+  );
+
+  const selectedSecurity = useMemo(
+    () => securities.data?.items.find((s) => s.id === securityId) ?? null,
+    [securityId, securities.data?.items],
+  );
 
   useEffect(() => {
     if (!brokerIdFromUrl) return;
@@ -55,6 +86,27 @@ export function InvestorCreateRequestView() {
     if (!brokers.some((b) => b.userId === brokerIdFromUrl)) return;
     setBrokerId(brokerIdFromUrl);
   }, [brokerIdFromUrl, brokers]);
+
+  useEffect(() => {
+    const listing = listingPrefill.data;
+    if (!listing) return;
+    setKind("buy");
+    setListingId(listing.id);
+    setBrokerId(listing.brokerId);
+    setSecurityId(listing.securityId);
+    setInstrumentName(listing.instrumentName?.trim() ?? "");
+    setTicker(listing.ticker?.trim() ?? "");
+    if (listing.price > 0) setDesiredPrice(String(listing.price));
+  }, [listingPrefill.data]);
+
+  const selectSecurity = (security: SecurityDto) => {
+    setSecurityId(security.id);
+    setInstrumentName(security.name);
+    setTicker(security.ticker);
+    if (security.referencePrice != null && security.referencePrice > 0) {
+      setDesiredPrice(String(security.referencePrice));
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -75,7 +127,8 @@ export function InvestorCreateRequestView() {
           "/v1/trade/buy-requests",
           {
             brokerId,
-            listingId: null,
+            listingId: listingId.trim() || null,
+            securityId: listingId.trim() ? null : securityId.trim() || null,
             instrumentName: instrumentName.trim(),
             ticker: ticker.trim() || null,
             quantity: qty,
@@ -90,6 +143,7 @@ export function InvestorCreateRequestView() {
         "/v1/trade/sell-requests",
         {
           brokerId,
+          securityId,
           instrumentName: instrumentName.trim(),
           ticker: ticker.trim() || null,
           quantity: qty,
@@ -115,6 +169,10 @@ export function InvestorCreateRequestView() {
     e.preventDefault();
     if (!brokerId) {
       setFieldError(t("errorBroker"));
+      return;
+    }
+    if (kind === "sell" && !securityId.trim()) {
+      setFieldError(t("errorSecurity"));
       return;
     }
     if (!instrumentName.trim()) {
@@ -277,13 +335,54 @@ export function InvestorCreateRequestView() {
           </CardContent>
         </Card>
 
+        {listingId.trim() ? (
+          <p className="text-muted-foreground rounded-lg border border-dashed px-4 py-3 text-sm">
+            {t("listingPrefillNote")}
+          </p>
+        ) : null}
+
         <Card className="border-border/80 rounded-xl border shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-base font-semibold">
               {t("section2Title")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-5">
+            {kind === "sell" ? (
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="securitySearch">{t("securityLabel")}</Label>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    {t("securityHint")}
+                  </p>
+                </div>
+                <Input
+                  id="securitySearch"
+                  value={securitySearch}
+                  onChange={(e) => setSecuritySearch(e.target.value)}
+                  placeholder={t("securitySearchPlaceholder")}
+                  className="h-11 rounded-lg"
+                />
+                <ul className="border-border max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
+                  {(securities.data?.items ?? []).map((s) => (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectSecurity(s)}
+                        className={cn(
+                          "hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm",
+                          securityId === s.id && "bg-muted font-medium",
+                        )}
+                      >
+                        <span className="font-mono">{s.ticker}</span>
+                        <span className="text-muted-foreground mx-2">—</span>
+                        {s.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="instrument">{t("instrumentLabel")}</Label>
@@ -291,6 +390,7 @@ export function InvestorCreateRequestView() {
                   id="instrument"
                   value={instrumentName}
                   onChange={(e) => setInstrumentName(e.target.value)}
+                  readOnly={kind === "sell" && Boolean(selectedSecurity)}
                   className="h-11 rounded-lg"
                   autoComplete="off"
                 />
@@ -301,6 +401,7 @@ export function InvestorCreateRequestView() {
                   id="ticker"
                   value={ticker}
                   onChange={(e) => setTicker(e.target.value)}
+                  readOnly={kind === "sell" && Boolean(selectedSecurity)}
                   placeholder={t("tickerPlaceholder")}
                   className="h-11 rounded-lg"
                   autoComplete="off"

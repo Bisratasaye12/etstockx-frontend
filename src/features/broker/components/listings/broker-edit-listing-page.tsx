@@ -17,9 +17,6 @@ interface Props {
 }
 
 type EditFormState = {
-  instrumentName: string;
-  ticker: string;
-  sector: string;
   price: string;
   quantity: string;
   currency: string;
@@ -43,9 +40,6 @@ export function BrokerEditListingPage({ listingId }: Props) {
   const updateListing = useUpdateBrokerListing();
   const changeStatus = useChangeListingStatus();
   const [form, setForm] = useState<EditFormState>({
-    instrumentName: "",
-    ticker: "",
-    sector: "",
     price: "",
     quantity: "",
     currency: "ETB",
@@ -56,9 +50,6 @@ export function BrokerEditListingPage({ listingId }: Props) {
   useEffect(() => {
     if (!detail.data) return;
     setForm({
-      instrumentName: detail.data.instrumentName ?? "",
-      ticker: detail.data.ticker ?? "",
-      sector: detail.data.sector ?? "",
       price: String(detail.data.price ?? ""),
       quantity: String(detail.data.quantity ?? ""),
       currency: detail.data.currency ?? "ETB",
@@ -72,9 +63,6 @@ export function BrokerEditListingPage({ listingId }: Props) {
   const isDirty = useMemo(() => {
     if (!detail.data) return false;
     return (
-      form.instrumentName !== (detail.data.instrumentName ?? "") ||
-      form.ticker !== (detail.data.ticker ?? "") ||
-      form.sector !== (detail.data.sector ?? "") ||
       form.price !== String(detail.data.price ?? "") ||
       form.quantity !== String(detail.data.quantity ?? "") ||
       form.currency !== (detail.data.currency ?? "ETB") ||
@@ -88,9 +76,6 @@ export function BrokerEditListingPage({ listingId }: Props) {
       await updateListing.mutateAsync({
         listingId,
         body: {
-          instrumentName: form.instrumentName.trim() || null,
-          ticker: form.ticker.trim() || null,
-          sector: form.sector.trim() || null,
           price: form.price.trim() ? Number(form.price) : null,
           quantity: form.quantity.trim() ? Number(form.quantity) : null,
           currency: form.currency.trim() || null,
@@ -202,33 +187,20 @@ export function BrokerEditListingPage({ listingId }: Props) {
           </div>
           <div className="space-y-5 p-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="instrumentName">
-                  {isModerationLocked ? "Company" : "Company / Asset"}
-                </Label>
+              <div className="space-y-2 md:col-span-2">
+                <Label>Security (catalog)</Label>
                 <Input
-                  id="instrumentName"
-                  value={form.instrumentName}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      instrumentName: e.target.value,
-                    }))
-                  }
-                  className="h-11"
-                  readOnly={isModerationLocked}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="ticker">
-                  {isModerationLocked ? "Ticker / Symbol" : "Listing Type"}
-                </Label>
-                <Input
-                  id="ticker"
-                  value={isModerationLocked ? form.ticker : "Sell Order"}
+                  value={`${detail.data.ticker ?? "—"} — ${detail.data.instrumentName ?? "—"}`}
                   readOnly
                   className="h-11"
                 />
+                {detail.data.securityReferencePrice != null ? (
+                  <p className="text-muted-foreground text-xs">
+                    Reference price:{" "}
+                    {detail.data.securityReferencePrice.toLocaleString()}{" "}
+                    {detail.data.currency ?? "ETB"}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="quantity">

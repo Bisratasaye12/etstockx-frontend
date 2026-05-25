@@ -20,6 +20,7 @@ import { Button, buttonVariants } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/ui/input";
 import { ListingExplorerCard } from "@/features/market/components/listing-explorer-card";
+import { useMarketSecurities } from "@/features/market/api/use-market-securities";
 
 const PAGE_SIZE = 9;
 
@@ -44,7 +45,9 @@ function readOptionalNumber(raw: string | null): number | undefined {
 }
 
 function buildBrowseFilters(sp: URLSearchParams): ListingsBrowseFilters {
+  const securityId = sp.get("securityId")?.trim();
   return {
+    securityId: securityId || undefined,
     sector: sp.get("sector")?.trim() || undefined,
     minPrice: readOptionalNumber(sp.get("minPrice")),
     maxPrice: readOptionalNumber(sp.get("maxPrice")),
@@ -77,7 +80,16 @@ export function ListingsExplorer() {
   const [draftMinPrice, setDraftMinPrice] = useState(sp.get("minPrice") ?? "");
   const [draftMaxPrice, setDraftMaxPrice] = useState(sp.get("maxPrice") ?? "");
   const [draftMinQty, setDraftMinQty] = useState(sp.get("minQuantity") ?? "");
+  const [draftSecurityId, setDraftSecurityId] = useState(
+    sp.get("securityId") ?? "",
+  );
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const securitiesForFilter = useMarketSecurities(
+    "",
+    1,
+    100,
+    status === "authenticated",
+  );
 
   useEffect(() => {
     setNlpDraft(nlpQuery);
@@ -89,6 +101,7 @@ export function ListingsExplorer() {
     setDraftMinPrice(p.get("minPrice") ?? "");
     setDraftMaxPrice(p.get("maxPrice") ?? "");
     setDraftMinQty(p.get("minQuantity") ?? "");
+    setDraftSecurityId(p.get("securityId") ?? "");
   }, [spKey]);
 
   const listQuery = useQuery({
@@ -121,6 +134,8 @@ export function ListingsExplorer() {
         params.maxPrice = browseFilters.maxPrice;
       if (browseFilters.minQuantity != null)
         params.minQuantity = browseFilters.minQuantity;
+      if (browseFilters.securityId)
+        params.securityId = browseFilters.securityId;
       const { data } = await browserApi.get<Paged<ListingSummaryDto>>(
         "/v1/market/listings",
         { params },
@@ -190,6 +205,8 @@ export function ListingsExplorer() {
     else p.delete("maxPrice");
     if (draftMinQty.trim()) p.set("minQuantity", draftMinQty.trim());
     else p.delete("minQuantity");
+    if (draftSecurityId.trim()) p.set("securityId", draftSecurityId.trim());
+    else p.delete("securityId");
     pushParams(p);
   };
 
@@ -295,6 +312,15 @@ export function ListingsExplorer() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:pt-1">
+          <Link
+            href="/market/securities"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "h-9 rounded-full px-4 text-xs font-medium",
+            )}
+          >
+            {t("browseSecurities")}
+          </Link>
           {nlpQuery ? (
             <span className="border-border bg-muted/50 text-foreground inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium">
               <span className="truncate">
@@ -371,6 +397,23 @@ export function ListingsExplorer() {
           <>
             <p className="text-muted-foreground text-xs">{t("filtersHint")}</p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="space-y-1.5 text-sm sm:col-span-2 lg:col-span-4">
+                <span className="text-muted-foreground font-medium">
+                  {t("securityFilterLabel")}
+                </span>
+                <select
+                  value={draftSecurityId}
+                  onChange={(e) => setDraftSecurityId(e.target.value)}
+                  className="border-input bg-background text-foreground h-11 w-full rounded-xl border px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <option value="">{t("securityFilterAll")}</option>
+                  {(securitiesForFilter.data?.items ?? []).map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.ticker} — {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-muted-foreground font-medium">
                   {t("sectorLabel")}

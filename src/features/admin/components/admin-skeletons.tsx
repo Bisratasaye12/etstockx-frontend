@@ -213,6 +213,8 @@ function AdminRouteContentSkeleton({ href }: { href: string }) {
       return <AdminCardListSkeleton rows={3} />;
     case "/admin/listings":
       return <AdminSplitPanelSkeleton />;
+    case "/admin/securities":
+      return <AdminSplitPanelSkeleton />;
     case "/admin/audit-logs":
       return <AdminAuditLogsSkeleton />;
     case "/admin/users":

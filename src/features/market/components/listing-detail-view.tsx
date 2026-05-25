@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Bookmark, Loader2 } from "lucide-react";
+import { ArrowLeft, Bookmark, Loader2, Send } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
@@ -13,6 +13,7 @@ import { useWatchlist } from "@/features/profiles/api/use-watchlist";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 import { cn } from "@/shared/lib/utils";
 import { Button, buttonVariants } from "@/shared/ui/button";
+import { ListingPredictionPanel } from "@/features/market/components/listing-prediction-panel";
 
 type Props = { listingId: string };
 
@@ -183,6 +184,8 @@ export function ListingDetailView({ listingId }: Props) {
         ) : null}
       </header>
 
+      <ListingPredictionPanel securityId={d.securityId} currency={d.currency} />
+
       <div className="border-border/80 bg-card divide-border grid gap-0 divide-y rounded-2xl border shadow-sm sm:grid-cols-2 sm:divide-x sm:divide-y-0">
         <div className="space-y-1 p-6">
           <p className="text-muted-foreground text-xs font-medium uppercase">
@@ -207,6 +210,19 @@ export function ListingDetailView({ listingId }: Props) {
           </p>
           <p className="text-muted-foreground text-xs">{t("perShare")}</p>
         </div>
+        {d.securityReferencePrice != null ? (
+          <div className="space-y-1 p-6">
+            <p className="text-muted-foreground text-xs font-medium uppercase">
+              {t("referencePriceLabel")}
+            </p>
+            <p className="text-foreground text-lg font-semibold tabular-nums">
+              {formatMoney(d.securityReferencePrice, d.currency)}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              {t("referencePriceHint")}
+            </p>
+          </div>
+        ) : null}
         <div className="space-y-1 p-6">
           <p className="text-muted-foreground text-xs font-medium uppercase">
             {t("volumeLabel")}
@@ -254,6 +270,21 @@ export function ListingDetailView({ listingId }: Props) {
           </div>
         ) : null}
       </div>
+
+      {isClient && isActivated ? (
+        <div className="flex flex-wrap justify-end gap-3">
+          <Link
+            href={`/requests/new?brokerId=${encodeURIComponent(d.brokerId)}&listingId=${encodeURIComponent(d.id)}`}
+            className={cn(
+              buttonVariants({ variant: "default" }),
+              "inline-flex h-11 items-center gap-2 rounded-full px-6 font-semibold",
+            )}
+          >
+            <Send className="size-4" aria-hidden />
+            {t("submitBuyRequest")}
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

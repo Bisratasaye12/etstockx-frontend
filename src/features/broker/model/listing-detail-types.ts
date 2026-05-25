@@ -10,9 +10,6 @@ export interface ListingDetailDto extends Listing {
 }
 
 export interface UpdateListingRequestDto {
-  instrumentName: string | null;
-  ticker: string | null;
-  sector: string | null;
   price: number | null;
   currency: string | null;
   quantity: number | null;
