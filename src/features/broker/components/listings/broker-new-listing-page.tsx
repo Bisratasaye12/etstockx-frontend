@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CircleCheckBig, Clock3 } from "lucide-react";
+import { CircleCheckBig } from "lucide-react";
 import { useRouter } from "@/shared/i18n/routing";
 import { usePublishBrokerListing } from "@/features/broker/api/use-publish-broker-listing";
 import { useMarketSecurities } from "@/features/market/api/use-market-securities";
@@ -41,13 +41,12 @@ export function BrokerNewListingPage() {
   const [securitySearch, setSecuritySearch] = useState("");
   const securities = useMarketSecurities(securitySearch);
   const [form, setForm] = useState<FormState>(initialState);
+  const [pickedSecurity, setPickedSecurity] = useState<SecurityDto | null>(
+    null,
+  );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [submittedLabel, setSubmittedLabel] = useState("");
-
-  const selectedSecurity = useMemo(() => {
-    return securities.data?.items.find((s) => s.id === form.securityId) ?? null;
-  }, [form.securityId, securities.data?.items]);
+  const [postedLabel, setPostedLabel] = useState("");
 
   const isComplete = useMemo(() => {
     return (
@@ -60,6 +59,7 @@ export function BrokerNewListingPage() {
   }, [form]);
 
   function selectSecurity(security: SecurityDto) {
+    setPickedSecurity(security);
     setForm((prev) => ({
       ...prev,
       securityId: security.id,
@@ -86,9 +86,9 @@ export function BrokerNewListingPage() {
         validFrom: form.validFrom || null,
         validTo: form.validTo || null,
       });
-      setSubmittedLabel(
-        selectedSecurity
-          ? `${selectedSecurity.ticker} — ${selectedSecurity.name}`
+      setPostedLabel(
+        pickedSecurity
+          ? `${pickedSecurity.ticker} — ${pickedSecurity.name}`
           : "your listing",
       );
       setShowSuccessModal(true);
@@ -163,16 +163,16 @@ export function BrokerNewListingPage() {
             </li>
           ))}
         </ul>
-        {selectedSecurity ? (
+        {pickedSecurity ? (
           <p className="text-sm">
             Selected:{" "}
             <span className="font-medium">
-              {selectedSecurity.ticker} — {selectedSecurity.name}
+              {pickedSecurity.ticker} — {pickedSecurity.name}
             </span>
-            {selectedSecurity.sector ? (
+            {pickedSecurity.sector ? (
               <span className="text-muted-foreground">
                 {" "}
-                · {selectedSecurity.sector}
+                · {pickedSecurity.sector}
               </span>
             ) : null}
           </p>
@@ -312,17 +312,16 @@ export function BrokerNewListingPage() {
         className="max-w-[420px] p-6"
       >
         <div className="space-y-4 text-center">
-          <div className="mx-auto inline-flex size-14 items-center justify-center rounded-full bg-amber-50 text-amber-600 ring-1 ring-amber-200">
-            <Clock3 className="size-7" />
+          <div className="mx-auto inline-flex size-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
+            <CircleCheckBig className="size-7" aria-hidden />
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">
-              Listing Submitted for Review
+              Listing Posted Successfully
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Your listing for {submittedLabel} has been submitted. An admin
-              will review it within 1-2 business days. You&apos;ll be notified
-              once it&apos;s approved or if more information is needed.
+              Your listing for {postedLabel} has been published and is now
+              visible to investors on the platform.
             </p>
           </div>
           <Button
