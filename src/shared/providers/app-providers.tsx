@@ -63,6 +63,9 @@ function ApiAuthBridge({ children }: { children: React.ReactNode }) {
         await update({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
+          ...(typeof tokens.isActivated === "boolean"
+            ? { isActivated: tokens.isActivated }
+            : {}),
         });
       },
       onRefreshFailed,

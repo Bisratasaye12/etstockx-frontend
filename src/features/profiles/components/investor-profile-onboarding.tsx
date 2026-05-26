@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Check, Info, X } from "lucide-react";
@@ -49,6 +50,7 @@ export function InvestorProfileOnboarding({ profile }: Props) {
   const tc = useTranslations("common");
   const router = useRouter();
   const qc = useQueryClient();
+  const { update: updateSession } = useSession();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -103,8 +105,9 @@ export function InvestorProfileOnboarding({ profile }: Props) {
         ),
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       void qc.invalidateQueries({ queryKey: profileKeys.clientMe() });
+      await updateSession({ isActivated: true });
       setStep(3);
     },
   });

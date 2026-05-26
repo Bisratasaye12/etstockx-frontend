@@ -209,7 +209,8 @@ export function InvestorMyProfile({ profile }: Props) {
   const kycPending =
     kycLower.includes("pending") || kycLower.includes("incomplete");
 
-  const isActivated = Boolean(session?.user?.isActivated);
+  const isActivated =
+    Boolean(session?.user?.isActivated) || Boolean(profile.isProfileComplete);
 
   return (
     <div className="mx-auto max-w-[1180px] space-y-8">

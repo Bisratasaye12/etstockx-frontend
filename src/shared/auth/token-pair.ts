@@ -1,6 +1,7 @@
 export type TokenPair = {
   accessToken: string;
   refreshToken: string;
+  isActivated?: boolean;
 };
 
 /** Accepts camelCase or PascalCase IAM token JSON. */
@@ -14,7 +15,15 @@ export function normalizeTokenPair(data: unknown): TokenPair | null {
     pickString(record, "refreshToken") ?? pickString(record, "RefreshToken");
 
   if (!accessToken || !refreshToken) return null;
-  return { accessToken, refreshToken };
+
+  const isActivated =
+    typeof record.isActivated === "boolean"
+      ? record.isActivated
+      : typeof record.IsActivated === "boolean"
+        ? record.IsActivated
+        : undefined;
+
+  return { accessToken, refreshToken, isActivated };
 }
 
 function pickString(

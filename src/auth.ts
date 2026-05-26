@@ -129,6 +129,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.refreshToken = patch.refreshToken;
           }
         }
+        if (typeof patch.isActivated === "boolean") {
+          token.isActivated = patch.isActivated;
+        }
       }
       return token;
     },
