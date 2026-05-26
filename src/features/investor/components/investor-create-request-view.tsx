@@ -68,17 +68,26 @@ export function InvestorCreateRequestView() {
     },
   });
 
-  const securities = useMarketSecurities(
-    securitySearch,
-    1,
-    30,
-    kind === "sell",
-  );
+  const listingLocked =
+    listingIdFromUrl.length > 0 || listingId.trim().length > 0;
+
+  const securities = useMarketSecurities(securitySearch, 1, 30, !listingLocked);
 
   const selectedSecurity = useMemo(
     () => securities.data?.items.find((s) => s.id === securityId) ?? null,
     [securityId, securities.data?.items],
   );
+
+  const displayInstrumentName =
+    instrumentName.trim() ||
+    selectedSecurity?.name ||
+    listingPrefill.data?.instrumentName?.trim() ||
+    "";
+  const displayTicker =
+    ticker.trim() ||
+    selectedSecurity?.ticker ||
+    listingPrefill.data?.ticker?.trim() ||
+    "";
 
   useEffect(() => {
     if (!brokerIdFromUrl) return;
@@ -96,6 +105,10 @@ export function InvestorCreateRequestView() {
     setSecurityId(listing.securityId);
     setInstrumentName(listing.instrumentName?.trim() ?? "");
     setTicker(listing.ticker?.trim() ?? "");
+    const label = [listing.ticker, listing.instrumentName]
+      .filter(Boolean)
+      .join(" — ");
+    if (label) setSecuritySearch(label);
     if (listing.price > 0) setDesiredPrice(String(listing.price));
   }, [listingPrefill.data]);
 
@@ -103,9 +116,22 @@ export function InvestorCreateRequestView() {
     setSecurityId(security.id);
     setInstrumentName(security.name);
     setTicker(security.ticker);
-    if (security.referencePrice != null && security.referencePrice > 0) {
+    setSecuritySearch(`${security.ticker} — ${security.name}`);
+    if (
+      !listingLocked &&
+      security.referencePrice != null &&
+      security.referencePrice > 0
+    ) {
       setDesiredPrice(String(security.referencePrice));
     }
+  };
+
+  const clearSecuritySelection = () => {
+    if (listingLocked) return;
+    setSecurityId("");
+    setInstrumentName("");
+    setTicker("");
+    setSecuritySearch("");
   };
 
   const createMutation = useMutation({
@@ -122,15 +148,19 @@ export function InvestorCreateRequestView() {
         throw new Error(t("errorPrice"));
       }
 
+      const resolvedInstrument =
+        instrumentName.trim() || selectedSecurity?.name || "";
+      const resolvedTicker = ticker.trim() || selectedSecurity?.ticker || null;
+
       if (kind === "buy") {
         const { data } = await browserApi.post<CreateResponse>(
           "/v1/trade/buy-requests",
           {
             brokerId,
             listingId: listingId.trim() || null,
-            securityId: listingId.trim() ? null : securityId.trim() || null,
-            instrumentName: instrumentName.trim(),
-            ticker: ticker.trim() || null,
+            securityId: securityId.trim() || null,
+            instrumentName: resolvedInstrument,
+            ticker: resolvedTicker,
             quantity: qty,
             desiredPrice: price,
             currency: "ETB",
@@ -143,9 +173,9 @@ export function InvestorCreateRequestView() {
         "/v1/trade/sell-requests",
         {
           brokerId,
-          securityId,
-          instrumentName: instrumentName.trim(),
-          ticker: ticker.trim() || null,
+          securityId: securityId.trim(),
+          instrumentName: resolvedInstrument,
+          ticker: resolvedTicker,
           quantity: qty,
           desiredPrice: price,
           currency: "ETB",
@@ -171,12 +201,8 @@ export function InvestorCreateRequestView() {
       setFieldError(t("errorBroker"));
       return;
     }
-    if (kind === "sell" && !securityId.trim()) {
+    if (!securityId.trim()) {
       setFieldError(t("errorSecurity"));
-      return;
-    }
-    if (!instrumentName.trim()) {
-      setFieldError(t("errorInstrument"));
       return;
     }
     createMutation.mutate();
@@ -237,7 +263,11 @@ export function InvestorCreateRequestView() {
         <div className="grid gap-4 sm:grid-cols-2">
           <button
             type="button"
-            onClick={() => setKind("buy")}
+            onClick={() => {
+              if (listingLocked) return;
+              setKind("buy");
+              clearSecuritySelection();
+            }}
             className={cn(
               "flex flex-col items-start gap-3 rounded-xl border-2 p-6 text-left transition-colors",
               kind === "buy"
@@ -273,12 +303,18 @@ export function InvestorCreateRequestView() {
           </button>
           <button
             type="button"
-            onClick={() => setKind("sell")}
+            disabled={listingLocked}
+            onClick={() => {
+              if (listingLocked) return;
+              setKind("sell");
+              clearSecuritySelection();
+            }}
             className={cn(
               "flex flex-col items-start gap-3 rounded-xl border-2 p-6 text-left transition-colors",
               kind === "sell"
                 ? "border-amber-600 bg-amber-600 text-white shadow-sm"
                 : "border-border bg-card text-muted-foreground hover:border-muted-foreground/30 hover:bg-muted/30",
+              listingLocked && "cursor-not-allowed opacity-50",
             )}
           >
             <Tag
@@ -348,66 +384,103 @@ export function InvestorCreateRequestView() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            {kind === "sell" ? (
+            {listingLocked ? (
+              <p className="text-muted-foreground text-xs">
+                {t("selectedFromListing")}
+              </p>
+            ) : (
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="securitySearch">{t("securityLabel")}</Label>
                   <p className="text-muted-foreground mt-1 text-xs">
-                    {t("securityHint")}
+                    {kind === "sell"
+                      ? t("securityHintSell")
+                      : t("securityHintBuy")}
                   </p>
                 </div>
-                <Input
-                  id="securitySearch"
-                  value={securitySearch}
-                  onChange={(e) => setSecuritySearch(e.target.value)}
-                  placeholder={t("securitySearchPlaceholder")}
-                  className="h-11 rounded-lg"
-                />
-                <ul className="border-border max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
-                  {(securities.data?.items ?? []).map((s) => (
-                    <li key={s.id}>
-                      <button
-                        type="button"
-                        onClick={() => selectSecurity(s)}
-                        className={cn(
-                          "hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm",
-                          securityId === s.id && "bg-muted font-medium",
-                        )}
-                      >
-                        <span className="font-mono">{s.ticker}</span>
-                        <span className="text-muted-foreground mx-2">—</span>
-                        {s.name}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {!securityId ? (
+                  <Input
+                    id="securitySearch"
+                    value={securitySearch}
+                    onChange={(e) => setSecuritySearch(e.target.value)}
+                    placeholder={t("securitySearchPlaceholder")}
+                    className="h-11 rounded-lg"
+                  />
+                ) : null}
+                {!securityId ? (
+                  <ul className="border-border max-h-48 space-y-1 overflow-y-auto rounded-lg border p-2">
+                    {securities.isLoading ? (
+                      <li className="text-muted-foreground px-3 py-2 text-sm">
+                        …
+                      </li>
+                    ) : (securities.data?.items ?? []).length === 0 ? (
+                      <li className="text-muted-foreground px-3 py-2 text-sm">
+                        —
+                      </li>
+                    ) : (
+                      (securities.data?.items ?? []).map((s) => (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            onClick={() => selectSecurity(s)}
+                            className="hover:bg-muted w-full rounded-md px-3 py-2 text-left text-sm"
+                          >
+                            <span className="font-mono">{s.ticker}</span>
+                            <span className="text-muted-foreground mx-2">
+                              —
+                            </span>
+                            {s.name}
+                            {s.referencePrice != null ? (
+                              <span className="text-muted-foreground ml-2 text-xs">
+                                (ref. {s.referencePrice.toLocaleString()}{" "}
+                                {s.referenceCurrency ?? "ETB"})
+                              </span>
+                            ) : null}
+                          </button>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                ) : null}
+              </div>
+            )}
+
+            {securityId && displayInstrumentName ? (
+              <div className="border-border bg-muted/30 space-y-3 rounded-lg border p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-semibold">
+                    {t("selectedSecurityTitle")}
+                  </p>
+                  {!listingLocked ? (
+                    <button
+                      type="button"
+                      onClick={clearSecuritySelection}
+                      className="text-primary text-xs font-medium hover:underline"
+                    >
+                      {t("changeSecurity")}
+                    </button>
+                  ) : null}
+                </div>
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-muted-foreground text-xs font-medium uppercase">
+                      {t("instrumentLabel")}
+                    </dt>
+                    <dd className="text-foreground mt-1 font-semibold">
+                      {displayInstrumentName}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground text-xs font-medium uppercase">
+                      {t("tickerLabel")}
+                    </dt>
+                    <dd className="text-foreground mt-1 font-mono font-semibold">
+                      {displayTicker || "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
             ) : null}
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="instrument">{t("instrumentLabel")}</Label>
-                <Input
-                  id="instrument"
-                  value={instrumentName}
-                  onChange={(e) => setInstrumentName(e.target.value)}
-                  readOnly={kind === "sell" && Boolean(selectedSecurity)}
-                  className="h-11 rounded-lg"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="ticker">{t("tickerLabel")}</Label>
-                <Input
-                  id="ticker"
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value)}
-                  readOnly={kind === "sell" && Boolean(selectedSecurity)}
-                  placeholder={t("tickerPlaceholder")}
-                  className="h-11 rounded-lg"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
           </CardContent>
         </Card>
 
