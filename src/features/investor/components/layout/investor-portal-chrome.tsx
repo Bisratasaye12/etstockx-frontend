@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Image from "next/image";
-import { LogOut, Mail, Plus, Settings } from "lucide-react";
+import { LogOut, Mail, Plus, Settings, UserRound } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useAppLogout } from "@/features/auth/hooks/use-app-logout";
@@ -23,6 +23,7 @@ import { usePortalNavigation } from "@/shared/hooks/use-portal-navigation";
 import { useSidebarCollapsed } from "@/shared/hooks/use-sidebar-collapsed";
 import {
   portalSidebarAsideClass,
+  portalSidebarFooterActionLabelClass,
   portalSidebarNavLabelClass,
   portalSidebarNavRowClass,
 } from "@/shared/lib/sidebar-layout";
@@ -45,6 +46,13 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
     usePortalNavigation(isInvestorPortalNavActive);
 
   const { collapsed } = useSidebarCollapsed();
+
+  const isActivated = Boolean(session?.user?.isActivated);
+  const primaryCtaHref = isActivated ? "/requests/new" : "/profile/client";
+  const primaryCtaLabel = isActivated
+    ? tShell("newRequest")
+    : tShell("makeMeInvestor");
+  const PrimaryCtaIcon = isActivated ? Plus : UserRound;
 
   const settingsActive = isNavigating
     ? pendingHref?.startsWith("/profile/client")
@@ -83,19 +91,19 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
         </div>
         <div className={cn("shrink-0 pb-5", collapsed ? "px-2" : "px-4")}>
           <Link
-            href="/requests/new"
+            href={primaryCtaHref}
             prefetch
-            onClick={() => beginNavigation("/requests/new")}
-            title={collapsed ? tShell("newRequest") : undefined}
+            onClick={() => beginNavigation(primaryCtaHref)}
+            title={collapsed ? primaryCtaLabel : undefined}
             className={cn(
               buttonVariants({ variant: "default", size: "default" }),
               "rounded-full text-sm font-semibold shadow-none",
               collapsed ? "mx-auto size-11 p-0" : "h-11 w-full gap-2",
             )}
           >
-            <Plus className={cn("size-4", collapsed ? "" : "")} aria-hidden />
+            <PrimaryCtaIcon className="size-4 shrink-0" aria-hidden />
             <span className={portalSidebarNavLabelClass(collapsed)}>
-              {tShell("newRequest")}
+              {primaryCtaLabel}
             </span>
           </Link>
         </div>
@@ -125,11 +133,11 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
             onClick={() => void logout(`/${locale}/login`)}
             className={cn(
               portalSidebarNavRowClass(collapsed),
-              "w-full cursor-pointer",
+              "cursor-pointer text-left",
             )}
           >
-            <LogOut className="size-5 shrink-0" />
-            <span className={portalSidebarNavLabelClass(collapsed)}>
+            <LogOut className="size-5 shrink-0" aria-hidden />
+            <span className={portalSidebarFooterActionLabelClass(collapsed)}>
               {t("signOut")}
             </span>
           </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Check, Info, X } from "lucide-react";
@@ -14,7 +15,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { buttonVariants } from "@/shared/ui/button";
-import { ETHIOPIAN_BANK_OPTIONS } from "@/features/profiles/constants/ethiopian-banks";
+import { SettlementBankSelect } from "@/features/profiles/components/settlement-bank-select";
 import {
   normalizeRiskProfileForApi,
   resolveAccountNicknameForComplete,
@@ -49,6 +50,7 @@ export function InvestorProfileOnboarding({ profile }: Props) {
   const tc = useTranslations("common");
   const router = useRouter();
   const qc = useQueryClient();
+  const { update: updateSession } = useSession();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -103,8 +105,9 @@ export function InvestorProfileOnboarding({ profile }: Props) {
         ),
       });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       void qc.invalidateQueries({ queryKey: profileKeys.clientMe() });
+      await updateSession({ isActivated: true });
       setStep(3);
     },
   });
@@ -244,22 +247,13 @@ export function InvestorProfileOnboarding({ profile }: Props) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="bank">{t("settlementBank")}</Label>
-              <select
+              <SettlementBankSelect
                 id="bank"
+                required
                 value={settlementBank}
-                onChange={(e) => setSettlementBank(e.target.value)}
-                className={cn(
-                  "border-input bg-background h-11 w-full rounded-lg border px-3 text-sm outline-none",
-                  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-3",
-                )}
-              >
-                <option value="">{t("bankPlaceholder")}</option>
-                {ETHIOPIAN_BANK_OPTIONS.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
+                onChange={setSettlementBank}
+                placeholder={t("bankPlaceholder")}
+              />
             </div>
 
             <div className="space-y-3">

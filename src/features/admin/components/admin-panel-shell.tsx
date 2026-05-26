@@ -17,6 +17,7 @@ import type { UserRole } from "@/shared/api/types";
 import { useSidebarCollapsed } from "@/shared/hooks/use-sidebar-collapsed";
 import {
   portalSidebarAsideClass,
+  portalSidebarFooterActionLabelClass,
   portalSidebarNavLabelClass,
   portalSidebarNavRowClass,
 } from "@/shared/lib/sidebar-layout";
@@ -140,11 +141,11 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
             onClick={() => void logout(`/${locale}/login`)}
             className={cn(
               portalSidebarNavRowClass(collapsed),
-              "w-full cursor-pointer disabled:opacity-50",
+              "cursor-pointer text-left disabled:opacity-50",
             )}
           >
             <LogOut className="size-5 shrink-0" aria-hidden />
-            <span className={portalSidebarNavLabelClass(collapsed)}>
+            <span className={portalSidebarFooterActionLabelClass(collapsed)}>
               {tNav("signOut")}
             </span>
           </button>

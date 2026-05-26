@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useClientProfile } from "@/features/profiles/api/use-client-profile";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
@@ -9,6 +11,12 @@ import { InvestorMyProfile } from "@/features/profiles/components/investor-my-pr
 export function InvestorProfileShell() {
   const tc = useTranslations("common");
   const { data, isLoading, error } = useClientProfile();
+  const { data: session, update: updateSession } = useSession();
+
+  useEffect(() => {
+    if (!data?.isProfileComplete || session?.user?.isActivated) return;
+    void updateSession({ isActivated: true });
+  }, [data?.isProfileComplete, session?.user?.isActivated, updateSession]);
 
   if (isLoading) {
     return <p className="text-muted-foreground text-sm">{tc("loading")}</p>;

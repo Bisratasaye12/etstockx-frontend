@@ -41,6 +41,9 @@ export async function POST(req: Request) {
     ...token,
     accessToken: refreshed.tokens.accessToken,
     refreshToken: refreshed.tokens.refreshToken,
+    ...(typeof refreshed.tokens.isActivated === "boolean"
+      ? { isActivated: refreshed.tokens.isActivated }
+      : {}),
   });
 
   return response;

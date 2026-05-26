@@ -26,7 +26,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
-import { ETHIOPIAN_BANK_OPTIONS } from "@/features/profiles/constants/ethiopian-banks";
+import { SettlementBankSelect } from "@/features/profiles/components/settlement-bank-select";
 import { normalizeRiskProfileForApi } from "@/features/profiles/lib/profile-api-normalize";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 
@@ -209,7 +209,8 @@ export function InvestorMyProfile({ profile }: Props) {
   const kycPending =
     kycLower.includes("pending") || kycLower.includes("incomplete");
 
-  const isActivated = Boolean(session?.user?.isActivated);
+  const isActivated =
+    Boolean(session?.user?.isActivated) || Boolean(profile.isProfileComplete);
 
   return (
     <div className="mx-auto max-w-[1180px] space-y-8">
@@ -618,23 +619,14 @@ export function InvestorMyProfile({ profile }: Props) {
                   >
                     {t("settlementBank")}
                   </Label>
-                  <select
+                  <SettlementBankSelect
                     id="bank-main"
+                    required
                     value={settlementBank}
-                    onChange={(e) => setSettlementBank(e.target.value)}
-                    className={cn(
-                      controlRound,
-                      "border-input bg-background max-w-lg px-3 text-sm outline-none",
-                      "focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]",
-                    )}
-                  >
-                    <option value="">{t("bankSelectPlaceholder")}</option>
-                    {ETHIOPIAN_BANK_OPTIONS.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSettlementBank}
+                    placeholder={t("bankSelectPlaceholder")}
+                    className={cn(controlRound, "max-w-lg")}
+                  />
                 </div>
                 <Button
                   type="button"

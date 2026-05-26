@@ -14,6 +14,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { makeStore } from "@/shared/store";
 import { attachBrowserApiAuth } from "@/shared/api/browser-api";
 import { AuthReduxSync } from "@/features/auth/components/auth-redux-sync";
+import { ToastProvider } from "@/shared/ui/toast";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache(),
@@ -63,6 +64,9 @@ function ApiAuthBridge({ children }: { children: React.ReactNode }) {
         await update({
           accessToken: tokens.accessToken,
           refreshToken: tokens.refreshToken,
+          ...(typeof tokens.isActivated === "boolean"
+            ? { isActivated: tokens.isActivated }
+            : {}),
         });
       },
       onRefreshFailed,
@@ -79,7 +83,9 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ReduxProvider store={reduxStore}>
           <AuthReduxSync />
-          <ApiAuthBridge>{children}</ApiAuthBridge>
+          <ToastProvider>
+            <ApiAuthBridge>{children}</ApiAuthBridge>
+          </ToastProvider>
         </ReduxProvider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
