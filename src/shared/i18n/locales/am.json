@@ -819,6 +819,7 @@
   "investor": {
     "shell": {
       "panelSubtitle": "የኢንቨስተር ፓነል",
+      "makeMeInvestor": "ኢንቨስተር አድርገኝ",
       "newRequest": "አዲስ ጥያቄ",
       "searchPlaceholder": "ብሮከሮች፣ ዝርዝሮች፣ ጥያቄዎችን ይፈልጉ...",
       "menuMyProfile": "መገለጫዬ",

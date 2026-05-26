@@ -14,10 +14,15 @@ export function portalSidebarAsideClass(collapsed: boolean, extra?: string) {
 
 export function portalSidebarNavRowClass(collapsed: boolean, active?: boolean) {
   return cn(
-    "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center rounded-xl text-[15px] transition-colors",
+    "text-muted-foreground hover:text-foreground hover:bg-muted/80 flex w-full items-center rounded-xl text-[15px] transition-colors",
     collapsed ? "justify-center px-2 py-3" : "gap-3 px-4 py-3",
     active && "bg-primary/15 text-primary font-semibold",
   );
+}
+
+/** Label inside sidebar footer actions (e.g. sign out) — left-aligns on `<button>`. */
+export function portalSidebarFooterActionLabelClass(collapsed: boolean) {
+  return cn(portalSidebarNavLabelClass(collapsed), !collapsed && "text-left");
 }
 
 export function portalSidebarNavLabelClass(collapsed: boolean) {

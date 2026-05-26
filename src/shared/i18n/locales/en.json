@@ -820,6 +820,7 @@
   "investor": {
     "shell": {
       "panelSubtitle": "Investor Panel",
+      "makeMeInvestor": "Make Me Investor",
       "newRequest": "New Request",
       "searchPlaceholder": "Search brokers, listings, requests...",
       "menuMyProfile": "My profile",

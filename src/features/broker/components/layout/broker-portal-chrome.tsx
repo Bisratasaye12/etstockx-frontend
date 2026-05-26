@@ -29,6 +29,7 @@ import { usePortalNavigation } from "@/shared/hooks/use-portal-navigation";
 import { useSidebarCollapsed } from "@/shared/hooks/use-sidebar-collapsed";
 import {
   portalSidebarAsideClass,
+  portalSidebarFooterActionLabelClass,
   portalSidebarNavLabelClass,
 } from "@/shared/lib/sidebar-layout";
 import { SidebarCollapseToggle } from "@/shared/ui/sidebar-collapse-toggle";
@@ -242,16 +243,11 @@ export function BrokerPortalChrome({ children }: Props) {
             className={cn(
               BROKER_PORTAL_SIDEBAR_ROW_CLASS,
               collapsed && "justify-center gap-0 px-2",
-              "cursor-pointer",
+              "cursor-pointer text-left",
             )}
           >
             <LogOut className="size-[18px] shrink-0" aria-hidden />
-            <span
-              className={cn(
-                portalSidebarNavLabelClass(collapsed),
-                !collapsed && "flex-1 text-left",
-              )}
-            >
+            <span className={portalSidebarFooterActionLabelClass(collapsed)}>
               {tNav("signOut")}
             </span>
           </button>
