@@ -504,6 +504,10 @@
       "intentBuy": "Buy",
       "intentSell": "Sell"
     },
+    "requests": {
+      "proposalSentSuccess": "Proposal sent successfully.",
+      "counterProposalSentSuccess": "Counter-proposal sent successfully."
+    },
     "listings": {
       "loading": "Loading listings…",
       "title": "My Listings",
@@ -1005,7 +1009,7 @@
       "activateBody": "Finish investor activation to view listings and trade.",
       "activateCta": "Complete profile",
       "aiSearchPlaceholder": "Search listings in English or Amharic — e.g. \"Banking shares under ETB 200\"",
-      "aiSearchButton": "AI Search",
+      "aiSearchButton": "Search",
       "sectorLabel": "Sector",
       "sectorAll": "All Sectors",
       "minPriceLabel": "Min Price (ETB)",

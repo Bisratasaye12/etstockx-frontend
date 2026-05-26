@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Circle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { useBrokerRequestDetail } from "@/features/broker/api/use-broker-request-detail";
 import { useSendBrokerProposal } from "@/features/broker/api/use-send-broker-proposal";
@@ -17,8 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
-
-const COMMISSION_RATE = 0.015;
+import { useToast } from "@/shared/ui/toast";
 
 function toRequestType(kind: string): 0 | 1 {
   return kind.toLowerCase().includes("sell") ? 1 : 0;
@@ -44,6 +44,61 @@ function isNegotiation(
     normalizeStatus(p.status).includes("reject"),
   );
   return Boolean(rejected);
+}
+
+function canBrokerSendProposal(
+  status: string | null | undefined,
+  proposals: TradeProposalDto[] | null,
+): boolean {
+  if ((proposals ?? []).length > 0) return false;
+
+  const n = normalizeStatus(status);
+  if (
+    n.includes("reject") ||
+    n.includes("cancel") ||
+    n.includes("filled") ||
+    n.includes("proposalsent") ||
+    n.includes("termsagreed") ||
+    (n.includes("terms") && n.includes("agree")) ||
+    n.includes("forwarded")
+  ) {
+    return false;
+  }
+
+  return (
+    n.includes("pendingbroker") ||
+    n.includes("brokerreview") ||
+    n === "open" ||
+    n === ""
+  );
+}
+
+function readOnlyStatusBanner(
+  status: string | null | undefined,
+): string | null {
+  const n = normalizeStatus(status);
+  if (n.includes("proposalsent")) {
+    return "Your proposal has been sent. Waiting for the client to respond.";
+  }
+  if (
+    n.includes("termsagreed") ||
+    (n.includes("terms") && n.includes("agree"))
+  ) {
+    return "Terms have been agreed. No further proposals can be sent.";
+  }
+  if (n.includes("reject")) {
+    return "This request was rejected. Proposal terms are shown below for reference.";
+  }
+  if (n.includes("cancel")) {
+    return "This request was cancelled.";
+  }
+  if (n.includes("forwarded")) {
+    return "This request has been forwarded to ESX.";
+  }
+  if (isNegotiation(status, null)) {
+    return "Review the request and proposal history below.";
+  }
+  return null;
 }
 
 function fmtMoney(n: number | null | undefined, currency = "ETB") {
@@ -91,6 +146,8 @@ export function RequestDetailPage({
 }) {
   const detail = useBrokerRequestDetail(requestId, kind);
   const proposal = useSendBrokerProposal();
+  const { showToast } = useToast();
+  const tToast = useTranslations("broker.requests");
 
   const [proposedQuantity, setProposedQuantity] = useState("");
   const [proposedPrice, setProposedPrice] = useState("");
@@ -117,7 +174,6 @@ export function RequestDetailPage({
     [proposals],
   );
 
-  const lastProposal = sortedProposals[0];
   const topProposalId = sortedProposals[0]?.id ?? "none";
   const formSeedKey = `${request?.id ?? ""}:${request?.status ?? ""}:${topProposalId}`;
 
@@ -149,16 +205,46 @@ export function RequestDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- formSeedKey aggregates request + proposal identity
   }, [formSeedKey, detail.isSuccess]);
 
-  const grossValue = useMemo(() => {
-    const q = Number(proposedQuantity);
-    const p = Number(proposedPrice);
-    if (!Number.isFinite(q) || !Number.isFinite(p)) return null;
-    return q * p;
-  }, [proposedQuantity, proposedPrice]);
-
-  const commission = grossValue != null ? grossValue * COMMISSION_RATE : null;
-  const settlement =
-    grossValue != null && commission != null ? grossValue + commission : null;
+  const submitProposal = useCallback(() => {
+    const isCounter = request
+      ? isNegotiation(request.status, proposals)
+      : false;
+    proposal.mutate(
+      {
+        requestId,
+        requestType: toRequestType(normalizedKind),
+        proposedQuantity: proposedQuantity.trim()
+          ? Number(proposedQuantity)
+          : null,
+        proposedPrice: proposedPrice.trim() ? Number(proposedPrice) : null,
+        notes: notes.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          showToast(
+            isCounter
+              ? tToast("counterProposalSentSuccess")
+              : tToast("proposalSentSuccess"),
+            "success",
+          );
+        },
+        onError: (error) => {
+          showToast(getApiErrorMessage(error), "error");
+        },
+      },
+    );
+  }, [
+    request,
+    proposals,
+    proposal,
+    requestId,
+    normalizedKind,
+    proposedQuantity,
+    proposedPrice,
+    notes,
+    showToast,
+    tToast,
+  ]);
 
   const filledSummary = useMemo(() => {
     if (!history.length) return null;
@@ -211,6 +297,8 @@ export function RequestDetailPage({
       : `Purchase Request: ${request.quantity} shares of ${titleInstrument}`;
 
   const statusLabel = request.status ?? "Open";
+  const showProposalForm = canBrokerSendProposal(request.status, proposals);
+  const statusBanner = readOnlyStatusBanner(request.status);
 
   if (isFilledReadOnly(request.status)) {
     return (
@@ -352,7 +440,7 @@ export function RequestDetailPage({
     );
   }
 
-  if (isNegotiation(request.status, proposals)) {
+  if (!showProposalForm) {
     return (
       <div className="space-y-6">
         <ReqBreadcrumbs requestId={requestId} />
@@ -362,74 +450,113 @@ export function RequestDetailPage({
               {pageTitle}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200"
-              >
-                {statusLabel}
-              </Badge>
+              <Badge variant="secondary">{statusLabel}</Badge>
             </div>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            disabled
-            title="Not available via API"
-          >
-            Reject
-          </Button>
+          {canUpdateOrderStatus ? (
+            <Link
+              href={`/dashboard/broker/requests/${requestId}/order-status?kind=${encodeURIComponent(normalizedKind)}`}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "inline-flex justify-center",
+              )}
+            >
+              Update order status
+            </Link>
+          ) : null}
         </header>
+
+        {statusBanner ? (
+          <div
+            className="border-border bg-muted/40 flex gap-3 rounded-xl border px-4 py-3 text-sm"
+            role="status"
+          >
+            <Check
+              className="text-primary mt-0.5 size-5 shrink-0"
+              aria-hidden
+            />
+            <p>{statusBanner}</p>
+          </div>
+        ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[1fr_400px]">
           <div className="space-y-6">
             <Card>
               <CardHeader className="border-b">
-                <CardTitle className="text-base">Client &amp; asset</CardTitle>
+                <CardTitle className="text-base">Client request</CardTitle>
+                <p className="text-muted-foreground text-xs">
+                  What the investor asked for on this listing.
+                </p>
               </CardHeader>
-              <CardContent className="space-y-4 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="bg-primary/15 text-primary flex size-11 items-center justify-center rounded-full text-sm font-semibold">
-                    {request.clientId.slice(0, 2).toUpperCase()}
-                  </span>
-                  <div>
-                    <p className="font-medium">
-                      Client {request.clientId.slice(0, 8)}…
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      Retail investor
-                    </p>
-                  </div>
+              <CardContent className="grid gap-4 py-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-muted-foreground text-xs">Client</p>
+                  <p className="font-medium">{request.clientId.slice(0, 8)}…</p>
                 </div>
                 <div>
-                  <p className="text-primary font-semibold">
-                    {request.instrumentName ?? "—"}{" "}
-                    {request.ticker ? `(${request.ticker})` : null}
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    Current indicative:{" "}
-                    {fmtMoney(request.desiredPrice, currency)}
+                  <p className="text-muted-foreground text-xs">Request type</p>
+                  <p className="font-medium">{normalizedKind} shares</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Instrument</p>
+                  <p className="font-medium">
+                    {request.instrumentName ?? request.ticker ?? "—"}
+                    {request.ticker ? ` (${request.ticker})` : ""}
                   </p>
                 </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Quantity</p>
+                  <p className="font-medium">{request.quantity} shares</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Desired price</p>
+                  <p className="font-medium">
+                    {fmtMoney(request.desiredPrice, currency)} per share
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-xs">Submitted</p>
+                  <p className="font-medium">
+                    {fmtDateTime(request.createdAt)}
+                  </p>
+                </div>
+                {request.listingId ? (
+                  <div className="sm:col-span-2">
+                    <p className="text-muted-foreground text-xs">
+                      Related listing
+                    </p>
+                    <Link
+                      href={`/dashboard/broker/listings/${request.listingId}/performance`}
+                      className="text-primary text-sm font-medium hover:underline"
+                    >
+                      View posted listing
+                    </Link>
+                  </div>
+                ) : null}
+                {request.notes?.trim() ? (
+                  <div className="sm:col-span-2">
+                    <p className="text-muted-foreground text-xs">
+                      Client notes
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap">
+                      {request.notes.trim()}
+                    </p>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="border-b">
-                <CardTitle className="text-base">Request timeline</CardTitle>
-              </CardHeader>
-              <CardContent className="py-4">
-                <HistoryTimeline entries={history} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="border-b">
-                <CardTitle className="text-base">Previous proposals</CardTitle>
+                <CardTitle className="text-base">Your proposals</CardTitle>
+                <p className="text-muted-foreground text-xs">
+                  Terms you sent to the client.
+                </p>
               </CardHeader>
               <CardContent className="space-y-4 py-4">
                 {sortedProposals.length === 0 ? (
                   <p className="text-muted-foreground text-sm">
-                    No proposals yet.
+                    No proposals have been sent yet.
                   </p>
                 ) : (
                   sortedProposals.map((p) => {
@@ -442,7 +569,10 @@ export function RequestDetailPage({
                         key={p.id}
                         className="border-border space-y-2 rounded-lg border p-3 text-sm"
                       >
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-muted-foreground text-xs">
+                            Sent {fmtDateTime(p.createdAt)}
+                          </p>
                           <Badge variant={proposalStatusBadgeVariant(p.status)}>
                             {(p.status ?? "Proposal").toUpperCase()}
                           </Badge>
@@ -456,9 +586,9 @@ export function RequestDetailPage({
                             Total value: {fmtMoney(lineGross, currency)}
                           </p>
                         ) : null}
-                        {p.notes ? (
-                          <p className="bg-muted/50 mt-2 rounded-md p-2 text-xs">
-                            {p.notes}
+                        {p.notes?.trim() ? (
+                          <p className="bg-muted/50 mt-2 rounded-md p-2 text-xs leading-relaxed">
+                            {p.notes.trim()}
                           </p>
                         ) : null}
                       </div>
@@ -471,105 +601,10 @@ export function RequestDetailPage({
 
           <Card className="h-fit xl:sticky xl:top-24">
             <CardHeader className="border-b">
-              <CardTitle>Counter-proposal builder</CardTitle>
-              <p className="text-muted-foreground text-xs">
-                Specify the terms you can offer this client.
-              </p>
+              <CardTitle className="text-base">Request timeline</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="neg-qty">Quantity (shares)</Label>
-                <Input
-                  id="neg-qty"
-                  value={proposedQuantity}
-                  onChange={(e) => setProposedQuantity(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="neg-price">Unit price ({currency})</Label>
-                <Input
-                  id="neg-price"
-                  value={proposedPrice}
-                  onChange={(e) => setProposedPrice(e.target.value)}
-                />
-                {lastProposal ? (
-                  <p className="text-muted-foreground text-xs">
-                    Prefilled from last proposal.
-                  </p>
-                ) : (
-                  <p className="text-muted-foreground text-xs">
-                    Client requested {request.quantity} shares.
-                  </p>
-                )}
-              </div>
-
-              <div className="bg-muted/40 space-y-2 rounded-lg p-3 text-sm">
-                <div className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">Gross value</span>
-                  <span>{fmtMoney(grossValue, currency)}</span>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">
-                    Est. commission (1.5%)
-                  </span>
-                  <span>{fmtMoney(commission, currency)}</span>
-                </div>
-                <div className="flex justify-between gap-2 border-t pt-2 font-semibold">
-                  <span>Total settlement</span>
-                  <span className="text-primary">
-                    {fmtMoney(settlement, currency)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="neg-notes">Notes to client (optional)</Label>
-                <Textarea
-                  id="neg-notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add context to your counter-proposal…"
-                />
-              </div>
-
-              {proposal.isError ? (
-                <p className="text-destructive text-sm" role="alert">
-                  {getApiErrorMessage(proposal.error)}
-                </p>
-              ) : null}
-
-              <Button
-                type="button"
-                className="w-full"
-                disabled={proposal.isPending}
-                onClick={() =>
-                  proposal.mutate({
-                    requestId,
-                    requestType: toRequestType(normalizedKind),
-                    proposedQuantity: proposedQuantity.trim()
-                      ? Number(proposedQuantity)
-                      : null,
-                    proposedPrice: proposedPrice.trim()
-                      ? Number(proposedPrice)
-                      : null,
-                    notes: notes.trim() || null,
-                  })
-                }
-              >
-                {proposal.isPending ? "Sending…" : "Send counter-proposal"}
-              </Button>
-
-              {canUpdateOrderStatus ? (
-                <Link
-                  href={`/dashboard/broker/requests/${requestId}/order-status?kind=${encodeURIComponent(normalizedKind)}`}
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "inline-flex w-full justify-center",
-                  )}
-                >
-                  Update order status
-                </Link>
-              ) : null}
+            <CardContent className="py-4">
+              <HistoryTimeline entries={history} />
             </CardContent>
           </Card>
         </div>
@@ -681,19 +716,7 @@ export function RequestDetailPage({
             <Button
               type="button"
               disabled={proposal.isPending}
-              onClick={() =>
-                proposal.mutate({
-                  requestId,
-                  requestType: toRequestType(normalizedKind),
-                  proposedQuantity: proposedQuantity.trim()
-                    ? Number(proposedQuantity)
-                    : null,
-                  proposedPrice: proposedPrice.trim()
-                    ? Number(proposedPrice)
-                    : null,
-                  notes: notes.trim() || null,
-                })
-              }
+              onClick={() => void submitProposal()}
             >
               {proposal.isPending ? "Sending…" : "Send Proposal"}
             </Button>

@@ -504,6 +504,10 @@
       "intentBuy": "ግዢ",
       "intentSell": "ሽያጭ"
     },
+    "requests": {
+      "proposalSentSuccess": "ጥቆማ በተሳካ ሁኔታ ተልኳል።",
+      "counterProposalSentSuccess": "የተቃወመ ጥቆማ በተሳካ ሁኔታ ተልኳል።"
+    },
     "listings": {
       "loading": "ዝርዝሮች በመጫን ላይ…",
       "title": "ዝርዝሮቼ",
@@ -1004,7 +1008,7 @@
       "activateBody": "ዝርዝሮችን ለመመልከት እና ንግድ ለመጀመር የኢንቨስተር ማንቃት ያጠናቅቁ።",
       "activateCta": "መገለጫ አጠናቅ",
       "aiSearchPlaceholder": "በእንግሊዝኛ ወይም በአማርኛ ይፈልጉ — ለምሳሌ «የባንክ አክሲዮን ከETB 200 በታች»",
-      "aiSearchButton": "AI ፍለጋ",
+      "aiSearchButton": "ፍለጋ",
       "sectorLabel": "ሴክተር",
       "sectorAll": "ሁሉም ሴክተሮች",
       "minPriceLabel": "ዝቅተኛ ዋጋ (ETB)",
