@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 interface VerifyPageProps {
   searchParams?: Promise<{
     doc?: string;
+    documentNumber?: string;
     hash?: string;
   }>;
 }
@@ -15,7 +16,7 @@ export default async function VerifyTradeAgreementPage({
   const params = (await searchParams) ?? {};
   return (
     <VerifyAgreementClient
-      initialDocumentNumber={params.doc ?? ""}
+      initialDocumentNumber={params.doc ?? params.documentNumber ?? ""}
       initialHash={params.hash ?? ""}
     />
   );
