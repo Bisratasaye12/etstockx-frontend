@@ -18,6 +18,21 @@ export function usePendingBrokerApplications() {
   });
 }
 
+export function usePendingBrokerApplication(applicationId: string | null) {
+  return useQuery({
+    queryKey: ["admin", "brokers", "pending", "detail", applicationId] as const,
+    enabled: Boolean(applicationId),
+    queryFn: async () => {
+      const { data } = await browserApi.get<BrokerApplication[]>(
+        "/v1/auth/brokers/pending",
+      );
+      return (
+        data.find((application) => application.id === applicationId) ?? null
+      );
+    },
+  });
+}
+
 export function useVerifyBrokerApplication() {
   const qc = useQueryClient();
   return useMutation({
