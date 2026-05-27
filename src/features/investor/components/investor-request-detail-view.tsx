@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, CheckCircle2, Download, Loader2, Info } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2, Info } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { buttonVariants } from "@/shared/ui/button";
@@ -18,6 +18,7 @@ import {
   useInvestorSellRequestDetail,
 } from "@/features/investor/api/use-investor-trade-request-detail";
 import { InvestorRequestNegotiationView } from "@/features/investor/components/investor-request-negotiation-view";
+import { TradeAgreementCard } from "@/features/documents/components/trade-agreement-card";
 
 type Kind = "buy" | "sell";
 
@@ -254,18 +255,6 @@ export function InvestorRequestDetailView({
             })}
           </p>
         </div>
-        <button
-          type="button"
-          disabled
-          title={t("receiptDisabledHint")}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "default" }),
-            "h-11 gap-2 rounded-lg border font-semibold shadow-none disabled:opacity-60",
-          )}
-        >
-          <Download className="size-4" aria-hidden />
-          {t("downloadReceipt")}
-        </button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
@@ -516,6 +505,13 @@ export function InvestorRequestDetailView({
           </CardContent>
         </Card>
       </div>
+
+      <TradeAgreementCard
+        requestId={request.id}
+        kind={kind}
+        requestStatus={status}
+        viewerRole="Client"
+      />
 
       {isFilled ? (
         <div className="border-emerald-500/30 bg-emerald-500/10 text-emerald-950 dark:text-emerald-100 flex items-start gap-3 rounded-xl border px-4 py-3.5 dark:border-emerald-500/25">
