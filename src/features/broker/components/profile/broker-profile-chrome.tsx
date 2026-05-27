@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, Lock, MonitorSmartphone, Shield, UserRound } from "lucide-react";
+import {
+  Bell,
+  FileText,
+  Lock,
+  MonitorSmartphone,
+  Shield,
+  UserRound,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/shared/i18n/routing";
 import { cn } from "@/shared/lib/utils";
@@ -13,7 +20,8 @@ type NavKey =
   | "navChangePassword"
   | "navTwoFactor"
   | "navSessions"
-  | "navNotifications";
+  | "navNotifications"
+  | "navNotificationHistory";
 
 const NAV: { href: string; key: NavKey; icon: typeof UserRound }[] = [
   { href: "/profile/broker", key: "navProfile", icon: UserRound },
@@ -33,6 +41,11 @@ const NAV: { href: string; key: NavKey; icon: typeof UserRound }[] = [
     key: "navNotifications",
     icon: Bell,
   },
+  {
+    href: "/profile/broker/notifications/history",
+    key: "navNotificationHistory",
+    icon: FileText,
+  },
 ];
 
 function isBrokerProfileHome(pathname: string) {
@@ -43,6 +56,10 @@ function isBrokerProfileHome(pathname: string) {
 function isNavActive(pathname: string, href: string) {
   if (href === "/profile/broker") {
     return isBrokerProfileHome(pathname);
+  }
+  // Don't highlight the preferences tab when user is on the history screen.
+  if (href === "/profile/broker/notifications") {
+    return pathname === href;
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

@@ -15,6 +15,7 @@ import { makeStore } from "@/shared/store";
 import { attachBrowserApiAuth } from "@/shared/api/browser-api";
 import { AuthReduxSync } from "@/features/auth/components/auth-redux-sync";
 import { ToastProvider } from "@/shared/ui/toast";
+import { NotificationsSignalRProvider } from "@/features/notifications/realtime/notifications-signalr-provider";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache(),
@@ -84,6 +85,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
         <ReduxProvider store={reduxStore}>
           <AuthReduxSync />
           <ToastProvider>
+            <NotificationsSignalRProvider />
             <ApiAuthBridge>{children}</ApiAuthBridge>
           </ToastProvider>
         </ReduxProvider>

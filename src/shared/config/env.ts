@@ -34,3 +34,38 @@ export function getServerApiBaseUrl(): string {
     process.env.API_URL ?? "http://localhost:8080",
   );
 }
+
+/**
+ * Browser: backend origin for SignalR hubs (WebSockets). REST can stay on
+ * `/api/backend` via `NEXT_PUBLIC_API_URL`; set this to the same host as `API_URL`.
+ */
+export function getPublicBackendOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_BACKEND_ORIGIN?.trim();
+  if (!raw) return null;
+
+  try {
+    const url = raw.startsWith("http") ? raw : `http://${raw}`;
+    return new URL(normalizeServerApiOrigin(url)).origin;
+  } catch {
+    return null;
+  }
+}
+
+const NOTIFICATIONS_HUB_PATH = "/hubs/notifications";
+
+/** Absolute SignalR hub URL, or null when backend origin is not configured. */
+export function getNotificationsHubUrl(): string | null {
+  const fromEnv = getPublicBackendOrigin();
+  if (fromEnv) return `${fromEnv}${NOTIFICATIONS_HUB_PATH}`;
+
+  const apiBase = getPublicApiBaseUrl();
+  if (apiBase.startsWith("http://") || apiBase.startsWith("https://")) {
+    try {
+      return `${new URL(apiBase).origin}${NOTIFICATIONS_HUB_PATH}`;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
