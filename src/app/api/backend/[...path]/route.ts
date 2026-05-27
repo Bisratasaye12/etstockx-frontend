@@ -59,9 +59,13 @@ async function proxy(
       redirect: "follow",
     };
 
+    // Buffer the body instead of streaming req.body with duplex. On Vercel, streaming +
+    // non-2xx upstream responses (e.g. login 401) often makes fetch throw → false 502.
     if (method !== "GET" && method !== "HEAD") {
-      init.body = req.body;
-      (init as { duplex?: "half" }).duplex = "half";
+      const body = await req.arrayBuffer();
+      if (body.byteLength > 0) {
+        init.body = body;
+      }
     }
 
     const upstream = await fetch(upstreamUrl, init);

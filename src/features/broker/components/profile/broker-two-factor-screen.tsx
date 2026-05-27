@@ -3,15 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import {
-  AlertTriangle,
-  ArrowRight,
-  Download,
-  Eye,
-  EyeOff,
-  Info,
-  Shield,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight, Eye, EyeOff, Shield } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Link } from "@/shared/i18n/routing";
 import { useConfirmMfa } from "@/features/broker/api/use-confirm-mfa";
@@ -389,20 +381,6 @@ export function BrokerTwoFactorScreen() {
                 </div>
               </div>
             </div>
-
-            <div className="flex gap-3 rounded-xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm text-sky-950 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-100">
-              <Info
-                className="size-5 shrink-0 text-sky-700 dark:text-sky-300"
-                aria-hidden
-              />
-              <div>
-                <p className="leading-relaxed">{t("recoveryBody")}</p>
-                <span className="text-muted-foreground mt-2 inline-flex items-center gap-2 text-xs font-medium">
-                  <Download className="size-3.5 opacity-70" aria-hidden />
-                  {t("recoveryUnavailable")}
-                </span>
-              </div>
-            </div>
           </div>
 
           <aside
@@ -411,10 +389,10 @@ export function BrokerTwoFactorScreen() {
               "bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-md lg:sticky lg:top-6",
             )}
           >
-            <h3 className="text-lg font-semibold tracking-tight">
+            <h3 className="text-lg font-semibold tracking-tight text-white">
               {t("asideTitle")}
             </h3>
-            <p className="mt-3 text-sm leading-relaxed text-slate-200">
+            <p className="mt-3 text-sm leading-relaxed text-slate-100">
               {t("asideBody")}
             </p>
           </aside>
@@ -604,9 +582,6 @@ export function BrokerTwoFactorScreen() {
                 >
                   <p className="leading-relaxed">{t("successBody")}</p>
                   <p className="text-primary mt-3 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-semibold">
-                    <span className="text-muted-foreground font-normal">
-                      {t("successRecoveryNote")}
-                    </span>
                     <Link
                       href="/profile/broker/two-factor"
                       className="hover:underline"
