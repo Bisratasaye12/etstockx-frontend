@@ -6,11 +6,13 @@ import {
   usePendingBrokerApplications,
   useVerifyBrokerApplication,
 } from "@/features/admin/api/use-pending-brokers";
+import { Link } from "@/shared/i18n/routing";
 import { browserApi } from "@/shared/api/browser-api";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { cn } from "@/shared/lib/utils";
 import {
   Card,
   CardContent,
@@ -111,6 +113,14 @@ export function PendingBrokersPanel() {
                   </ul>
                 ) : null}
                 <div className="flex flex-wrap gap-2 pt-2">
+                  <Link
+                    href={`/admin/brokers/${app.id}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                    )}
+                  >
+                    {t("brokers.view")}
+                  </Link>
                   <Button
                     type="button"
                     size="sm"
