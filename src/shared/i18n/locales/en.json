@@ -702,6 +702,7 @@
       "navTwoFactor": "Two-Factor Auth",
       "navSessions": "Active Sessions",
       "navNotifications": "Notifications",
+      "navNotificationHistory": "Notification history",
       "acceptingCardTitle": "Accepting New Requests",
       "acceptingCardDesc": "Control your visibility to potential investors and clients.",
       "toggleOpen": "OPEN",
@@ -839,7 +840,8 @@
       "navChangePassword": "Change password",
       "navTwoFactor": "Two-factor authentication",
       "navSessions": "Active sessions",
-      "navNotifications": "Notifications"
+      "navNotifications": "Notifications",
+      "navNotificationHistory": "Notification history"
     },
     "profileSecurity": {
       "sessions": {
@@ -1791,6 +1793,7 @@
       "navTwoFactor": "Two-factor authentication",
       "navSessions": "Active sessions",
       "navNotifications": "Notifications",
+      "navNotificationHistory": "Notification history",
       "account": {
         "signedInLabel": "Signed in as",
         "securityHint": "Administrator access is highly privileged. Use a strong unique password, enable two-factor authentication, and review active sessions regularly.",

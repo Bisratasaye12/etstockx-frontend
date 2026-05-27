@@ -19,6 +19,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Textarea } from "@/shared/ui/textarea";
 import { useToast } from "@/shared/ui/toast";
+import { TradeAgreementCard } from "@/features/documents/components/trade-agreement-card";
 
 function toRequestType(kind: string): 0 | 1 {
   return kind.toLowerCase().includes("sell") ? 1 : 0;
@@ -436,6 +437,13 @@ export function RequestDetailPage({
             </CardContent>
           </Card>
         </div>
+
+        <TradeAgreementCard
+          requestId={requestId}
+          kind={normalizedKind.toLowerCase().includes("sell") ? "sell" : "buy"}
+          requestStatus={request.status}
+          viewerRole="Broker"
+        />
       </div>
     );
   }
@@ -608,6 +616,13 @@ export function RequestDetailPage({
             </CardContent>
           </Card>
         </div>
+
+        <TradeAgreementCard
+          requestId={requestId}
+          kind={normalizedKind.toLowerCase().includes("sell") ? "sell" : "buy"}
+          requestStatus={request.status}
+          viewerRole="Broker"
+        />
       </div>
     );
   }

@@ -701,6 +701,7 @@
       "navTwoFactor": "ሁለት-ደረጃ ማረጋገጫ",
       "navSessions": "ንቁ ክፍለ ጊዜዎች",
       "navNotifications": "ማሳወቂያዎች",
+      "navNotificationHistory": "የማሳወቂያ ታሪክ",
       "acceptingCardTitle": "አዲስ ጥያቄዎችን መቀበል",
       "acceptingCardDesc": "ለሚፈልጉ ኢንቨስተሮች እና ደንበኞች ታይነትዎን ይቆጣጠሩ።",
       "toggleOpen": "ክፍት",
@@ -838,7 +839,8 @@
       "navChangePassword": "የይለፍ ቃል ለውጥ",
       "navTwoFactor": "ሁለት-ደረጃ ማረጋገጫ",
       "navSessions": "ንቁ ክፍለ ጊዜዎች",
-      "navNotifications": "ማሳወቂያዎች"
+      "navNotifications": "ማሳወቂያዎች",
+      "navNotificationHistory": "የማሳወቂያ ታሪክ"
     },
     "profileSecurity": {
       "sessions": {
@@ -1787,6 +1789,7 @@
       "navTwoFactor": "ሁለት-ደረጃ ማረጋገጫ",
       "navSessions": "ንቁ ክፍለ ጊዜዎች",
       "navNotifications": "ማሳወቂያዎች",
+      "navNotificationHistory": "የማሳወቂያ ታሪክ",
       "account": {
         "signedInLabel": "የገቡበት መለያ",
         "securityHint": "የአስተዳዳድ መዳረሻ ከፍተኛ ጥበቃ ያስፈልገዋል። ጠንካራ የተለየ የይለፍ ቃል ይጠቀሙ፣ ሁለት-ደረጃ ማረጋገጫ ያንቁ እና ንቁ ክፍለ ጊዜዎችን በየጊዜው ይገምግሙ።",
