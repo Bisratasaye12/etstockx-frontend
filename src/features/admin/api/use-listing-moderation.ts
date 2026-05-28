@@ -46,6 +46,37 @@ function normalizePagedListings(
   };
 }
 
+/** Normalizes listing detail shape (camelCase vs PascalCase) from the API. */
+function normalizeListingDetail(raw: unknown): ListingDetailDto {
+  const d = (raw ?? {}) as Record<string, unknown>;
+  return {
+    id: String(d.id ?? d.Id ?? ""),
+    securityId: String(d.securityId ?? d.SecurityId ?? ""),
+    brokerId: String(d.brokerId ?? d.BrokerId ?? ""),
+    brokerName: (d.brokerName ?? d.BrokerName ?? null) as string | null,
+    brokerInstitution: (d.brokerInstitution ?? d.BrokerInstitution ?? null) as
+      | string
+      | null,
+    instrumentName: String(d.instrumentName ?? d.InstrumentName ?? ""),
+    ticker: (d.ticker ?? d.Ticker ?? null) as string | null,
+    sector: (d.sector ?? d.Sector ?? null) as string | null,
+    price: Number(d.price ?? d.Price ?? 0),
+    currency: String(d.currency ?? d.Currency ?? ""),
+    securityReferencePrice: (d.securityReferencePrice ??
+      d.SecurityReferencePrice ??
+      null) as number | null,
+    quantity: Number(d.quantity ?? d.Quantity ?? 0),
+    minLotSize: (d.minLotSize ?? d.MinLotSize ?? null) as number | null,
+    notes: (d.notes ?? d.Notes ?? d.note ?? d.Note ?? null) as string | null,
+    status: (d.status ?? d.Status ?? null) as string | null,
+    validFrom: (d.validFrom ?? d.ValidFrom ?? null) as string | null,
+    validTo: (d.validTo ?? d.ValidTo ?? null) as string | null,
+    viewCount: Number(d.viewCount ?? d.ViewCount ?? 0),
+    createdAt: String(d.createdAt ?? d.CreatedAt ?? ""),
+    updatedAt: String(d.updatedAt ?? d.UpdatedAt ?? ""),
+  };
+}
+
 export function useModerationQueue(page = 1, pageSize = 50) {
   return useQuery({
     queryKey: listingModerationKeys.queue(page, pageSize),
@@ -64,10 +95,10 @@ export function useListingDetail(listingId: string | null) {
     queryKey: listingModerationKeys.detail(listingId),
     enabled: Boolean(listingId),
     queryFn: async () => {
-      const { data } = await browserApi.get<ListingDetailDto>(
+      const { data } = await browserApi.get<unknown>(
         `/v1/market/listings/${listingId}`,
       );
-      return data;
+      return normalizeListingDetail(data);
     },
   });
 }
