@@ -16,6 +16,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { buttonVariants } from "@/shared/ui/button";
 import { SettlementBankSelect } from "@/features/profiles/components/settlement-bank-select";
+import { FieldLabelWithInfo } from "@/features/profiles/components/field-label-with-info";
 import {
   normalizeRiskProfileForApi,
   resolveAccountNicknameForComplete,
@@ -62,6 +63,10 @@ export function InvestorProfileOnboarding({ profile }: Props) {
   const [settlementBank, setSettlementBank] = useState(
     profile.settlementBank ?? "",
   );
+  const [accountNumber, setAccountNumber] = useState(
+    profile.accountNumber ?? "",
+  );
+  const [dematAccount, setDematAccount] = useState(profile.dematAccount ?? "");
   const [riskProfile, setRiskProfile] = useState(profile.riskProfile ?? "");
 
   const canActivate = useMemo(() => {
@@ -69,9 +74,18 @@ export function InvestorProfileOnboarding({ profile }: Props) {
       legalName.trim() &&
       address.trim() &&
       settlementBank.trim() &&
+      accountNumber.trim() &&
+      dematAccount.trim() &&
       riskProfile.trim(),
     );
-  }, [legalName, address, settlementBank, riskProfile]);
+  }, [
+    legalName,
+    address,
+    settlementBank,
+    accountNumber,
+    dematAccount,
+    riskProfile,
+  ]);
 
   const saveDraftMutation = useMutation({
     mutationFn: async () => {
@@ -83,6 +97,8 @@ export function InvestorProfileOnboarding({ profile }: Props) {
         address: address.trim() || null,
         contactPerson: legalName.trim() || null,
         settlementBank: settlementBank.trim() || null,
+        accountNumber: accountNumber.trim() || null,
+        dematAccount: dematAccount.trim() || null,
         accountNickname: accountNickname.trim() || null,
         preferredLang: profile.preferredLang || "en",
       });
@@ -99,6 +115,8 @@ export function InvestorProfileOnboarding({ profile }: Props) {
         address: address.trim(),
         contactPerson: legalName.trim(),
         settlementBank: settlementBank.trim(),
+        accountNumber: accountNumber.trim(),
+        dematAccount: dematAccount.trim(),
         accountNickname: resolveAccountNicknameForComplete(
           accountNickname,
           legalName,
@@ -246,7 +264,12 @@ export function InvestorProfileOnboarding({ profile }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bank">{t("settlementBank")}</Label>
+              <Label htmlFor="bank">
+                {t("settlementBank")}
+                <span className="text-destructive ml-0.5" aria-hidden>
+                  *
+                </span>
+              </Label>
               <SettlementBankSelect
                 id="bank"
                 required
@@ -254,6 +277,44 @@ export function InvestorProfileOnboarding({ profile }: Props) {
                 onChange={setSettlementBank}
                 placeholder={t("bankPlaceholder")}
               />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="account-number">
+                  {t("accountNumber")}
+                  <span className="text-destructive ml-0.5" aria-hidden>
+                    *
+                  </span>
+                </Label>
+                <Input
+                  id="account-number"
+                  className="h-11 rounded-lg font-mono"
+                  placeholder={t("accountNumberPlaceholder")}
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <FieldLabelWithInfo
+                  htmlFor="demat-account"
+                  label={t("dematAccount")}
+                  hint={t("dematAccountHint")}
+                  required
+                />
+                <Input
+                  id="demat-account"
+                  className="h-11 rounded-lg font-mono"
+                  placeholder={t("dematAccountPlaceholder")}
+                  value={dematAccount}
+                  onChange={(e) => setDematAccount(e.target.value)}
+                  autoComplete="off"
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-3">

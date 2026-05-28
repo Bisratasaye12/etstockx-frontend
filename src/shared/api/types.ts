@@ -47,6 +47,8 @@ export interface ClientProfile {
   address: string | null;
   contactPerson: string | null;
   settlementBank: string | null;
+  accountNumber: string | null;
+  dematAccount: string | null;
   accountNickname: string | null;
   avatarPath: string | null;
   profileImageUrl: string | null;
