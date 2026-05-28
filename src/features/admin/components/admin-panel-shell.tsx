@@ -23,6 +23,7 @@ import {
 } from "@/shared/lib/sidebar-layout";
 import { DashboardHeaderProfileMenu } from "@/shared/ui/dashboard-header-profile-menu";
 import { SidebarCollapseToggle } from "@/shared/ui/sidebar-collapse-toggle";
+import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 
 function isActiveAdminNav(pathname: string, href: string): boolean {
   if (href === "/admin/overview") {
@@ -158,6 +159,7 @@ export function AdminPanelShell({ children }: AdminPanelShellProps) {
             <SidebarCollapseToggle className="hidden md:inline-flex" />
             <div className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1 md:gap-2">
+              <LocaleSwitcher />
               <NotificationBellDropdown
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}
                 enabled={status === "authenticated"}

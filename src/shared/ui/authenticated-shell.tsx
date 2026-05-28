@@ -20,6 +20,7 @@ import { BrokerPortalChrome } from "@/features/broker/components/layout/broker-p
 import { InvestorPortalChrome } from "@/features/investor/components/layout/investor-portal-chrome";
 import { INVESTOR_PORTAL_NAV } from "@/features/investor/config";
 import { AdminPanelShell } from "@/features/admin/components/admin-panel-shell";
+import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 
 type ShellItem = {
   key: string;
@@ -124,6 +125,7 @@ export function AuthenticatedShell({
           </Link>
           <div className="flex-1" />
           <div className="flex items-center gap-2">
+            <LocaleSwitcher />
             <NotificationBellDropdown
               viewAllHref={getNotificationsFullPagePath(effectiveRole)}
               enabled={status === "authenticated"}

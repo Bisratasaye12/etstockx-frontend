@@ -33,6 +33,7 @@ import {
   portalSidebarNavLabelClass,
 } from "@/shared/lib/sidebar-layout";
 import { SidebarCollapseToggle } from "@/shared/ui/sidebar-collapse-toggle";
+import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 
 export type BrokerPortalNavItem = {
   href: string;
@@ -260,6 +261,7 @@ export function BrokerPortalChrome({ children }: Props) {
             <SidebarCollapseToggle />
             <div className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1">
+              <LocaleSwitcher />
               <NotificationBellDropdown
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}
                 enabled={status === "authenticated"}

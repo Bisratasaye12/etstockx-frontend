@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import {
   usePendingBrokerApplication,
@@ -21,12 +22,25 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 
-async function openBrokerDocument(documentId: string) {
+async function fetchBrokerDocumentBlob(
+  documentId: string,
+  download: boolean,
+): Promise<Blob> {
   const res = await browserApi.get(`/v1/auth/brokers/documents/${documentId}`, {
+    params: { download },
     responseType: "blob",
   });
-  const url = URL.createObjectURL(res.data as Blob);
-  window.open(url, "_blank", "noopener,noreferrer");
+  return res.data as Blob;
+}
+
+function triggerDownload(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
@@ -55,8 +69,17 @@ export function BrokerApplicationDetailPage({
   const [reason, setReason] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [docLoadingId, setDocLoadingId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewName, setPreviewName] = useState<string | null>(null);
+  const [previewMimeType, setPreviewMimeType] = useState<string | null>(null);
   const { data, isLoading, error } = usePendingBrokerApplication(applicationId);
   const verify = useVerifyBrokerApplication();
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const submittedAt = useMemo(
     () => formatDateTime(data?.submittedAt, locale),
@@ -165,12 +188,36 @@ export function BrokerApplicationDetailPage({
                       disabled={docLoadingId === doc.id}
                       onClick={() => {
                         setDocLoadingId(doc.id);
-                        void openBrokerDocument(doc.id)
+                        void fetchBrokerDocumentBlob(doc.id, false)
+                          .then((blob) => {
+                            if (previewUrl) URL.revokeObjectURL(previewUrl);
+                            const url = URL.createObjectURL(blob);
+                            setPreviewUrl(url);
+                            setPreviewName(doc.fileName ?? doc.id);
+                            setPreviewMimeType(blob.type || null);
+                          })
                           .catch(() => {})
                           .finally(() => setDocLoadingId(null));
                       }}
                     >
                       {docLoadingId === doc.id ? "…" : t("brokers.viewDoc")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={docLoadingId === doc.id}
+                      onClick={() => {
+                        setDocLoadingId(doc.id);
+                        void fetchBrokerDocumentBlob(doc.id, true)
+                          .then((blob) => {
+                            triggerDownload(blob, doc.fileName ?? "document");
+                          })
+                          .catch(() => {})
+                          .finally(() => setDocLoadingId(null));
+                      }}
+                    >
+                      {t("brokers.downloadDoc")}
                     </Button>
                   </li>
                 ))}
@@ -181,6 +228,48 @@ export function BrokerApplicationDetailPage({
               </p>
             )}
           </div>
+
+          {previewUrl ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-base">{t("brokers.previewTitle")}</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (previewUrl) URL.revokeObjectURL(previewUrl);
+                    setPreviewUrl(null);
+                    setPreviewName(null);
+                    setPreviewMimeType(null);
+                  }}
+                >
+                  {t("brokers.closePreview")}
+                </Button>
+              </div>
+              <p className="text-muted-foreground text-xs">{previewName}</p>
+              <div className="border-border bg-muted/20 h-[70vh] overflow-hidden rounded-lg border">
+                {previewMimeType?.startsWith("image/") ? (
+                  <div className="relative h-full w-full p-2">
+                    <Image
+                      src={previewUrl}
+                      alt={previewName ?? "Document preview"}
+                      fill
+                      unoptimized
+                      sizes="100vw"
+                      className="object-contain"
+                    />
+                  </div>
+                ) : (
+                  <iframe
+                    src={previewUrl}
+                    title={previewName ?? "Document preview"}
+                    className="h-full w-full"
+                  />
+                )}
+              </div>
+            </div>
+          ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="broker-decision-reason">

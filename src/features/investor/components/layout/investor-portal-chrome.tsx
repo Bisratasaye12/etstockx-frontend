@@ -28,6 +28,7 @@ import {
   portalSidebarNavRowClass,
 } from "@/shared/lib/sidebar-layout";
 import { SidebarCollapseToggle } from "@/shared/ui/sidebar-collapse-toggle";
+import { LocaleSwitcher } from "@/shared/ui/locale-switcher";
 
 type InvestorPortalChromeProps = {
   children: ReactNode;
@@ -150,6 +151,7 @@ export function InvestorPortalChrome({ children }: InvestorPortalChromeProps) {
             <SidebarCollapseToggle className="hidden md:inline-flex" />
             <div className="min-w-0 flex-1" />
             <div className="flex shrink-0 items-center gap-1 md:gap-2">
+              <LocaleSwitcher />
               <NotificationBellDropdown
                 viewAllHref={getNotificationsFullPagePath(sessionRole)}
                 enabled={status === "authenticated"}
