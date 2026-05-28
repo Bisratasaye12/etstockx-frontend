@@ -27,6 +27,7 @@ import { Label } from "@/shared/ui/label";
 import { Badge } from "@/shared/ui/badge";
 import { Separator } from "@/shared/ui/separator";
 import { SettlementBankSelect } from "@/features/profiles/components/settlement-bank-select";
+import { FieldLabelWithInfo } from "@/features/profiles/components/field-label-with-info";
 import { normalizeRiskProfileForApi } from "@/features/profiles/lib/profile-api-normalize";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 
@@ -83,6 +84,10 @@ export function InvestorMyProfile({ profile }: Props) {
   const [settlementBank, setSettlementBank] = useState(
     profile.settlementBank ?? "",
   );
+  const [accountNumber, setAccountNumber] = useState(
+    profile.accountNumber ?? "",
+  );
+  const [dematAccount, setDematAccount] = useState(profile.dematAccount ?? "");
 
   useEffect(() => {
     const { first, last } = splitLegalName(profile.contactPerson);
@@ -93,6 +98,8 @@ export function InvestorMyProfile({ profile }: Props) {
     setCity(c);
     setPreferredLang(profile.preferredLang === "am" ? "am" : "en");
     setSettlementBank(profile.settlementBank ?? "");
+    setAccountNumber(profile.accountNumber ?? "");
+    setDematAccount(profile.dematAccount ?? "");
   }, [profile]);
 
   const mergedAddress = useMemo(() => {
@@ -112,11 +119,30 @@ export function InvestorMyProfile({ profile }: Props) {
         contactPerson,
         address: mergedAddress || null,
         preferredLang,
-        settlementBank: settlementBank.trim() || null,
         riskProfile: profile.riskProfile?.trim()
           ? normalizeRiskProfileForApi(profile.riskProfile)
           : null,
         accountNickname: profile.accountNickname ?? null,
+      });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: profileKeys.clientMe() });
+    },
+  });
+
+  const bankMutation = useMutation({
+    mutationFn: async () => {
+      await browserApi.put("/v1/profiles/client/me", {
+        settlementBank: settlementBank.trim() || null,
+        accountNumber: accountNumber.trim() || null,
+        dematAccount: dematAccount.trim() || null,
+        accountNickname: profile.accountNickname ?? null,
+        address: profile.address ?? null,
+        contactPerson: profile.contactPerson ?? null,
+        preferredLang: profile.preferredLang ?? "en",
+        riskProfile: profile.riskProfile?.trim()
+          ? normalizeRiskProfileForApi(profile.riskProfile)
+          : null,
       });
     },
     onSuccess: () => {
@@ -186,6 +212,8 @@ export function InvestorMyProfile({ profile }: Props) {
     setCity(c);
     setPreferredLang(profile.preferredLang === "am" ? "am" : "en");
     setSettlementBank(profile.settlementBank ?? "");
+    setAccountNumber(profile.accountNumber ?? "");
+    setDematAccount(profile.dematAccount ?? "");
   }
 
   const tabs: {
@@ -423,28 +451,6 @@ export function InvestorMyProfile({ profile }: Props) {
                     <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
                     {t("legalNameLocked")}
                   </p>
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-foreground text-sm font-medium">
-                        {t("dateOfBirth")}
-                      </Label>
-                      <Input
-                        className={cn(controlRound, "bg-muted/40")}
-                        disabled
-                        placeholder="—"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-foreground text-sm font-medium">
-                        {t("nationalId")}
-                      </Label>
-                      <Input
-                        className={cn(controlRound, "bg-muted/40")}
-                        disabled
-                        placeholder="—"
-                      />
-                    </div>
-                  </div>
                 </section>
 
                 <Separator />
@@ -628,15 +634,55 @@ export function InvestorMyProfile({ profile }: Props) {
                     className={cn(controlRound, "max-w-lg")}
                   />
                 </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="bank-account-number"
+                      className="text-foreground text-sm font-medium"
+                    >
+                      {t("accountNumber")}
+                    </Label>
+                    <Input
+                      id="bank-account-number"
+                      className={cn(controlRound, "max-w-lg font-mono")}
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      inputMode="numeric"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <FieldLabelWithInfo
+                      htmlFor="bank-demat-account"
+                      label={t("dematAccount")}
+                      hint={t("dematAccountHint")}
+                    />
+                    <Input
+                      id="bank-demat-account"
+                      className={cn(controlRound, "max-w-lg font-mono")}
+                      value={dematAccount}
+                      onChange={(e) => setDematAccount(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </div>
+                </div>
+                {bankMutation.isError ? (
+                  <p className="text-destructive text-sm" role="alert">
+                    {getApiErrorMessage(bankMutation.error)}
+                  </p>
+                ) : null}
                 <Button
                   type="button"
                   className="h-10 rounded-lg px-7 font-semibold shadow-sm"
-                  disabled={personalMutation.isPending}
-                  onClick={() => personalMutation.mutate()}
+                  disabled={
+                    bankMutation.isPending ||
+                    !settlementBank.trim() ||
+                    !accountNumber.trim() ||
+                    !dematAccount.trim()
+                  }
+                  onClick={() => bankMutation.mutate()}
                 >
-                  {personalMutation.isPending
-                    ? tc("loading")
-                    : t("saveChanges")}
+                  {bankMutation.isPending ? tc("loading") : t("saveChanges")}
                 </Button>
               </div>
             </div>
