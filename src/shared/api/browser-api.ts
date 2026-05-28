@@ -59,7 +59,11 @@ export function attachBrowserApiAuth(
       if (!original || original._retry) {
         return Promise.reject(error);
       }
-      if (error.response?.status !== 401) {
+      const status = error.response?.status;
+      // Some authorization checks (e.g. activated-user policy) return 403 for stale
+      // access-token claims even when refresh token can mint a fresh, valid token.
+      // Retry once after refresh for both 401 and 403.
+      if (status !== 401 && status !== 403) {
         return Promise.reject(error);
       }
       if (isAuthEndpoint(original.url)) {
