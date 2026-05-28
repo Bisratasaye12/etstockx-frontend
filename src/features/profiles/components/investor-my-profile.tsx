@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Clock,
   Download,
-  FileText,
   Landmark,
   Lock,
   Shield,
@@ -31,7 +30,7 @@ import { FieldLabelWithInfo } from "@/features/profiles/components/field-label-w
 import { normalizeRiskProfileForApi } from "@/features/profiles/lib/profile-api-normalize";
 import { getApiErrorMessage } from "@/shared/lib/api-error";
 
-type ProfileTab = "personal" | "security" | "bank" | "documents";
+type ProfileTab = "personal" | "security" | "bank";
 
 type Props = {
   profile: ClientProfile;
@@ -224,7 +223,6 @@ export function InvestorMyProfile({ profile }: Props) {
     { id: "personal", label: t("tabPersonal"), Icon: User },
     { id: "security", label: t("tabSecurity"), Icon: Shield },
     { id: "bank", label: t("tabBank"), Icon: Landmark },
-    { id: "documents", label: t("tabDocuments"), Icon: FileText },
   ];
 
   const displayName =
@@ -684,28 +682,6 @@ export function InvestorMyProfile({ profile }: Props) {
                 >
                   {bankMutation.isPending ? tc("loading") : t("saveChanges")}
                 </Button>
-              </div>
-            </div>
-          ) : null}
-
-          {tab === "documents" ? (
-            <div className={panelSurface}>
-              <div className="border-border border-b px-8 py-6">
-                <h2 className="text-lg font-semibold">{t("documentsTitle")}</h2>
-                <p className="text-muted-foreground mt-1.5 text-sm">
-                  {t("documentsDesc")}
-                </p>
-              </div>
-              <div className="space-y-5 px-8 py-8">
-                <Badge
-                  variant="outline"
-                  className="rounded-full px-3 py-1 font-medium"
-                >
-                  {profile.kycStatus ?? "—"}
-                </Badge>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  {t("documentsBody")}
-                </p>
               </div>
             </div>
           ) : null}
